@@ -1,56 +1,159 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block titulo %}WaterMeter{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    {% block css %}
-    <link rel="stylesheet" href="{% static 'estilocss/cssbase.css' %}">
-    {% endblock %}
-    <nav style="z-index: 1000;" class="navbar navbar-expand-lg bg-body-tertiary">
-      <div class="container-fluid">
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-              aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-              <ul class="navbar-nav me-auto mb-2 mt-3">
-                  <h3 class="text-info me-md-2 ml-1">Water Milimiter</h3>
-                  <li class="nav-item">
-                      <a class="nav-link text-info me-md-2" aria-current="page" href="{% url 'index' %}">Inicio</a>
-                  </li>
-                  <li class="nav-item dropdown">
-                  </li>
-                  <li class="nav-item">
-                    {%block board%}{%endblock%}
-                  </li>
-              </ul>
-              {%block sesion%}
-              {% endblock %}
-              
-          </div>
-      </div>
-  </nav>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}WaterMeter{% endblock %}</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
+        rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" 
+        crossorigin="anonymous">
+
+  <!-- CSS base -->
+  {% block css %}
+  <link rel="stylesheet" href="{% static 'estilocss/cssbase.css' %}">
+  <style>
+    /* Título dentro del navbar */
+    .navbar h3 {
+      font-weight: bold;
+      font-size: 1.8rem;
+      color: #ffffff !important;
+      margin: 0 15px 0 0;
+    }
+
+    /* Links del navbar */
+    .navbar .nav-link {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #ffffff !important;
+      text-transform: uppercase;
+      margin: 0 10px;
+    }
+
+    /* Contenedor interno centrado */
+    .navbar .collapse.navbar-collapse {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Footer */
+    .footer a:hover {
+      color: #00d9ff;
+      text-decoration: underline;
+    }
+
+    .footer i {
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .footer i:hover {
+      transform: scale(1.2);
+      color: #00d9ff;
+    }
+  </style>
+  {% endblock %}
+  {% block extra_css %}{% endblock %}
+
 </head>
-<body style="background-color: rgb(45, 9, 206);">
-    {% block contenido %}
-    {% endblock %}
+
+<body>
+  <!-- Contenedor principal -->
+  <div style="position: relative; width: 100%; height: 100vh; overflow: hidden;">
+    <!-- Imagen de fondo -->
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" 
+                aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mt-3">
+            <li class="nav-item">
+              <h3 class="text-info me-md-2 ml-1">Water Milimiter</h3>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-info me-md-2" href="{% url 'index' %}">Inicio</a>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="#">Acerca de</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Contacto</a></li>
+          </ul>
+
+          {% block sesion %}{% endblock %}
+        </div>
+      </div>
+    </nav>
+{% block contenido %}
+{% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer bg-dark text-light py-5">
+    <div class="container">
+      <div class="row text-center text-md-start">
+
+        <!-- Sección de información -->
+        <div class="col-md-4 mb-4">
+          <h5 class="fw-bold mb-3">WaterMeter</h5>
+          <p class="small">
+            Monitoreo inteligente de agua. Herramientas confiables para controlar tu consumo y mantener la eficiencia.
+          </p>
+        </div>
+
+        <!-- Sección de links rápidos -->
+        <div class="col-md-4 mb-4">
+          <h5 class="fw-bold mb-3">Enlaces</h5>
+          <ul class="list-unstyled">
+            <li><a href="{% url 'index' %}" class="text-light text-decoration-none">Inicio</a></li>
+            <li><a href="#" class="text-light text-decoration-none">Acerca de</a></li>
+            <li><a href="#" class="text-light text-decoration-none">Soporte</a></li>
+            <li><a href="#" class="text-light text-decoration-none">Contacto</a></li>
+          </ul>
+        </div>
+
+        <!-- Sección de redes sociales -->
+        <div class="col-md-4 mb-4">
+          <h5 class="fw-bold mb-3">Síguenos</h5>
+          <div class="d-flex justify-content-center justify-content-md-start gap-3">
+            <a href="#" class="text-light fs-4"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-light fs-4"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="text-light fs-4"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-light fs-4"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Línea divisoria -->
+      <hr class="border-top border-secondary">
+
+      <!-- Derechos de autor -->
+      <div class="text-center mt-3 small">
+        &copy; 2025 WaterMeter. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- JS para el efecto scroll -->
+  <script>
+    window.addEventListener("scroll", function () {
+      const navbar = document.querySelector(".navbar");
+      if (window.scrollY > 0) {
+        navbar.classList.add("scrolled");
+      } else {
+        navbar.classList.remove("scrolled");
+      }
+    });
+  </script>
+
+  <!-- Bootstrap icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
- 
-<footer class="bg-dark text-light text-center py-4  ">
-    <p>&copy;</p>
-    <p></p>
-
-    </footer>
- 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"></script>
-    
-
 </html>

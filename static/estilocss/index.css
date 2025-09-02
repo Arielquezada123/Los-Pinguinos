@@ -1,0 +1,16 @@
+.hero-waves .wave {
+  animation: waveMove 12s linear infinite;
+}
+
+.hero-waves .wave2 {
+  animation-duration: 18s;
+}
+
+.hero-waves .wave3 {
+  animation-duration: 24s;
+}
+
+@keyframes waveMove {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-1440px); }
+}

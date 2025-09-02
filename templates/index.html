@@ -7,15 +7,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
 </head>
+
 <body>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'estilocss/index.css' %}">
+{% endblock %}
+
 {% block contenido %}
 <div style="position: relative; width: 100%; height: 100vh; overflow: hidden;">
-    <img src="{% static 'portada.jpg' %}" alt="portada"
-         style="width: 100%; height: 100%; object-fit: cover;">
+  <!-- Imagen de fondo -->
+  <img src="{% static 'portada2.jpg' %}" 
+       style="width: 100%; height: 100%; object-fit: cover;">
+
+  <!-- Olas animadas -->
+  <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" 
+       style="position:absolute; bottom:0; width:100%; height:200px;">
+    <defs>
+      <!-- Path seamless para la ola -->
+      <path id="wave-path" d="M0,160 C360,200 1080,120 1440,160 L1440,320 L0,320 Z"></path>
+    </defs>
+
+    <!-- Olas superpuestas -->
+    <g class="wave wave1">
+      <use xlink:href="#wave-path" x="0" y="0" fill="rgba(255,255,255,0.7)"></use>
+      <use xlink:href="#wave-path" x="1440" y="0" fill="rgba(255,255,255,0.7)"></use>
+    </g>
+
+    <g class="wave wave2">
+      <use xlink:href="#wave-path" x="0" y="20" fill="rgba(255,255,255,0.5)"></use>
+      <use xlink:href="#wave-path" x="1440" y="20" fill="rgba(255,255,255,0.5)"></use>
+    </g>
+
+    <g class="wave wave3">
+      <use xlink:href="#wave-path" x="0" y="40" fill="rgba(255,255,255,0.3)"></use>
+      <use xlink:href="#wave-path" x="1440" y="40" fill="rgba(255,255,255,0.3)"></use>
+    </g>
+  </svg>
 </div>
-<div style="height:2000px; background: linear-gradient(#111, #444);"></div>
+
 {% endblock %}
+
 </body>
 
 
