@@ -1,13 +1,12 @@
-{%extends "base/base.html" %}
-{%load static%}
+{% extends "base/base.html" %}
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
 </head>
 
 <body>
@@ -17,6 +16,7 @@
 
 {% block contenido %}
 
+<!-- Portada -->
 <div style="position: relative; width: 100%; height: 100vh; overflow: hidden;">
   <!-- Imagen de fondo -->
   <img src="{% static 'portada2.jpg' %}" 
@@ -42,27 +42,96 @@
     </g>
 
     <g class="wave wave3">
-      <use xlink:href="#wave-path" href="#wave-path" x="0" y="40" fill="rgba(255,255,255,0.3)"></use>
-      <use xlink:href="#wave-path" href="#wave-path" x="1440" y="40" fill="rgba(255,255,255,0.3)"></use>
+      <use xlink:href="#wave-path" x="0" y="40" fill="#ffffff"></use>
+      <use xlink:href="#wave-path" x="1440" y="40" fill="#ffffff"></use>
     </g>
+
   </svg>
-  <svg id="action-help" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" >
-<defs>
-  <path id="qMark" d="M10 19h3v3h-3v-3m2-17c5.35.22 7.68 5.62 4.5 9.67-.83 1-2.17 1.66-2.83 2.5C13 15 13 16 13 17h-3c0-1.67 0-3.08.67-4.08.66-1 2-1.59 2.83-2.25C15.92 8.43 15.32 5.26 12 5a3 3 0 0 0-3 3H6a6 6 0 0 1 6-6z"></path>
-</defs>
-<use xlink:href="#qMark"/>
-</svg>
+
+  <!-- Icono -->
+  <svg id="action-help" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <path id="qMark" d="M10 19h3v3h-3v-3m2-17c5.35.22 7.68 5.62 4.5 9.67-.83 1-2.17 1.66-2.83 2.5C13 15 13 16 13 17h-3c0-1.67 0-3.08.67-4.08.66-1 2-1.59 2.83-2.25C15.92 8.43 15.32 5.26 12 5a3 3 0 0 0-3 3H6a6 6 0 0 1 6-6z"></path>
+    </defs>
+    <use xlink:href="#qMark"/>
+  </svg>
 
   <!-- Contenido centrado -->
   <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
-    <h1 style="font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">Bienvenido a La revoluciòn pinguina </h1>
-    <p style="font-size: 1.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">Explora y disfruta del poco contenido</p>
+    <h1 style="font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
+      Bienvenido a La revolución pinguina
+    </h1>
+    <p style="font-size: 1.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
+      Explora y disfruta del poco contenido
+    </p>
   </div>
 </div>
 
+<!-- Sección About -->
+<section id="about" class="about section">
+  <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+    <div class="row align-items-xl-center gy-5">
+
+      <div class="col-xl-5 content">
+        <h2>Dispositivo de monitorización de agua inteligente</h2>
+        <p style="text-align: justify;">
+          WaterMeter se basa en un dispositivo eléctronico capaz de medir el consumo de agua del hogar como tambien sectores agricolas.
+        </p>
+        <p style="text-align: justify;">
+          Capaz de medir los metros cubicos de agua consumida y un historial del agua consumida por meses.
+        </p>
+      </div>
+
+      <div class="col-xl-7">
+        <div class="row gy-4 icon-boxes">
+
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+            <div class="icon-box">
+              <i class="bi bi-collection-play"></i>
+              <h3>Usos</h3>
+              <p style="text-align: justify;">
+                Watermeter sirve para la medición <strong>en tiempo real</strong> en el hogar y el sector agricola.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+            <div class="icon-box">
+              <i class="bi bi-clipboard-check"></i>
+              <h3>Historial de datos</h3>
+              <p style="text-align: justify;">
+                Watermeter ofrece un historial de datos del agua consumida con el fin de las diferencias entre meses de consumo.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+            <div class="icon-box">
+              <i class="bi bi-cpu-fill"></i>
+              <h3>Rápida adaptación</h3>
+              <p style="text-align: justify;">
+                La aplicación se enfoca en su uso, por ello sera intuitiva para que el usuario aprenda de su uso de forma mas cómoda.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
+            <div class="icon-box">
+              <i class="bi bi-phone"></i>
+              <h3>Lectura de datos</h3>
+              <p style="text-align: justify;">
+                Watermeter entregará los datos a través de un teléfono celular con el fin de que el usuario pueda ver el estado del agua solo con acceso a internet.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 {% endblock %}
-
 </body>
-
-
 </html>

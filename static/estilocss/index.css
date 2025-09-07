@@ -1,16 +1,68 @@
-.hero-waves .wave {
-  animation: waveMove 12s linear infinite;
+/* Contenedor de las olas */
+.hero-waves {
+  display: block;
+  width: 100%;
+  height: 200px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 3;
 }
 
-.hero-waves .wave2 {
-  animation-duration: 18s;
+/* Ola 1 */
+.wave1 use {
+  animation: moveForever1 12s linear infinite;
+  animation-delay: -2s;
+  fill: var(--default-color, rgba(255,255,255,0.7));
+  opacity: 0.7;
 }
 
-.hero-waves .wave3 {
-  animation-duration: 24s;
+.wave1 {
+  animation: upDown 6s ease-in-out infinite;
 }
 
-@keyframes waveMove {
+/* Ola 2 */
+.wave2 use {
+  animation: moveForever2 18s linear infinite;
+  animation-delay: -2s;
+  fill: var(--default-color, rgba(255,255,255,0.5));
+  opacity: 0.5;
+}
+
+.wave2 {
+  animation: upDown 8s ease-in-out infinite;
+}
+
+/* Ola 3 */
+.wave3 use {
+  animation: moveForever3 24s linear infinite;
+  animation-delay: -2s;
+  fill: #ffffff; /* totalmente blanca */
+}
+
+.wave3 {
+  animation: upDown 10s ease-in-out infinite;
+}
+
+/* Movimiento horizontal */
+@keyframes moveForever1 {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-1440px); }
+}
+
+@keyframes moveForever2 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-1440px); }
+}
+
+@keyframes moveForever3 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-1440px); }
+}
+
+/* Movimiento vertical */
+@keyframes upDown {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); } /* ajusta según amplitud deseada */
 }
