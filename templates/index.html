@@ -1,15 +1,13 @@
-{%extends "base/base.html" %}
-{%load static%}
+{% extends "base/base.html" %}
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
 </head>
-
 <body>
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'estilocss/index.css' %}">
@@ -17,6 +15,7 @@
 
 {% block contenido %}
 
+<!-- Portada -->
 <div style="position: relative; width: 100%; height: 100vh; overflow: hidden;">
   <!-- Imagen de fondo -->
   <img src="{% static 'portada2.jpg' %}" 
@@ -42,27 +41,188 @@
     </g>
 
     <g class="wave wave3">
-      <use xlink:href="#wave-path" href="#wave-path" x="0" y="40" fill="rgba(255,255,255,0.3)"></use>
-      <use xlink:href="#wave-path" href="#wave-path" x="1440" y="40" fill="rgba(255,255,255,0.3)"></use>
+      <use xlink:href="#wave-path" x="0" y="40" fill="#ffffff"></use>
+      <use xlink:href="#wave-path" x="1440" y="40" fill="#ffffff"></use>
     </g>
+
   </svg>
-  <svg id="action-help" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" >
-<defs>
-  <path id="qMark" d="M10 19h3v3h-3v-3m2-17c5.35.22 7.68 5.62 4.5 9.67-.83 1-2.17 1.66-2.83 2.5C13 15 13 16 13 17h-3c0-1.67 0-3.08.67-4.08.66-1 2-1.59 2.83-2.25C15.92 8.43 15.32 5.26 12 5a3 3 0 0 0-3 3H6a6 6 0 0 1 6-6z"></path>
-</defs>
-<use xlink:href="#qMark"/>
-</svg>
+
+  <!-- Icono -->
+  <svg id="action-help" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <path id="qMark" d="M10 19h3v3h-3v-3m2-17c5.35.22 7.68 5.62 4.5 9.67-.83 1-2.17 1.66-2.83 2.5C13 15 13 16 13 17h-3c0-1.67 0-3.08.67-4.08.66-1 2-1.59 2.83-2.25C15.92 8.43 15.32 5.26 12 5a3 3 0 0 0-3 3H6a6 6 0 0 1 6-6z"></path>
+    </defs>
+    <use xlink:href="#qMark"/>
+  </svg>
+
+
 
   <!-- Contenido centrado -->
   <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
-    <h1 style="font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">Bienvenido a La revoluciòn pinguina </h1>
-    <p style="font-size: 1.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">Explora y disfruta del poco contenido</p>
+    <h1 class="animated-title" data-text="Bienvenido a la era TI">
+      Bienvenido a la era TI
+    </h1>
+    <p style="font-size: 1.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
+      Nos estamos acomodando 
+    </p>
   </div>
 </div>
 
+<!-- Sección About -->
+<section id="about" style="margin-bottom: 50px;" class="about section about-bg">
+<div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+    <div class="row align-items-xl-center gy-5" style="margin-bottom: 50px;">
+
+        <div class="col-xl-5 icon-box rounded bg-light p-4 shadow-sm">
+            <h2>Dispositivo de Monitorización de Agua Inteligente</h2>
+            <p style="text-align: justify;">
+                WaterMeter es un dispositivo electrónico diseñado para monitorear el consumo de agua en tiempo real proporcionando datos precisos y detallados.
+            </p>
+            <p style="text-align: justify;">
+                Mide el consumo de agua en metros cúbicos y ofrece un historial detallado de los consumos, facilitando la toma de decisiones informadas para un uso más eficiente del recurso.
+            </p>
+        </div>
+
+        <div class="col-xl-7">
+            <div class="row gy-4 icon-boxes">
+
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="icon-box rounded bg-light p-4 shadow-sm">
+                        <i class="bi bi-collection-play"></i>
+                        <h3>Usos del Dispositivo</h3>
+                        <p style="text-align: justify;">
+                            WaterMeter permite la medición <strong>en tiempo real</strong> tanto en hogares como en instalaciones agrícolas, asegurando un control preciso del consumo de agua.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="icon-box rounded bg-light p-4 shadow-sm">
+                        <i class="bi bi-clipboard-check"></i>
+                        <h3>Historial de Consumo</h3>
+                        <p style="text-align: justify;">
+                            WaterMeter genera un historial completo del consumo de agua, permitiendo comparar los datos mensuales y detectar patrones o irregularidades en el uso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="icon-box rounded bg-light p-4 shadow-sm">
+                        <i class="bi bi-cpu-fill"></i>
+                        <h3>Fácil Integración</h3>
+                        <p style="text-align: justify;">
+                            El dispositivo está diseñado para integrarse fácilmente en cualquier sistema de plomería, sin necesidad de modificaciones complicadas, adaptándose rápidamente al entorno.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
+                    <div class="icon-box rounded bg-light p-4 shadow-sm">
+                        <i class="bi bi-database-check"></i>
+                        <h3>Visualización de Datos</h3>
+                        <p style="text-align: justify;">
+                            WaterMeter ofrece una visualización clara de los datos de consumo, mostrando información detallada sobre los niveles de agua consumida en tiempo real.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+  <div class="row gy-4">
+    <div class="col-lg-12 d-flex flex-column justify-content-center">
+      <h3 style="text-align: center; margin-bottom: 20px;">Nosotros</h3>
+    </div>
+  </div>
+</div>
+
+<!-- Imagen + descripción -->
+<div class="container description-section" style="margin-bottom: 50px;">
+  <div class="row gy-4 align-items-center features-item">
+    <div class="col-md-5 order-1 order-md-2 d-flex align-items-center aos-init aos-animate">
+        <div class="animated-bg">
+            <img src="https://www.elteclado.com.ar/fotos/2023/03/22_porque-celebra-dia-mundial-agua.jpg" 
+                class="img-fluid">
+            <div class="gradient-overlay"></div>
+        </div>
+    </div>
+
+    <div  class="col-md-7 order-2 order-md-1 aos-init aos-animate about-box" data-aos="fade-up" data-aos-delay="200">
+      <h3>¿Quienes Somos?</h3>
+      <p class="fst-italic">
+        Somos un emprendimiento tecnológico orientado a la innovación y a la sostenibilidad, enfocado en desarrollar soluciones 
+        que promuevan el uso responsable de los recursos hídricos. 
+        Nuestro objetivo principal es brindar a las familias y comunidades una herramienta moderna y 
+        accesible que les permita conocer, controlar y optimizar su consumo de agua. Apostamos por la 
+        integración de tecnologías IoT y plataformas web intuitivas, con el propósito de generar 
+        conciencia ambiental y apoyar la gestión eficiente de un recurso vital para la humanidad.
+      </p>
+      <p>
+        Nos caracterizamos por combinar el compromiso ambiental con la innovación tecnológica, 
+        desarrollando herramientas que no solo facilitan la vida de los usuarios, 
+        sino que también contribuyen al cuidado del planeta. Nuestro trabajo busca generar impacto positivo
+        en los hogares y comunidades, entregando soluciones accesibles, confiables y adaptadas 
+        a las necesidades actuales en torno al consumo de agua. Creemos firmemente que la tecnología 
+        es un medio clave para fomentar hábitos responsables y construir un futuro más sostenible.
+      </p>
+      <p>
+        Nuestro principal fin es ofrecer una solución innovadora y sostenible que permita a las personas 
+        gestionar de manera eficiente su consumo de agua. Aspiramos a consolidarnos como un referente 
+        en el uso de tecnologías aplicadas al cuidado de los recursos naturales, contribuyendo así al 
+        bienestar de la sociedad y a la preservación de un recurso tan esencial como el agua.
+      </p>
+    </div>
+  </div>
+</div>
+
+  <!-- Tus columnas con icon-box -->
+  <div class="container" data-aos="fade-up" data-aos-delay="200">
+    <div class="row gy-3">
+
+      <!-- Columna 1 -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
+          <i class="bi bi-droplet text-primary icon1" style="font-size: 40px;"></i>
+          <h3>Medición en Tiempo Real</h3>
+          <p style="text-align: justify;">
+            WaterMilimiter ofrece mediciones precisas en tiempo real, permitiendo el monitoreo constante del consumo de agua sin importar la ubicación.
+          </p>
+        </div>
+      </div>
+
+      <!-- Columna 2 -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
+          <i class="bi bi-bar-chart-line text-primary icon2" style="font-size: 40px;"></i>
+          <h3>Historial Detallado</h3>
+          <p style="text-align: justify;">
+            Accede a un registro histórico detallado del consumo, lo que facilita la comparación entre diferentes periodos y el análisis de patrones de uso.
+          </p>
+        </div>
+      </div>
+
+      <!-- Columna 3 -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
+        <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
+          <i class="bi bi-gear-fill text-primary icon3" style="font-size: 40px;"></i>
+          <h3>Ajustes Personalizados</h3>
+          <p style="text-align: justify;">
+            El dispositivo permite configurar alertas y ajustes según las necesidades del usuario, optimizando el consumo de agua en función de los hábitos de uso.
+          </p>
+        </div>
+      </div>
+    </div> 
+
+</section>
+
+<div class="animation-container">
+  <div class="drop"></div>
+  <div class="wave"></div>
+</div>
 {% endblock %}
 
 </body>
-
-
 </html>

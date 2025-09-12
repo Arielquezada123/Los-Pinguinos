@@ -1,19 +1,55 @@
-/* Botones y links */
-.singin-btn{
-    display: inline-block;
+/* Navbar fija y transparente */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     padding: 10px 20px;
-    background-color: rgb(247, 247, 247); 
-    color: rgb(0, 0, 0);
-    border-radius: 200px;
-    transition: background-color 0.6s ease;
-    margin-right: 10px;
+    transition: background-color 0.4s ease, box-shadow 0.4s ease, padding 0.3s ease;
+    z-index: 1000;
 }
 
+/* Fondo semitransparente negro al hacer scroll */
+.navbar.scrolled {
+    background-color: rgba(0, 0, 0, 0.85);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Contenedor interno */
+.navbar .container-fluid {
+    display: flex;
+    flex-wrap: wrap; /* permite que los elementos bajen de línea en móviles */
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Navbar brand */
+.navbar h3 {
+    font-size: 1.8rem; 
+    font-weight: bold; 
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    color: #17a2b8; /* text-info */
+    margin-right: 15px;
+}
+
+/* Links principales */
+.navbar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Links individuales */
 .nav-link {
     position: relative;
     text-decoration: none;
     transition: all 0.3s ease;
-    margin-right: 10px;
+    margin: 0 5px;
+    white-space: nowrap; /* evita que se rompa el texto */
 }
 
 .nav-link::after {
@@ -32,69 +68,42 @@
     width: 100%;
 }
 
-.btn {
-    transition: all 0.3s ease;
+/* Botones de sesión */
+.singin-btn{
+    padding: 8px 16px; 
+    font-size: 0.9rem;
 }
 
-.btn:hover {
-    background-color: #ec8a1a; 
-    transform: scale(1.07);
+/* Ajustes para móviles */
+@media (max-width: 768px) {
+    .navbar h3 {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .navbar-nav {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .nav-link {
+        font-size: 0.95rem;
+        text-align: center;
+        margin: 3px 0;
+    }
+
+    .singin-btn {
+        width: 100%;
+        text-align: center;
+    }
 }
 
-.holdersesion{
-    font-size: 14px; 
-    color: #999; 
-}
+@media (max-width: 480px) {
+    .navbar h3 {
+        font-size: 1.2rem;
+    }
 
-.colortxtfto{
-    color: #1aec36;
+    .nav-link {
+        font-size: 0.85rem;
+    }
 }
-
-/* Contenedor principal y fondo */
-.main-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.main-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Navbar fija y transparente */
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 15px 20px;
-    transition: background-color 0.4s ease, box-shadow 0.4s ease;
-    z-index: 1000;
-}
-
-/* Fondo semitransparente negro al hacer scroll */
-.navbar.scrolled {
-  background-color: rgba(0, 0, 0, 0.85);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-/* Contenido interno centrado sin mover toda la barra */
-.navbar .container-fluid {
-    display: flex;
-    justify-content: center;   /* centra todo el contenido */
-    align-items: center;
-    gap: 20px;
-    max-width: 1200px;         /* evita que se estire demasiado */
-    margin: 0 auto;
-}
-
-/* Links dentro del navbar */
-.navbar-nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-
