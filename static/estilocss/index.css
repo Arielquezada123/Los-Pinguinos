@@ -108,74 +108,6 @@
 
 
 
-
-/*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ola de la letra de Titulo $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
-
-
-@import url("https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900");
-
-/* Reset y fuente solo para este scope si quieres */
-.animated-title {
-  font-family: "Poppins", sans-serif;
-  font-size: 3rem;
-  font-weight: bold;
-  color: #fefefe;
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-}
-
-/* Crear efecto tipo glitch/clip animado */
-.animated-title::before {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  color: transparent;
-  z-index: 1;
-}
-
-.animated-title::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  color: #1ebdee;
-  animation: animateText 4s ease-in-out infinite;
-  z-index: 2;
-}
-
-/* Animación del texto */
-@keyframes animateText {
-  0%, 100% {
-    clip-path: polygon(
-      0% 45%, 16% 44%, 33% 50%, 54% 60%, 70% 61%, 84% 59%, 100% 52%, 100% 100%, 0% 100%
-    );
-  }
-  50% {
-    clip-path: polygon(
-      0% 60%, 15% 65%, 34% 66%, 51% 62%, 67% 50%, 84% 45%, 100% 46%, 100% 100%, 0% 100%
-    );
-  }
-}
-
-.animated-bg {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 8px; /* opcional */
-}
-
-.animated-bg img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
 /*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Gradiente animado sobre la imagen $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 /* Caja con efecto cristal */
 .glass-box {
@@ -247,16 +179,7 @@
 
 
 
-/* Contenedor general de descripción */
-.description-section {
-  margin-bottom: 50px;
-  padding: 30px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05); /* fondo sutil */
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2); /* sombra suave */
-  backdrop-filter: blur(10px); /* efecto vidrio */
-}
-
+ 
 /* Contenido de texto */
 .description-section .description-content h3 {
   font-size: 2rem;
@@ -279,23 +202,4 @@
   color: #cceeff;
 }
 
-
-.description-section {
-  background: url('https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg') no-repeat center center;
-  background-size: cover;
-  padding: 40px;
-  border-radius: 15px;
-  color: white; /* para que el texto sea legible */
-  position: relative;
-}
-
-/* Opcional: si quieres un overlay degradado sobre la imagen de fondo */
-.description-section::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 123, 255, 0.2); /* color semitransparente */
-  pointer-events: none;
-}
-
-/* Fondo por parte de cuadros  */
+ 

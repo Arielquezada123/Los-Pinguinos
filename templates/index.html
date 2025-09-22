@@ -7,8 +7,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </head>
 <body>
+  
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'estilocss/index.css' %}">
 {% endblock %}
@@ -70,66 +73,70 @@
 
 <!-- Sección About -->
 <section id="about" style="margin-bottom: 50px;" class="about section about-bg">
-<div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
-    <div class="row align-items-xl-center gy-5" style="margin-bottom: 50px;">
+<div class="container description-section" style="margin-bottom: 50px;">
+  <div class="row align-items-xl-center gy-5">
 
-        <div class="col-xl-5 icon-box rounded bg-light p-4 shadow-sm">
-            <h2>Dispositivo de Monitorización de Agua Inteligente</h2>
-            <p style="text-align: justify;">
-                WaterMeter es un dispositivo electrónico diseñado para monitorear el consumo de agua en tiempo real proporcionando datos precisos y detallados.
-            </p>
-            <p style="text-align: justify;">
-                Mide el consumo de agua en metros cúbicos y ofrece un historial detallado de los consumos, facilitando la toma de decisiones informadas para un uso más eficiente del recurso.
-            </p>
-        </div>
-
-        <div class="col-xl-7">
-            <div class="row gy-4 icon-boxes">
-
-                <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="icon-box rounded bg-light p-4 shadow-sm">
-                        <i class="bi bi-collection-play"></i>
-                        <h3>Usos del Dispositivo</h3>
-                        <p style="text-align: justify;">
-                            WaterMeter permite la medición <strong>en tiempo real</strong> tanto en hogares como en instalaciones agrícolas, asegurando un control preciso del consumo de agua.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="icon-box rounded bg-light p-4 shadow-sm">
-                        <i class="bi bi-clipboard-check"></i>
-                        <h3>Historial de Consumo</h3>
-                        <p style="text-align: justify;">
-                            WaterMeter genera un historial completo del consumo de agua, permitiendo comparar los datos mensuales y detectar patrones o irregularidades en el uso.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="icon-box rounded bg-light p-4 shadow-sm">
-                        <i class="bi bi-cpu-fill"></i>
-                        <h3>Fácil Integración</h3>
-                        <p style="text-align: justify;">
-                            El dispositivo está diseñado para integrarse fácilmente en cualquier sistema de plomería, sin necesidad de modificaciones complicadas, adaptándose rápidamente al entorno.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
-                    <div class="icon-box rounded bg-light p-4 shadow-sm">
-                        <i class="bi bi-database-check"></i>
-                        <h3>Visualización de Datos</h3>
-                        <p style="text-align: justify;">
-                            WaterMeter ofrece una visualización clara de los datos de consumo, mostrando información detallada sobre los niveles de agua consumida en tiempo real.
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
+    <!-- Columna izquierda -->
+    <div class="col-xl-5 left-box">
+      <div class="icon-box rounded bg-light p-4 shadow-sm">
+        <h2>Dispositivo de Monitorización de Agua Inteligente</h2>
+        <p style="text-align: justify;">
+          WaterMeter es un dispositivo electrónico diseñado para monitorear el consumo de agua en tiempo real proporcionando datos precisos y detallados.
+        </p>
+        <p style="text-align: justify;">
+          Mide el consumo de agua en metros cúbicos y ofrece un historial detallado de los consumos, facilitando la toma de decisiones informadas para un uso más eficiente del recurso.
+        </p>
+      </div>
     </div>
+
+    <!-- Columna derecha -->
+    <div class="col-xl-7">
+      <div class="row gy-4 icon-boxes">
+
+        <div class="col-md-6 icon-box-right">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
+            <i class="bi bi-collection-play"></i>
+            <h3>Usos del Dispositivo</h3>
+            <p style="text-align: justify;">
+              WaterMeter permite la medición <strong>en tiempo real</strong> tanto en hogares como en instalaciones agrícolas, asegurando un control preciso del consumo de agua.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 icon-box-right">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
+            <i class="bi bi-clipboard-check"></i>
+            <h3>Historial de Consumo</h3>
+            <p style="text-align: justify;">
+              WaterMeter genera un historial completo del consumo de agua, permitiendo comparar los datos mensuales y detectar patrones o irregularidades en el uso.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 icon-box-right">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
+            <i class="bi bi-cpu-fill"></i>
+            <h3>Fácil Integración</h3>
+            <p style="text-align: justify;">
+              El dispositivo está diseñado para integrarse fácilmente en cualquier sistema de plomería, sin necesidad de modificaciones complicadas, adaptándose rápidamente al entorno.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 icon-box-right">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
+            <i class="bi bi-database-check"></i>
+            <h3>Visualización de Datos</h3>
+            <p style="text-align: justify;">
+              WaterMeter ofrece una visualización clara de los datos de consumo, mostrando información detallada sobre los niveles de agua consumida en tiempo real.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
 </div>
 <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
   <div class="row gy-4">
@@ -142,15 +149,18 @@
 <!-- Imagen + descripción -->
 <div class="container description-section" style="margin-bottom: 50px;">
   <div class="row gy-4 align-items-center features-item">
-    <div class="col-md-5 order-1 order-md-2 d-flex align-items-center aos-init aos-animate">
-        <div class="animated-bg">
-            <img src="https://www.elteclado.com.ar/fotos/2023/03/22_porque-celebra-dia-mundial-agua.jpg" 
-                class="img-fluid">
-            <div class="gradient-overlay"></div>
-        </div>
+
+    <!-- Imagen -->
+    <div class="col-md-5 order-1 order-md-2 d-flex align-items-center">
+      <div class="animated-bg">
+        <img src="https://www.elteclado.com.ar/fotos/2023/03/22_porque-celebra-dia-mundial-agua.jpg" 
+             class="img-fluid section-img">
+        <div class="gradient-overlay"></div>
+      </div>
     </div>
 
-    <div  class="col-md-7 order-2 order-md-1 aos-init aos-animate " data-aos="fade-up" data-aos-delay="200">
+    <!-- Texto -->
+    <div class="col-md-7 order-2 order-md-1 text-content">
       <h3>¿Quienes Somos?</h3>
       <p class="fst-italic">
         Somos un emprendimiento tecnológico orientado a la innovación y a la sostenibilidad, enfocado en desarrollar soluciones 
@@ -178,44 +188,146 @@
   </div>
 </div>
 
-  <!-- Tus columnas con icon-box -->
-  <div class="container" data-aos="fade-up" data-aos-delay="200">
-    <div class="row gy-3">
+<div class="container">
+  <div class="row gy-3">
 
-      <!-- Columna 1 -->
-      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-        <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
-          <i class="bi bi-droplet text-primary icon1" style="font-size: 40px;"></i>
-          <h3>Medición en Tiempo Real</h3>
-          <p style="text-align: justify;">
-            WaterMilimiter ofrece mediciones precisas en tiempo real, permitiendo el monitoreo constante del consumo de agua sin importar la ubicación.
-          </p>
-        </div>
+    <!-- Columna 1 -->
+    <div class="col-md-6 col-lg-4">
+      <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
+        <i class="bi bi-droplet text-primary icon1" style="font-size: 40px;"></i>
+        <h3>Medición en Tiempo Real</h3>
+        <p style="text-align: justify;">
+          WaterMilimiter ofrece mediciones precisas en tiempo real, permitiendo el monitoreo constante del consumo de agua sin importar la ubicación.
+        </p>
       </div>
+    </div>
 
-      <!-- Columna 2 -->
-      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
-        <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
-          <i class="bi bi-bar-chart-line text-primary icon2" style="font-size: 40px;"></i>
-          <h3>Historial Detallado</h3>
-          <p style="text-align: justify;">
-            Accede a un registro histórico detallado del consumo, lo que facilita la comparación entre diferentes periodos y el análisis de patrones de uso.
-          </p>
-        </div>
+    <!-- Columna 2 -->
+    <div class="col-md-6 col-lg-4">
+      <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
+        <i class="bi bi-bar-chart-line text-primary icon2" style="font-size: 40px;"></i>
+        <h3>Historial Detallado</h3>
+        <p style="text-align: justify;">
+          Accede a un registro histórico detallado del consumo, lo que facilita la comparación entre diferentes periodos y el análisis de patrones de uso.
+        </p>
       </div>
+    </div>
 
-      <!-- Columna 3 -->
-      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
-        <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
-          <i class="bi bi-gear-fill text-primary icon3" style="font-size: 40px;"></i>
-          <h3>Ajustes Personalizados</h3>
-          <p style="text-align: justify;">
-            El dispositivo permite configurar alertas y ajustes según las necesidades del usuario, optimizando el consumo de agua en función de los hábitos de uso.
-          </p>
-        </div>
+    <!-- Columna 3 -->
+    <div class="col-md-6 col-lg-4">
+      <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
+        <i class="bi bi-gear-fill text-primary icon3" style="font-size: 40px;"></i>
+        <h3>Ajustes Personalizados</h3>
+        <p style="text-align: justify;">
+          El dispositivo permite configurar alertas y ajustes según las necesidades del usuario, optimizando el consumo de agua en función de los hábitos de uso.
+        </p>
       </div>
-    </div> 
+    </div>
+  </div>
+</div>
 
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+  
+
+  // Animación columna izquierda
+  gsap.from(".left-box", {
+    x: -100,
+    opacity: 0,
+    duration: 1.2,
+    ease: "power3.out",
+    scrollTrigger: {
+      trigger: ".left-box",
+      start: "top 80%",
+      toggleActions: "play none none reverse"
+    }
+  });
+
+  // Animación icon-boxes derecha (cascada)
+  gsap.from(".icon-box-right", {
+    y: 50,
+    opacity: 0,
+    duration: 1,
+    ease: "power2.out",
+    stagger: 0.2, // retraso entre cada icon-box
+    scrollTrigger: {
+      trigger: ".icon-boxes",
+      start: "top 80%",
+      toggleActions: "play none none reverse"
+    }
+  });
+  // Animación para la columna 1
+  gsap.from(".icon1", {
+    y: -100,
+    rotation: -180,
+    opacity: 0,
+    duration: 1,
+    scrollTrigger: {
+      trigger: ".icon1",
+      start: "top 80%", // cuando entra en viewport
+      toggleActions: "play none none reverse"
+    }
+  });
+
+  // Animación para la columna 2
+  gsap.from(".icon2", {
+    x: -100,
+    scale: 0,
+    opacity: 0,
+    duration: 1,
+    scrollTrigger: {
+      trigger: ".icon2",
+      start: "top 80%",
+      toggleActions: "play none none reverse"
+    }
+  });
+
+  // Animación para la columna 3
+  gsap.from(".icon3", {
+    y: 100,
+    rotation: 360,
+    opacity: 0,
+    duration: 1,
+    scrollTrigger: {
+      trigger: ".icon3",
+      start: "top 80%",
+      toggleActions: "play none none reverse"
+    }
+  });
+   gsap.registerPlugin(ScrollTrigger);
+
+  // Imagen con zoom y slide
+  gsap.from(".section-img", {
+    x: -100,
+    scale: 0.9,
+    opacity: 0,
+    duration: 1.2,
+    ease: "power2.out",
+    scrollTrigger: {
+      trigger: ".section-img",
+      start: "top 80%",
+      toggleActions: "play none none reverse"
+    }
+  });
+
+  // Texto secuencial
+  gsap.from(".text-content h3, .text-content p", {
+    y: 40,
+    opacity: 0,
+    duration: 0.8,
+    stagger: 0.3, // va apareciendo uno tras otro
+    ease: "power2.out",
+    scrollTrigger: {
+      trigger: ".text-content",
+      start: "top 85%",
+      toggleActions: "play none none reverse"
+    }
+  });
+</script>
 
 </section>
 
@@ -225,5 +337,7 @@
 </div>
 {% endblock %}
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </body>
 </html>
