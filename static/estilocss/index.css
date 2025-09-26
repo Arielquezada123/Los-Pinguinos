@@ -67,6 +67,25 @@
   50%      { transform: translateY(-10px); } /* ajusta según amplitud deseada */
 }
 
+@keyframes moveWaves {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-1440px); }
+}
+
+.wave1 use { animation: moveWaves 12s linear infinite -2s; }
+.wave2 use { animation: moveWaves 18s linear infinite -2s; }
+.wave3 use { animation: moveWaves 24s linear infinite -2s; }
+
+
+
+
+
+
+
+
+
+
+
 .icon-boxes .icon-box {         
   display: flex;
   flex-direction: column;      /* ícono arriba, texto debajo */
