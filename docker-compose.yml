@@ -1,0 +1,30 @@
+ 
+
+services:
+  web:
+    build: .
+    container_name: los_pinguinos_web
+    environment:
+      - DJANGO_SETTINGS_MODULE=watermilimiter.settings
+    expose:
+      - "8000"
+    volumes:
+      - media_data:/pinguinos/media
+      - static_data:/pinguinos/staticfiles
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: los_pinguinos_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - media_data:/pinguinos/media
+      - static_data:/pinguinos/staticfiles
+    depends_on:
+      - web
+
+volumes:
+  media_data:
+  static_data:
