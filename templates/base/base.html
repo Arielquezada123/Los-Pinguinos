@@ -61,7 +61,6 @@
   {% block extra_css %}{% endblock %}
 
 </head>
-
 <body>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg">
@@ -85,7 +84,16 @@
 
         </ul>
 
-        {% block sesion %}{% endblock %}
+        {% block sesion %}
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="sign singin-btn btn">Sign in</a>
+            {% endif %}
+        {% endblock %}
       </div>
     </div>
   </nav>
