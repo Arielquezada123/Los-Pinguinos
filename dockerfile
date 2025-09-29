@@ -22,8 +22,8 @@ RUN pip install uwsgi
 COPY . /pinguinos
 WORKDIR /pinguinos
 
-# Crear usuario www-data
-RUN adduser -D www-data
+# Crear directorios para static y media
+RUN mkdir -p /pinguinos/staticfiles /pinguinos/media
 
 # Hacer ejecutable el entrypoint
 RUN chmod +x entrypoint.sh

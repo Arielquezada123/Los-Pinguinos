@@ -10,12 +10,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['98.90.0.173', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['98.90.0.173', 'localhost', '127.0.0.1','54.236.87.161']
 
 
 # Application definition
@@ -106,9 +106,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR.parent / "staticfiles"
+STATIC_ROOT = Path("/pinguinos/staticfiles")   # coincide con volumen Docker
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path("/pinguinos/media")          # coincide con volumen Docker
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
