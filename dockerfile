@@ -22,10 +22,13 @@ RUN pip install uwsgi
 COPY . /pinguinos
 WORKDIR /pinguinos
 
-# Collect static
-RUN python manage.py collectstatic --noinput
+# Crear usuario www-data
+RUN adduser -D www-data
+
+# Hacer ejecutable el entrypoint
+RUN chmod +x entrypoint.sh
 
 # Exponer puerto HTTP de uWSGI
 EXPOSE 8000
 
-CMD ["uwsgi", "--ini", "uwsgi/start_uwsgi.ini"]
+ENTRYPOINT ["./entrypoint.sh"]
