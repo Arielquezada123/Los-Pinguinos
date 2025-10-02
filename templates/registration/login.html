@@ -1,12 +1,17 @@
+
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
+{% block css %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'estilocss/style.css' %}">
     <title>Inicio de sesión con WaterMilimiter</title>
 </head>
+{% endblock %}
+{%block contenido%}
 <body>
 
     <div class="bubbles">
@@ -55,7 +60,7 @@
                           <button type="submit">Iniciar Sesión</button>
                     
                           <div class="register-link">
-                            <p>No tienes cuenta?, Registrate Ahora!!<a href="#">Registrarse</a></p>
+                            <p>No tienes cuenta?, Registrate Ahora!!<a href="/signUp">Registrarse</a></p>
                           </div>
                           <div class="watermark">
                             </div>
@@ -68,4 +73,5 @@
     </div>
     
 </body>
+{%endblock%}
 </html>

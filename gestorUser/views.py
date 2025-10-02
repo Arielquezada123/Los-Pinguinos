@@ -15,7 +15,7 @@ def signUp(request):
         if form.is_valid():
             form.save()
             return redirect('/')
-    return render(request,'login.html',{'form':form})
+    return render(request,'forms/signUp.html',{'form':form})
 
 
 @login_required(login_url='login')  
