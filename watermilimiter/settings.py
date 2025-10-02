@@ -29,7 +29,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'gestorUser',
 ]
-
+AUTHENTICATION_BACKENDS = (
+    'gestorUser.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

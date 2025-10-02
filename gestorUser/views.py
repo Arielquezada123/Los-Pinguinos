@@ -22,9 +22,9 @@ def signUp(request):
 def postlogin(request):
     user = request.user
     if user.is_staff:
-        return render(request,'base/login.html')
+        return render(request,'index.html')
     else:
-        return render (request, 'base/login.html')
+        return render (request, 'index.html')
 
 
     
