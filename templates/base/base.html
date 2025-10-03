@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}WaterMilimiter{% endblock %}</title>
 
+
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
         rel="stylesheet"
@@ -23,6 +24,8 @@
   {% endblock %}
 
   <style>
+    
+
     /* Título dentro del navbar */
     .navbar h3 {
       font-weight: bold;
@@ -84,7 +87,7 @@
             <a class="nav-link text-info me-md-2" href="{% url 'index' %}">Inicio</a>
           </li>
           <li class="nav-item"><a class="nav-link" href="#acerca">Acerca de</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"></a></li>
+          <li class="nav-item"><a class="nav-link" href="#nosotros">Sobre Nosotros</a></li>
         </ul>
 
         {% block sesion %}
