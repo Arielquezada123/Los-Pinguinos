@@ -4,7 +4,7 @@
 {% block contenido %}
 <style>
     body {
-        background: linear-gradient(135deg, #4f9deb, #6c63ff);
+        background: linear-gradient(135deg, #051627, #0825df);
     }
     .card {
         border: none;
@@ -42,7 +42,7 @@
     <div class="card shadow-lg rounded-3 p-5 w-100" style="max-width: 700px; margin-top: 90px; margin-bottom: 100px;">
         <div class="card-body">
             <!-- Header -->
-            <h3 class="text-center mb-4 text-primary fw-bold">Create Account</h3>
+            <h3 class="text-center mb-4 text-primary fw-bold">Crea tu cuenta</h3>
 
             <!-- Form Body -->
             <form method="post">
@@ -60,12 +60,12 @@
                     </div>
                 {% endfor %}
 
-                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                <button type="submit" class="btn btn-primary w-100">Registrarse</button>
             </form>
 
             <!-- Footer -->
             <p class="text-center mt-3 small">
-                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+                Ya tienes una cuenta? <a href="{% url 'login' %}">Iniciar Sesión</a>
             </p>
         </div>
     </div>
