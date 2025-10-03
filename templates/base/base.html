@@ -62,6 +62,53 @@
       transform: scale(1.2);
       color: #00d9ff;
     }
+    /* Estilo básico del botón */
+.btn-ola-ripple {
+  position: relative;
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  background: linear-gradient(90deg, #0825df, #051627);
+  border: none;
+  border-radius: 50px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-ola-ripple:focus {
+  outline: none;
+}
+
+.btn-ola-ripple::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  pointer-events: none;
+}
+
+/* Animación de la ola (ripple) */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Cambio de fondo al hacer hover */
+.btn-ola-ripple:hover {
+  background: linear-gradient(90deg, #3a4ff3, #2a2d42);
+}
+
+
   </style>
 
 </head>
@@ -83,18 +130,24 @@
           <li class="nav-item">
             <a class="nav-link text-info me-md-2" href="{% url 'index' %}">Inicio</a>
           </li>
-          <li class="nav-item"><a class="nav-link" href="#acerca">Acerca de</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"></a></li>
+          {% if request.path == '/' %}
+              <li class="nav-item"><a class="nav-link" href="#acerca">Acerca de</a></li>
+          {% endif %}
         </ul>
 
         {% block sesion %}
             {% if user.is_authenticated %}
                 <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Logout</button>
+                <button type="submit" class="btn-ola-ripple">Logout</button>
                 </form>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary">Sign in</a>
+                <a href="{% url 'login' %}" class="btn-ola-ripple">
+                  <span class="liquid"></span>
+                  <span class="btn-txt">Sign in</span>
+                </a>
+
+
             {% endif %}
         {% endblock %}
       </div>
