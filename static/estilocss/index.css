@@ -78,14 +78,6 @@
 
 
 
-
-
-
-
-
-
-
-
 .icon-boxes .icon-box {         
   display: flex;
   flex-direction: column;      /* ícono arriba, texto debajo */
@@ -196,8 +188,6 @@
 
 
 
-
-
  
 /* Contenido de texto */
 .description-section .description-content h3 {
@@ -221,4 +211,3 @@
   color: #cceeff;
 }
 
- 
