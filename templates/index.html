@@ -13,10 +13,15 @@
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://unpkg.com/htmx.org@1.9.3" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'dist/leaflet.css' %}"/>
+<script src="{% static 'dist/leaflet.js' %}"></script>
 <link rel="stylesheet" href="{% static 'estilocss/index.css' %}">
 {% endblock %}
 
@@ -143,16 +148,48 @@
 
   </div>
 </div>
+
+<!-- ================================== Mapa ============================= -->
+<div id="contenedor-mapa" style="
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  height: 500px;
+  margin: 40px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: row;
+">
+
+  <!-- Mapa -->
+  <div id="mapa-sensores" style="flex: 1;"></div>
+
+  <!-- Panel lateral -->
+  <div id="sidebar-sensores" style="
+    width: 300px;
+    background: #ffffff;
+    padding: 15px;
+    box-shadow: -3px 0 8px rgba(0,0,0,0.2);
+    overflow-y: auto;
+  ">
+    <h3 style="margin-top:0;">Mapa de Sensores</h3>
+    <p>Haga clic en un sensor para ver sus datos.</p>
+    <div id="sensor-info">Seleccione un sensor.</div>
+    <canvas id="sensor-grafico" style="width:100%;height:200px;margin-top:15px;"></canvas>
+  </div>
+</div>
 <div  class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
   <div class="row gy-4">
     <div class="col-lg-12 d-flex flex-column justify-content-center">
-      <h3 style="text-align: center; margin-bottom: 20px;">Sobre Nosotros</h3>
+      <h3 style="text-align: center; margin-bottom: 20px; margin-top: 20px;">Sobre Nosotros</h3>
     </div>
   </div>
 </div>
 
 <!-- Imagen + descripción -->
-<div style="margin-bottom: 200px;" class="container description-section" style="margin-bottom: 50px;">
+<div style="margin-bottom: 70px;" class="container description-section" style="margin-bottom: 50px;">
   <div class="row gy-4 align-items-center features-item">
 
     <!-- Imagen -->
@@ -193,9 +230,9 @@
   </div>
 </div>
 
-<div class="container">
-  <h3 style="text-align: center; margin-bottom: 20px; margin-bottom: 30px;">¿Por qué elegir WaterMeter?</h3>
-  <div style="margin-bottom: 200px;"class="row gy-3">
+<div class="container" style="margin-bottom: 150px;">
+  <h3 style="text-align: center;">¿Por qué elegir WaterMeter?</h3>
+  <div style="margin-bottom: 50px;"class="row gy-3">
 
     <!-- Columna 1 -->
     <div class="col-md-6 col-lg-4">
@@ -232,6 +269,101 @@
   </div>
 </div>
 
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- ====== SCRIPT DEL MAPA ====== -->
+<script>
+  // --- Inicialización del mapa ---
+  const map = L.map('mapa-sensores').setView([-35.5987, -71.7139], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // --- Sensores simulados ---
+  const sensores = [
+    { id: 'S-001', nombre: 'Lado Norte', lat: -35.5987, lng: -71.7139 },
+    { id: 'S-002', nombre: 'Riego Zona Sur', lat: -35.6003, lng: -71.7135 },
+  ];
+
+  // --- Funciones auxiliares ---
+  function generarLectura() {
+    return (Math.random() * 1.2 + 0.2).toFixed(2); // entre 0.20 y 1.40
+  }
+
+  const historicos = {
+    'S-001': [0.8, 1.1, 0.9, 1.2, 1.0],
+    'S-002': [0.7, 0.9, 0.8, 1.0, 0.85],
+  };
+
+  let grafico = null;
+
+  function crearGrafico(sensor) {
+    const ctx = document.getElementById('sensor-grafico');
+    if (grafico) grafico.destroy();
+    const datos = historicos[sensor.id] || [0.5, 0.5, 0.5, 0.5, 0.5];
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+
+    grafico = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: dias,
+        datasets: [{
+          label: `${sensor.nombre} (${sensor.id})`,
+          data: datos,
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true, position: 'bottom' },
+          title: {
+            display: true,
+            text: 'Consumo semanal estimado (L/s)'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 1.5
+          }
+        }
+      }
+    });
+  }
+
+  function actualizarPanel(sensor) {
+    const valor = generarLectura();
+    document.getElementById('sensor-info').innerHTML = `
+      <div>
+        <h4>${sensor.nombre}</h4>
+        <p><b>ID:</b> ${sensor.id}</p>
+        <p><b>Lectura actual:</b> ${valor} L/s</p>
+        <p><small>Última actualización: ${new Date().toLocaleTimeString()}</small></p>
+      </div>
+    `;
+  }
+
+  function mostrarInfo(sensor) {
+    actualizarPanel(sensor);
+    crearGrafico(sensor);
+    if (window._intervalActualizacion) clearInterval(window._intervalActualizacion);
+    window._intervalActualizacion = setInterval(() => {
+      actualizarPanel(sensor);
+    }, 2000);
+  }
+
+  // --- Marcadores ---
+  sensores.forEach(s => {
+    const marker = L.marker([s.lat, s.lng]).addTo(map);
+    marker.bindPopup(`<strong>${s.nombre}</strong>`);
+    marker.on('click', () => mostrarInfo(s));
+  });
+</script>
 <!-- GSAP + ScrollTrigger -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -336,14 +468,7 @@
 </script>
 
 </section>
-
-<div class="animation-container">
-  <div class="drop"></div>
-  <div class="wave"></div>
-</div>
 {% endblock %}
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </body>
 </html>
