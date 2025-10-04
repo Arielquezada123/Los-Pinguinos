@@ -6,8 +6,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}WaterMilimiter{% endblock %}</title>
-
-
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
         rel="stylesheet"
@@ -66,51 +64,54 @@
       color: #00d9ff;
     }
     /* Estilo básico del botón */
-.btn-ola-ripple {
-  position: relative;
-  display: inline-block;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  background: linear-gradient(90deg, #0825df, #051627);
-  border: none;
-  border-radius: 50px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
+    .btn-ola-ripple {
+      position: relative;
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      background: linear-gradient(90deg, #0825df, #051627);
+      border: none;
+      border-radius: 50px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
 
-.btn-ola-ripple:focus {
-  outline: none;
-}
+    .btn-ola-ripple:focus {
+      outline: none;
+    }
 
-.btn-ola-ripple::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  transform: scale(0);
-  animation: ripple 0.6s linear;
-  pointer-events: none;
-}
+    .btn-ola-ripple::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
 
-/* Animación de la ola (ripple) */
-@keyframes ripple {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
+    /* Animación de la ola (ripple) */
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
 
-/* Cambio de fondo al hacer hover */
-.btn-ola-ripple:hover {
-  background: linear-gradient(90deg, #3a4ff3, #2a2d42);
-}
-
+    /* Cambio de fondo al hacer hover */
+    .btn-ola-ripple:hover {
+      background: linear-gradient(90deg, #3a4ff3, #2a2d42);
+    }
+    .btn-ola-ripple .btn-txt {
+      position: relative;
+      z-index: 1;
+    }
 
   </style>
 
@@ -134,7 +135,7 @@
             <a class="nav-link text-info me-md-2" href="{% url 'index' %}">Inicio</a>
           </li>
           <li class="nav-item"><a class="nav-link" href="#acerca">Acerca de</a></li>
-          <li class="nav-item"><a class="nav-link" href="#nosotros">Sobre Nosotros</a></li>
+
 
         </ul>
 
