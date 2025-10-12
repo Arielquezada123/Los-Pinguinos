@@ -1,41 +1,41 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
-  <head>
+<html lang="es">
+<head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="{% static 'assets/images/favicon.svg' %}" type="image/x-icon" />
-    <title>Water Meter Dashboard</title>
+    <title>Panel de Control del Medidor de Agua</title>
 
-    <!-- ========== CSS files ========== -->
+    <!-- ========== Archivos CSS ========== -->
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/lineicons.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
-  </head>
-  <body>
-    <!-- ======== sidebar start =========== -->
+</head>
+<body>
+    <!-- ======== barra lateral inicio =========== -->
     <aside class="sidebar-nav-wrapper">
       <div class="navbar-logo">
-        <a href="/"> 
-          <img src="{% static 'assets/images/logo/logo.svg' %}" alt="logo" />
+        <a href="/">
+          <img src="{% static 'assets/images/logo/logo.svg' %}" alt="logotipo" />
         </a>
       </div>
     </aside>
     <div class="overlay"></div>
-    <!-- ======== sidebar end =========== -->
+    <!-- ======== barra lateral fin =========== -->
 
-    <!-- ======== main-wrapper start =========== -->
+    <!-- ======== contenedor principal inicio =========== -->
     <main class="main-wrapper">
-      <!-- ========== header start ========== -->
+      <!-- ========== encabezado inicio ========== -->
       <header class="header">
-        <div class="container-fluid">
+        <div class="container-fluid" style="margin-left: 9px;">
           <div class="row">
             <div class="col-lg-5 col-md-5 col-6">
               <div class="header-left d-flex align-items-center">
                 <div class="menu-toggle-btn mr-15">
                   <button id="menu-toggle" class="main-btn primary-btn btn-hover">
-                    <i class="lni lni-chevron-left me-2"></i> Menu
+                    <i class="lni lni-chevron-left me-2"></i> Menú
                   </button>
                 </div>
               </div>
@@ -43,35 +43,65 @@
             <div class="col-lg-7 col-md-7 col-6">
               <div class="header-right">
                 <div class="profile-box ml-15">
-                  <div class="profile-info">
-                    <div class="info">
-                      <h6 class="fw-500">Water Meter System</h6>
-                      <p>Active</p>
+                  <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="profile-info">
+                      <div class="info">
+                        <div class="image">
+                          <img src="{% static 'img/undraw_profile.svg' %}" alt="" />
+                        </div>
+                        <div>
+                          <h6 class="fw-500">Administrador</h6>
+                          <p>Sistema de Medidor de Agua</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
+                    <li>
+                      <div class="author-info flex items-center !p-1">
+                        <div class="image">
+                          <img src="{% static 'img/undraw_profile.svg' %}" alt="imagen">
+                        </div>
+                        <div class="content">
+                          <h4 class="text-sm">Administrador</h4>
+                          <a class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs" href="#">admin@watermeter.com</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                    <form method="post" action="{% url 'logout' %}"> {% csrf_token %} 
+                      <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"> 
+                        <i class="lni lni-exit"></i> Logout 
+                      </button> 
+                    </form>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </header>
-      <!-- ========== header end ========== -->
+      <!-- ========== encabezado fin ========== -->
 
-      <!-- ========== section start ========== -->
+      <!-- ========== sección inicio ========== -->
       <section class="section">
-        <div class="container-fluid">
-          <!-- ========== title-wrapper start ========== -->
+        <div class="container-fluid" style="margin-left: 9px;">
+          <!-- ========== contenedor de título inicio ========== -->
           <div class="title-wrapper pt-30">
             <div class="row align-items-center">
               <div class="col-md-6">
                 <div class="title">
-                  <h2>Water Meter Dashboard</h2>
+                  <h2>Panel de Control del Medidor de Agua</h2>
                 </div>
               </div>
             </div>
           </div>
-          <!-- ========== title-wrapper end ========== -->
+          <!-- ========== contenedor de título fin ========== -->
 
+          <!-- Tarjetas de Estadísticas -->
           <div class="row">
             <div class="col-xl-3 col-lg-4 col-sm-6">
               <div class="icon-card mb-30">
@@ -79,11 +109,11 @@
                   <i class="lni lni-drop"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">Current Reading</h6>
+                  <h6 class="mb-10">Lectura Actual</h6>
                   <h3 class="text-bold mb-10">1,234 m³</h3>
                   <p class="text-sm text-success">
                     <i class="lni lni-arrow-up"></i> +15.5%
-                    <span class="text-gray">(this month)</span>
+                    <span class="text-gray">(este mes)</span>
                   </p>
                 </div>
               </div>
@@ -94,11 +124,11 @@
                   <i class="lni lni-stats-up"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">Monthly Usage</h6>
+                  <h6 class="mb-10">Uso Mensual</h6>
                   <h3 class="text-bold mb-10">456 m³</h3>
                   <p class="text-sm text-success">
                     <i class="lni lni-arrow-up"></i> +8.2%
-                    <span class="text-gray">vs last month</span>
+                    <span class="text-gray">vs mes anterior</span>
                   </p>
                 </div>
               </div>
@@ -109,11 +139,11 @@
                   <i class="lni lni-alarm"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">Alerts</h6>
+                  <h6 class="mb-10">Alertas</h6>
                   <h3 class="text-bold mb-10">2</h3>
                   <p class="text-sm text-danger">
-                    <i class="lni lni-arrow-up"></i> High usage
-                    <span class="text-gray">warnings</span>
+                    <i class="lni lni-arrow-up"></i> Advertencias de alto uso
+                    <span class="text-gray"></span>
                   </p>
                 </div>
               </div>
@@ -124,23 +154,24 @@
                   <i class="lni lni-cog"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">Meter Status</h6>
-                  <h3 class="text-bold mb-10">Active</h3>
+                  <h6 class="mb-10">Estado del Medidor</h6>
+                  <h3 class="text-bold mb-10">Activo</h3>
                   <p class="text-sm text-success">
-                    <i class="lni lni-checkmark"></i> Normal
-                    <span class="text-gray">operation</span>
+                    <i class="lni lni-checkmark"></i> Operación normal
+                    <span class="text-gray"></span>
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Gráficos y Controles -->
           <div class="row">
             <div class="col-lg-7">
               <div class="card-style mb-30">
                 <div class="title d-flex flex-wrap justify-content-between">
                   <div class="left">
-                    <h6 class="text-medium mb-10">Monthly Water Usage</h6>
+                    <h6 class="text-medium mb-10">Uso Mensual de Agua</h6>
                     <h3 class="text-bold">2,456 m³</h3>
                   </div>
                 </div>
@@ -153,87 +184,43 @@
               <div class="card-style mb-30">
                 <div class="title d-flex justify-content-between align-items-center">
                   <div class="left">
-                    <h6 class="text-medium mb-30">Meter Controls</h6>
+                    <h6 class="text-medium mb-30">Controles del Medidor</h6>
                   </div>
                 </div>
                 <div class="controls-section">
                   <div class="control-item mb-20">
-                    <button class="btn btn-primary btn-sm mb-10">Read Meter</button>
-                    <p class="text-sm text-gray">Get current reading</p>
+                    <button class="btn btn-primary btn-sm mb-10">Leer Medidor</button>
+                    <p class="text-sm text-gray">Obtener lectura actual</p>
                   </div>
                   <div class="control-item mb-20">
-                    <button class="btn btn-warning btn-sm mb-10">Reset Counter</button>
-                    <p class="text-sm text-gray">Reset monthly usage</p>
+                    <button class="btn btn-warning btn-sm mb-10">Reiniciar Contador</button>
+                    <p class="text-sm text-gray">Reiniciar uso mensual</p>
                   </div>
                   <div class="control-item mb-20">
-                    <button class="btn btn-danger btn-sm mb-10">Emergency Shutoff</button>
-                    <p class="text-sm text-gray">Cut water supply</p>
+                    <button class="btn btn-danger btn-sm mb-10">Corte de Emergencia</button>
+                    <p class="text-sm text-gray">Cortar suministro de agua</p>
                   </div>
                   <div class="control-item">
-                    <button class="btn btn-success btn-sm mb-10">Test Connection</button>
-                    <p class="text-sm text-gray">Check meter status</p>
+                    <button class="btn btn-success btn-sm mb-10">Probar Conexión</button>
+                    <p class="text-sm text-gray">Verificar estado del medidor</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="card-style mb-30">
-                <div class="title d-flex flex-wrap justify-content-between align-items-center">
-                  <div class="left">
-                    <h6 class="text-medium mb-30">Recent Alerts</h6>
-                  </div>
-                </div>
-                <div class="alerts-list">
-                  <div class="alert-item warning mb-15">
-                    <div class="alert-icon">
-                      <i class="lni lni-alarm"></i>
-                    </div>
-                    <div class="alert-content">
-                      <h6 class="text-sm">High Usage Alert</h6>
-                      <p class="text-sm text-gray">Usage exceeded 500m³ this month</p>
-                      <span class="text-xs">2 hours ago</span>
-                    </div>
-                  </div>
-                  <div class="alert-item info mb-15">
-                    <div class="alert-icon">
-                      <i class="lni lni-checkmark-circle"></i>
-                    </div>
-                    <div class="alert-content">
-                      <h6 class="text-sm">Meter Reading Completed</h6>
-                      <p class="text-sm text-gray">Automatic reading successful</p>
-                      <span class="text-xs">1 day ago</span>
-                    </div>
-                  </div>
-                  <div class="alert-item danger mb-15">
-                    <div class="alert-icon">
-                      <i class="lni lni-warning"></i>
-                    </div>
-                    <div class="alert-content">
-                      <h6 class="text-sm">Potential Leak Detected</h6>
-                      <p class="text-sm text-gray">Unusual flow pattern detected</p>
-                      <span class="text-xs">3 days ago</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
 
-      <!-- ========== footer start =========== -->
+      <!-- ========== pie de página inicio =========== -->
       <footer class="footer">
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-6 order-last order-md-first">
               <div class="copyright text-center text-md-start">
                 <p class="text-sm">
-                  Water Meter System by
+                  Sistema de Medidor de Agua por
                   <a href="#" rel="nofollow">
-                    Water Management Team
+                    Equipo de Gestión de Agua
                   </a>
                 </p>
               </div>
@@ -241,23 +228,23 @@
           </div>
         </div>
       </footer>
-      <!-- ========== footer end =========== -->
+      <!-- ========== pie de página fin =========== -->
     </main>
 
-    <!-- ========= JavaScript files ========== -->
+    <!-- ========= Archivos JavaScript ========== -->
     <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'assets/js/Chart.min.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
 
     <script>
-      // Basic chart for water usage
+      // Datos de gráfico simulados
       const ctx1 = document.getElementById("Chart1").getContext("2d");
       const chart1 = new Chart(ctx1, {
         type: "line",
         data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          labels: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
           datasets: [{
-            label: "",
+            label: "Uso de Agua (m³)",
             backgroundColor: "transparent",
             borderColor: "#365CF5",
             data: [600, 800, 750, 880, 940, 880, 900, 770, 920, 890, 976, 1100],
@@ -269,7 +256,7 @@
             borderWidth: 3,
             pointRadius: 6,
             pointHoverRadius: 8,
-          }],
+          }]
         },
         options: {
           plugins: {
@@ -295,5 +282,5 @@
         },
       });
     </script>
-  </body>
+</body>
 </html>
