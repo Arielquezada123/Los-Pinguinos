@@ -1,88 +1,299 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mapa Interactivo de Sensores con HTMX (Simulación)</title>
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.svg' %}" type="image/x-icon" />
+    <title>Water Meter Dashboard</title>
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- ========== CSS files ========== -->
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/lineicons.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
+  </head>
+  <body>
+    <!-- ======== sidebar start =========== -->
+    <aside class="sidebar-nav-wrapper">
+      <div class="navbar-logo">
+        <a href="/"> 
+          <img src="{% static 'assets/images/logo/logo.svg' %}" alt="logo" />
+        </a>
+      </div>
+    </aside>
+    <div class="overlay"></div>
+    <!-- ======== sidebar end =========== -->
 
-  <!-- HTMX -->
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-
-  <style>
-    html, body, #map { height: 100%; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; }
-    #map { flex: 1; }
-
-    .sidebar {
-      position: absolute; right: 0; top: 0; bottom: 0; width: 320px;
-      background: #fff; box-shadow: -3px 0 8px rgba(0,0,0,0.2);
-      overflow-y: auto; padding: 12px; z-index: 999;
-    }
-    h3 { margin-top: 0; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-
-  <div class="sidebar" id="sidebar">
-    <h3>Mapa Interactivo de Sensores</h3>
-    <p>Haga clic en un sensor para ver sus datos en tiempo real.</p>
-    <div id="dashboard-data">Seleccione un sensor.</div>
-  </div>
-
-  <script>
-    // --- Crear mapa Leaflet ---
-    const map = L.map('map').setView([-35.5987, -71.7139], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // --- Sensores simulados ---
-    const sensores = [
-      { id: 'S-001', nombre: 'Lado Norte', lat: -35.5987, lng: -71.7139 },
-      { id: 'S-002', nombre: 'Riego Zona Sur', lat: -35.6003, lng: -71.7135 },
-    ];
-
-    // --- Generar datos pequeños ---
-    function generarDatos() {
-      return (Math.random() * 1.2 + 0.2).toFixed(2); // entre 0.20 y 1.40
-    }
-
-    // --- Mostrar información y simular actualización automática ---
-    function mostrarInfo(sensor) {
-      actualizarPanel(sensor); // primer render inmediato
-      // limpiar intervalos previos (si cambias de sensor)
-      if (window._intervalActualizacion) clearInterval(window._intervalActualizacion);
-      // crear nuevo intervalo
-      window._intervalActualizacion = setInterval(() => {
-        actualizarPanel(sensor);
-      }, 2000); // cada 2 segundos
-    }
-
-    function actualizarPanel(sensor) {
-      const valor = generarDatos();
-      const html = `
-        <div id="dashboard-data">
-          <h4>${sensor.nombre}</h4>
-          <p><b>ID:</b> ${sensor.id}</p>
-          <p><b>Lectura actual:</b> ${valor} L/s</p>
-          <p><small>Última actualización: ${new Date().toLocaleTimeString()}</small></p>
+    <!-- ======== main-wrapper start =========== -->
+    <main class="main-wrapper">
+      <!-- ========== header start ========== -->
+      <header class="header">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-lg-5 col-md-5 col-6">
+              <div class="header-left d-flex align-items-center">
+                <div class="menu-toggle-btn mr-15">
+                  <button id="menu-toggle" class="main-btn primary-btn btn-hover">
+                    <i class="lni lni-chevron-left me-2"></i> Menu
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7 col-md-7 col-6">
+              <div class="header-right">
+                <div class="profile-box ml-15">
+                  <div class="profile-info">
+                    <div class="info">
+                      <h6 class="fw-500">Water Meter System</h6>
+                      <p>Active</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      `;
-      document.getElementById('dashboard-data').innerHTML = html;
-    }
+      </header>
+      <!-- ========== header end ========== -->
 
-    // --- Marcadores ---
-    sensores.forEach(s => {
-      const marker = L.marker([s.lat, s.lng]).addTo(map);
-      marker.bindPopup(`<strong>${s.nombre}</strong>`);
-      marker.on('click', () => mostrarInfo(s));
-    });
-  </script>
-</body>
+      <!-- ========== section start ========== -->
+      <section class="section">
+        <div class="container-fluid">
+          <!-- ========== title-wrapper start ========== -->
+          <div class="title-wrapper pt-30">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <div class="title">
+                  <h2>Water Meter Dashboard</h2>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ========== title-wrapper end ========== -->
+
+          <div class="row">
+            <div class="col-xl-3 col-lg-4 col-sm-6">
+              <div class="icon-card mb-30">
+                <div class="icon purple">
+                  <i class="lni lni-drop"></i>
+                </div>
+                <div class="content">
+                  <h6 class="mb-10">Current Reading</h6>
+                  <h3 class="text-bold mb-10">1,234 m³</h3>
+                  <p class="text-sm text-success">
+                    <i class="lni lni-arrow-up"></i> +15.5%
+                    <span class="text-gray">(this month)</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-sm-6">
+              <div class="icon-card mb-30">
+                <div class="icon success">
+                  <i class="lni lni-stats-up"></i>
+                </div>
+                <div class="content">
+                  <h6 class="mb-10">Monthly Usage</h6>
+                  <h3 class="text-bold mb-10">456 m³</h3>
+                  <p class="text-sm text-success">
+                    <i class="lni lni-arrow-up"></i> +8.2%
+                    <span class="text-gray">vs last month</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-sm-6">
+              <div class="icon-card mb-30">
+                <div class="icon primary">
+                  <i class="lni lni-alarm"></i>
+                </div>
+                <div class="content">
+                  <h6 class="mb-10">Alerts</h6>
+                  <h3 class="text-bold mb-10">2</h3>
+                  <p class="text-sm text-danger">
+                    <i class="lni lni-arrow-up"></i> High usage
+                    <span class="text-gray">warnings</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-sm-6">
+              <div class="icon-card mb-30">
+                <div class="icon orange">
+                  <i class="lni lni-cog"></i>
+                </div>
+                <div class="content">
+                  <h6 class="mb-10">Meter Status</h6>
+                  <h3 class="text-bold mb-10">Active</h3>
+                  <p class="text-sm text-success">
+                    <i class="lni lni-checkmark"></i> Normal
+                    <span class="text-gray">operation</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-7">
+              <div class="card-style mb-30">
+                <div class="title d-flex flex-wrap justify-content-between">
+                  <div class="left">
+                    <h6 class="text-medium mb-10">Monthly Water Usage</h6>
+                    <h3 class="text-bold">2,456 m³</h3>
+                  </div>
+                </div>
+                <div class="chart">
+                  <canvas id="Chart1" style="width: 100%; height: 300px;"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <div class="card-style mb-30">
+                <div class="title d-flex justify-content-between align-items-center">
+                  <div class="left">
+                    <h6 class="text-medium mb-30">Meter Controls</h6>
+                  </div>
+                </div>
+                <div class="controls-section">
+                  <div class="control-item mb-20">
+                    <button class="btn btn-primary btn-sm mb-10">Read Meter</button>
+                    <p class="text-sm text-gray">Get current reading</p>
+                  </div>
+                  <div class="control-item mb-20">
+                    <button class="btn btn-warning btn-sm mb-10">Reset Counter</button>
+                    <p class="text-sm text-gray">Reset monthly usage</p>
+                  </div>
+                  <div class="control-item mb-20">
+                    <button class="btn btn-danger btn-sm mb-10">Emergency Shutoff</button>
+                    <p class="text-sm text-gray">Cut water supply</p>
+                  </div>
+                  <div class="control-item">
+                    <button class="btn btn-success btn-sm mb-10">Test Connection</button>
+                    <p class="text-sm text-gray">Check meter status</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card-style mb-30">
+                <div class="title d-flex flex-wrap justify-content-between align-items-center">
+                  <div class="left">
+                    <h6 class="text-medium mb-30">Recent Alerts</h6>
+                  </div>
+                </div>
+                <div class="alerts-list">
+                  <div class="alert-item warning mb-15">
+                    <div class="alert-icon">
+                      <i class="lni lni-alarm"></i>
+                    </div>
+                    <div class="alert-content">
+                      <h6 class="text-sm">High Usage Alert</h6>
+                      <p class="text-sm text-gray">Usage exceeded 500m³ this month</p>
+                      <span class="text-xs">2 hours ago</span>
+                    </div>
+                  </div>
+                  <div class="alert-item info mb-15">
+                    <div class="alert-icon">
+                      <i class="lni lni-checkmark-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                      <h6 class="text-sm">Meter Reading Completed</h6>
+                      <p class="text-sm text-gray">Automatic reading successful</p>
+                      <span class="text-xs">1 day ago</span>
+                    </div>
+                  </div>
+                  <div class="alert-item danger mb-15">
+                    <div class="alert-icon">
+                      <i class="lni lni-warning"></i>
+                    </div>
+                    <div class="alert-content">
+                      <h6 class="text-sm">Potential Leak Detected</h6>
+                      <p class="text-sm text-gray">Unusual flow pattern detected</p>
+                      <span class="text-xs">3 days ago</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== footer start =========== -->
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-6 order-last order-md-first">
+              <div class="copyright text-center text-md-start">
+                <p class="text-sm">
+                  Water Meter System by
+                  <a href="#" rel="nofollow">
+                    Water Management Team
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+      <!-- ========== footer end =========== -->
+    </main>
+
+    <!-- ========= JavaScript files ========== -->
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/js/Chart.min.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+    <script>
+      // Basic chart for water usage
+      const ctx1 = document.getElementById("Chart1").getContext("2d");
+      const chart1 = new Chart(ctx1, {
+        type: "line",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          datasets: [{
+            label: "",
+            backgroundColor: "transparent",
+            borderColor: "#365CF5",
+            data: [600, 800, 750, 880, 940, 880, 900, 770, 920, 890, 976, 1100],
+            pointBackgroundColor: "transparent",
+            pointHoverBackgroundColor: "#365CF5",
+            pointBorderColor: "transparent",
+            pointHoverBorderColor: "#fff",
+            pointHoverBorderWidth: 5,
+            borderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+          }],
+        },
+        options: {
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#f9f9f9",
+              titleColor: "#8F92A1",
+              bodyColor: "#171717",
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              grid: { display: false, drawTicks: false, drawBorder: false },
+              ticks: { padding: 35, max: 1200, min: 500 },
+            },
+            x: {
+              grid: { drawBorder: false, color: "rgba(143, 146, 161, .1)" },
+              ticks: { padding: 20 },
+            },
+          },
+        },
+      });
+    </script>
+  </body>
 </html>

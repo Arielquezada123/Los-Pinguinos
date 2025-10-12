@@ -16,4 +16,3 @@ python manage.py migrate
 
 # Ejecutar uWSGI
 exec uwsgi --ini /pinguinos/uwsgi/start_uwsgi.ini
-
