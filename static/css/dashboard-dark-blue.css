@@ -1,0 +1,181 @@
+/* Dark Blue Theme for Dashboard */
+/* Base Theme */
+body { 
+    background: #0a0e1a; 
+    color: #e0e8f0; 
+}
+
+.section { 
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1419 100%); 
+}
+
+/* Navigation */
+.sidebar-nav-wrapper { 
+    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%); 
+    border-right: 1px solid #2a3441; 
+}
+
+.navbar-logo { 
+    border-bottom: 1px solid #2a3441; 
+}
+
+.navbar-logo img { 
+    filter: brightness(1.2); 
+}
+
+.header { 
+    background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%); 
+    border-bottom: 1px solid #2a3441; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+}
+
+/* Cards */
+.icon-card, .card-style { 
+    background: linear-gradient(135deg, #1e2a3a 0%, #16202e 100%); 
+    border: 1px solid #2a3441; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+}
+
+.icon-card:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
+}
+
+/* Icons */
+.icon { 
+    box-shadow: 0 4px 15px rgba(37,99,235,0.3); 
+}
+
+.icon.purple { 
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); 
+}
+
+.icon.success { 
+    background: linear-gradient(135deg, #059669 0%, #047857 100%); 
+}
+
+.icon.primary { 
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+}
+
+.icon.orange { 
+    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); 
+}
+
+/* Controls */
+.controls-section { 
+    background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%); 
+    border-radius: 8px; 
+    padding: 20px; 
+    border: 1px solid #2a3441; 
+}
+
+.control-item { 
+    background: linear-gradient(135deg, #1e2a3a 0%, #16202e 100%); 
+    border: 1px solid #2a3441; 
+    border-radius: 8px; 
+    padding: 15px; 
+    margin-bottom: 15px; 
+}
+
+/* Buttons */
+.btn-primary { 
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+    border: none; 
+    box-shadow: 0 4px 15px rgba(37,99,235,0.3); 
+}
+
+.btn-primary:hover { 
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); 
+    transform: translateY(-1px); 
+}
+
+.btn-warning { 
+    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); 
+    border: none; 
+}
+
+.btn-danger { 
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+    border: none; 
+}
+
+.btn-success { 
+    background: linear-gradient(135deg, #059669 0%, #047857 100%); 
+    border: none; 
+}
+
+/* Text */
+h2, h3, h4, h5, h6 { 
+    color: #e0e8f0; 
+}
+
+.text-medium { 
+    color: #a0aec0; 
+}
+
+.text-gray { 
+    color: #718096; 
+}
+
+.text-success { 
+    color: #68d391; 
+}
+
+.text-danger { 
+    color: #fc8181; 
+}
+
+/* Dropdown */
+.dropdown-menu { 
+    background: linear-gradient(135deg, #1e2a3a 0%, #16202e 100%); 
+    border: 1px solid #2a3441; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+}
+
+.dropdown-item { 
+    color: #e0e8f0; 
+}
+
+.dropdown-item:hover { 
+    background: linear-gradient(135deg, #2a3441 0%, #1a2332 100%); 
+    color: #ffffff; 
+}
+
+/* Footer */
+.footer { 
+    background: linear-gradient(135deg, #0f1419 0%, #0a0e1a 100%); 
+    border-top: 1px solid #2a3441; 
+}
+
+.footer a { 
+    color: #68d391; 
+}
+
+.footer a:hover { 
+    color: #9ae6b4; 
+}
+
+/* Chart */
+#Chart1 { 
+    background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%); 
+    border-radius: 8px; 
+}
+
+/* Menu Button */
+.main-btn { 
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+    border: none; 
+    box-shadow: 0 4px 15px rgba(37,99,235,0.3); 
+}
+
+.main-btn:hover { 
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); 
+    transform: translateY(-1px); 
+}
+
+/* Overlay */
+.overlay { 
+    background: rgba(0,0,0,0.7); 
+}
+

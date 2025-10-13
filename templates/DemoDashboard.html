@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/lineicons.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/dashboard-dark-blue.css' %}" />
 </head>
 <body>
     <!-- ======== barra lateral inicio =========== -->
@@ -27,31 +28,28 @@
 
     <!-- ======== contenedor principal inicio =========== -->
     <main class="main-wrapper">
-      <!-- ========== encabezado inicio ========== -->
+      <!-- Header -->
       <header class="header">
-        <div class="container-fluid" style="margin-left: 9px;">
+        <div class="container-fluid">
           <div class="row">
             <div class="col-lg-5 col-md-5 col-6">
               <div class="header-left d-flex align-items-center">
-                <div class="menu-toggle-btn mr-15">
-                  <button id="menu-toggle" class="main-btn primary-btn btn-hover">
-                    <i class="lni lni-chevron-left me-2"></i> Menú
-                  </button>
-                </div>
+                <button id="menu-toggle" class="main-btn rounded-10" aria-label="Alternar menú" aria-expanded="false">
+                  <i class="lni lni-chevron-left me-2"></i> Menú
+                </button>
               </div>
             </div>
             <div class="col-lg-7 col-md-7 col-6">
               <div class="header-right">
-                <div class="profile-box ml-15">
-                  <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
-                    data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="profile-box">
+                  <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Abrir menú de perfil">
                     <div class="profile-info">
                       <div class="info">
                         <div class="image">
-                          <img src="{% static 'img/undraw_profile.svg' %}" alt="" />
+                          <img src="{% static 'img/undraw_profile.svg' %}" alt="Profile" />
                         </div>
                         <div>
-                          <h6 class="fw-500">Administrador</h6>
+                          <h6>Administrador</h6>
                           <p>Sistema de Medidor de Agua</p>
                         </div>
                       </div>
@@ -59,23 +57,24 @@
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
                     <li>
-                      <div class="author-info flex items-center !p-1">
+                      <div class="author-info">
                         <div class="image">
-                          <img src="{% static 'img/undraw_profile.svg' %}" alt="imagen">
+                          <img src="{% static 'img/undraw_profile.svg' %}" alt="Profile">
                         </div>
                         <div class="content">
-                          <h4 class="text-sm">Administrador</h4>
-                          <a class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs" href="#">admin@watermeter.com</a>
+                          <h4>Administrador</h4>
+                          <a href="#">admin@watermeter.com</a>
                         </div>
                       </div>
                     </li>
                     <li class="divider"></li>
                     <li>
-                    <form method="post" action="{% url 'logout' %}"> {% csrf_token %} 
-                      <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"> 
-                        <i class="lni lni-exit"></i> Logout 
-                      </button> 
-                    </form>
+                      <form method="post" action="{% url 'logout' %}"> 
+                        {% csrf_token %} 
+                        <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"> 
+                          <i class="lni lni-exit"></i> Logout 
+                        </button> 
+                      </form>
                     </li>
                   </ul>
                 </div>
@@ -84,84 +83,32 @@
           </div>
         </div>
       </header>
-      <!-- ========== encabezado fin ========== -->
 
-      <!-- ========== sección inicio ========== -->
+      <!-- Main Section -->
       <section class="section">
-        <div class="container-fluid" style="margin-left: 9px;">
-          <!-- ========== contenedor de título inicio ========== -->
-          <div class="title-wrapper pt-30">
+        <div class="container-fluid">
+          <!-- Title -->
+          <div class="title-wrapper pt-30 mb-20" >
             <div class="row align-items-center">
               <div class="col-md-6">
-                <div class="title">
-                  <h2>Panel de Control del Medidor de Agua</h2>
-                </div>
+                <h2>Panel de Control del Medidor de Agua</h2>
               </div>
             </div>
           </div>
-          <!-- ========== contenedor de título fin ========== -->
 
-          <!-- Tarjetas de Estadísticas -->
+          <!-- Statistics Cards -->
           <div class="row">
             <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon purple">
-                  <i class="lni lni-drop"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Lectura Actual</h6>
-                  <h3 class="text-bold mb-10">1,234 m³</h3>
-                  <p class="text-sm text-success">
-                    <i class="lni lni-arrow-up"></i> +15.5%
-                    <span class="text-gray">(este mes)</span>
-                  </p>
-                </div>
-              </div>
+              {% include 'base/_icon_card.html' with color_class='purple' icon_class='lni lni-drop' title='Lectura Actual' value='1,234 m³' subtitle_text='+15.5% <span class="text-gray">(este mes)</span>' subtitle_class='text-sm text-success' subtitle_icon_class='lni lni-arrow-up' %}
             </div>
             <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon success">
-                  <i class="lni lni-stats-up"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Uso Mensual</h6>
-                  <h3 class="text-bold mb-10">456 m³</h3>
-                  <p class="text-sm text-success">
-                    <i class="lni lni-arrow-up"></i> +8.2%
-                    <span class="text-gray">vs mes anterior</span>
-                  </p>
-                </div>
-              </div>
+              {% include 'base/_icon_card.html' with color_class='success' icon_class='lni lni-stats-up' title='Uso Mensual' value='456 m³' subtitle_text='+8.2% <span class="text-gray">vs mes anterior</span>' subtitle_class='text-sm text-success' subtitle_icon_class='lni lni-arrow-up' %}
             </div>
             <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon primary">
-                  <i class="lni lni-alarm"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Alertas</h6>
-                  <h3 class="text-bold mb-10">2</h3>
-                  <p class="text-sm text-danger">
-                    <i class="lni lni-arrow-up"></i> Advertencias de alto uso
-                    <span class="text-gray"></span>
-                  </p>
-                </div>
-              </div>
+              {% include 'base/_icon_card.html' with color_class='primary' icon_class='lni lni-alarm' title='Alertas' value='2' subtitle_text='Advertencias de alto uso' subtitle_class='text-sm text-danger' subtitle_icon_class='lni lni-arrow-up' %}
             </div>
             <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon orange">
-                  <i class="lni lni-cog"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Estado del Medidor</h6>
-                  <h3 class="text-bold mb-10">Activo</h3>
-                  <p class="text-sm text-success">
-                    <i class="lni lni-checkmark"></i> Operación normal
-                    <span class="text-gray"></span>
-                  </p>
-                </div>
-              </div>
+              {% include 'base/_icon_card.html' with color_class='orange' icon_class='lni lni-cog' title='Estado del Medidor' value='Activo' subtitle_text='Operación normal' subtitle_class='text-sm text-success' subtitle_icon_class='lni lni-checkmark' %}
             </div>
           </div>
 
@@ -176,7 +123,7 @@
                   </div>
                 </div>
                 <div class="chart">
-                  <canvas id="Chart1" style="width: 100%; height: 300px;"></canvas>
+                  <canvas id="Chart1" style="width: 100%;" class="chart-h-300" data-labels='["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]' data-values='[600,800,750,880,940,880,900,770,920,890,976,1100]'></canvas>
                 </div>
               </div>
             </div>
@@ -189,19 +136,19 @@
                 </div>
                 <div class="controls-section">
                   <div class="control-item mb-20">
-                    <button class="btn btn-primary btn-sm mb-10">Leer Medidor</button>
+                    <button class="btn btn-primary btn-sm mb-10 rounded-10" aria-label="Leer medidor">Leer Medidor</button>
                     <p class="text-sm text-gray">Obtener lectura actual</p>
                   </div>
                   <div class="control-item mb-20">
-                    <button class="btn btn-warning btn-sm mb-10">Reiniciar Contador</button>
+                    <button class="btn btn-warning btn-sm mb-10 rounded-10" aria-label="Reiniciar contador">Reiniciar Contador</button>
                     <p class="text-sm text-gray">Reiniciar uso mensual</p>
                   </div>
-                  <div class="control-item mb-20">
-                    <button class="btn btn-danger btn-sm mb-10">Corte de Emergencia</button>
+                  <div  class="control-item mb-20">
+                    <button class="btn btn-danger btn-sm mb-10 rounded-10" aria-label="Corte de emergencia">Corte de Emergencia</button>
                     <p class="text-sm text-gray">Cortar suministro de agua</p>
                   </div>
                   <div class="control-item">
-                    <button class="btn btn-success btn-sm mb-10">Probar Conexión</button>
+                    <button class="btn btn-success btn-sm mb-10 rounded-10" aria-label="Probar conexión">Probar Conexión</button>
                     <p class="text-sm text-gray">Verificar estado del medidor</p>
                   </div>
                 </div>
@@ -235,52 +182,6 @@
     <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'assets/js/Chart.min.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
-
-    <script>
-      // Datos de gráfico simulados
-      const ctx1 = document.getElementById("Chart1").getContext("2d");
-      const chart1 = new Chart(ctx1, {
-        type: "line",
-        data: {
-          labels: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
-          datasets: [{
-            label: "Uso de Agua (m³)",
-            backgroundColor: "transparent",
-            borderColor: "#365CF5",
-            data: [600, 800, 750, 880, 940, 880, 900, 770, 920, 890, 976, 1100],
-            pointBackgroundColor: "transparent",
-            pointHoverBackgroundColor: "#365CF5",
-            pointBorderColor: "transparent",
-            pointHoverBorderColor: "#fff",
-            pointHoverBorderWidth: 5,
-            borderWidth: 3,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-          }]
-        },
-        options: {
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: "#f9f9f9",
-              titleColor: "#8F92A1",
-              bodyColor: "#171717",
-            },
-          },
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              grid: { display: false, drawTicks: false, drawBorder: false },
-              ticks: { padding: 35, max: 1200, min: 500 },
-            },
-            x: {
-              grid: { drawBorder: false, color: "rgba(143, 146, 161, .1)" },
-              ticks: { padding: 20 },
-            },
-          },
-        },
-      });
-    </script>
+    <script src="{% static 'assets/js/dashboard.js' %}"></script>
 </body>
 </html>
