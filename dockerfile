@@ -1,19 +1,17 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Dependencias del sistema
-RUN apk add --no-cache \
-    build-base \
-    linux-headers \
-    gcc \
-    musl-dev \
-    libc-dev \
+# Instalamos dependencias del sistema necesarias para compilar
+RUN apt-get update && apt-get install -y \
+    build-essential \
     libffi-dev \
-    pcre-dev
+    libssl-dev \
+    libpcre2-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar y instalar dependencias Python
+# Copiar e instalar dependencias Python
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 RUN pip install uwsgi
@@ -28,7 +26,6 @@ RUN mkdir -p /pinguinos/staticfiles /pinguinos/media
 # Hacer ejecutable el entrypoint
 RUN chmod +x entrypoint.sh
 
-# Exponer puerto HTTP de uWSGI
 EXPOSE 8000
 
 ENTRYPOINT ["./entrypoint.sh"]

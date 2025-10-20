@@ -23,7 +23,8 @@ def on_message(client, userdata, msg):
     print("📡 Datos enviados al dashboard:", data)
 
 client = mqtt.Client()
-client.connect("localhost", 1883)
+client.connect("mosquitto", 1883)
 client.subscribe("sensores/flujo")
 client.on_message = on_message
 client.loop_forever()
+

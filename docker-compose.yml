@@ -1,7 +1,10 @@
+version: "3.9"
+
 services:
   web:
     build: .
     container_name: los_pinguinos_web
+    command: daphne -b 0.0.0.0 -p 8000 watermilimiter.asgi:application
     environment:
       - DJANGO_SETTINGS_MODULE=watermilimiter.settings
     expose:
@@ -9,8 +12,10 @@ services:
     volumes:
       - media_data:/pinguinos/media
       - static_data:/pinguinos/staticfiles
-    restart: 
-      always
+    depends_on:
+      - redis
+      - mosquitto
+    restart: always
     env_file:
       - .env
 
@@ -26,6 +31,37 @@ services:
       - static_data:/pinguinos/staticfiles
     depends_on:
       - web
+    restart: always
+
+  redis:
+    image: redis:alpine
+    container_name: los_pinguinos_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: los_pinguinos_mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: always
+
+  mqtt_listener:
+    build: .
+    container_name: los_pinguinos_mqtt_listener
+    command: python manage.py mqttlistener
+    environment:
+      - DJANGO_SETTINGS_MODULE=watermilimiter.settings
+    depends_on:
+      - web
+      - redis
+      - mosquitto
     restart: always
 
 volumes:

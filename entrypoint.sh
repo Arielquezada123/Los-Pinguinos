@@ -14,5 +14,6 @@ python manage.py collectstatic --noinput
 echo "Running migrations..."
 python manage.py migrate
 
-# Ejecutar uWSGI
-exec uwsgi --ini /pinguinos/uwsgi/start_uwsgi.ini
+# Ejecutar Daphne
+echo "Iniciando Daphne (ASGI server)..."
+exec daphne -b 0.0.0.0 -p 8000 watermilimiter.asgi:application

@@ -71,6 +71,14 @@ STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage" ##
 ##STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" 
 
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],  # nombre del servicio redis del docker-compose
+        },
+    },
+}
 
 
 
