@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gestorUser',
+    'sensores',
 ]
 AUTHENTICATION_BACKENDS = (
     'gestorUser.backends.EmailBackend',
@@ -62,6 +63,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'watermilimiter.wsgi.application'
 
+ASGI_APPLICATION = "watermilimiter.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -72,7 +74,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
