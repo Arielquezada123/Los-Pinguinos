@@ -1,45 +1,83 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Sensores</title>
+    <title>📡 Dashboard de Flujo de Agua</title>
+    <script src="{% static 'assets/js/Chart.min.js' %}"></script>
+    
     <style>
-        body { font-family: Arial; background: #f9f9f9; padding: 20px; }
-        .sensor { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); width: 300px; }
-        .valor { font-size: 1.5em; color: #007bff; }
+        body { font-family: Arial; background: #f4f4f4; margin: 20px; }
+        h1 { text-align: center; margin-bottom: 40px; }
+        .sensor-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .sensor { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
+        .valor { font-size: 2em; color: #007bff; }
+        canvas { width: 100%; height: 150px; }
     </style>
 </head>
 <body>
-    <h1>📡 Datos del Sensor en Tiempo Real</h1>
-    <div class="sensor">
-        <p>Nivel: <span id="nivel" class="valor">--</span></p>
-        <p>Humedad: <span id="humedad" class="valor">--</span></p>
+    <h1>📡 Flujo de Agua en Tiempo Real</h1>
+    <div class="sensor-container" id="sensorContainer">
+        <!-- Tarjetas de sensores se generarán dinámicamente -->
     </div>
 
     <script>
         const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
-        const nivel = document.getElementById("nivel");
-        const humedad = document.getElementById("humedad");
+        const sensors = {};  // guardará datos de cada sensor
 
         ws.onopen = () => console.log("🟢 WebSocket conectado.");
         ws.onclose = () => console.log("🔴 WebSocket desconectado.");
         ws.onerror = (err) => console.error("⚠️ Error:", err);
 
-        // cuando el servidor manda datos
         ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            nivel.textContent = data.nivel;
-            humedad.textContent = data.humedad;
-        };
+            const data = JSON.parse(event.data);  // {cliente_id, sensor_id, flujo}
+            const key = data.sensor_id;
 
-        // Simulación de envío de datos (como si fuera un sensor)
-        setInterval(() => {
-            const fakeData = {
-                nivel: Math.floor(Math.random() * 100),
-                humedad: Math.floor(Math.random() * 100)
-            };
-            ws.send(JSON.stringify(fakeData));
-        }, 2000);
+            if (!sensors[key]) {
+                // Crear tarjeta y gráfico para este sensor
+                const container = document.getElementById("sensorContainer");
+                const card = document.createElement("div");
+                card.classList.add("sensor");
+                card.innerHTML = `
+                    <h3>${data.sensor_id} (${data.cliente_id})</h3>
+                    <p>Flujo actual: <span class="valor" id="${key}_valor">--</span> L/s</p>
+                    <canvas id="${key}_chart"></canvas>
+                `;
+                container.appendChild(card);
+
+                const ctx = document.getElementById(`${key}_chart`).getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Flujo (L/s)',
+                            data: [],
+                            borderColor: 'rgba(0,123,255,1)',
+                            backgroundColor: 'rgba(0,123,255,0.2)',
+                            tension: 0.3,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { display: false }, y: { beginAtZero: true } }
+                    }
+                });
+
+                sensors[key] = {chart, valores: []};
+            }
+
+            // Actualizar valor y gráfico
+            document.getElementById(`${key}_valor`).textContent = data.flujo;
+            const sensor = sensors[key];
+            sensor.valores.push(data.flujo);
+
+            if (sensor.valores.length > 20) sensor.valores.shift();  // mantener últimas 20 mediciones
+            sensor.chart.data.labels = Array(sensor.valores.length).fill("");
+            sensor.chart.data.datasets[0].data = sensor.valores;
+            sensor.chart.update();
+        };
     </script>
 </body>
 </html>

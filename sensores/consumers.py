@@ -1,20 +1,17 @@
-# interfaz/consumers.py
-import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+import json
 
 class SensorConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        # Agregamos este socket al grupo "sensores"
+        await self.channel_layer.group_add("sensores", self.channel_name)
         await self.accept()
         print("🟢 Cliente conectado al WebSocket")
 
     async def disconnect(self, close_code):
+        await self.channel_layer.group_discard("sensores", self.channel_name)
         print("🔴 Cliente desconectado")
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        print("📡 Datos recibidos del cliente:", data)
-        # reenviamos los datos al cliente para mostrarlos
-        await self.send(text_data=json.dumps({
-            "nivel": data.get("nivel"),
-            "humedad": data.get("humedad"),
-        }))
+    # Este método será llamado por channel_layer.group_send
+    async def sensor_update(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
