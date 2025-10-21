@@ -1,29 +1,43 @@
-import json
+from django.core.management.base import BaseCommand
+from sensores.models import Medicion
 import paho.mqtt.client as mqtt
-import os
-import django
+from django.utils import timezone
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "watermilimiter.settings")
-django.setup()
+# Configuración del broker HiveMQ Cloud
+MQTT_BROKER = "d9adaadca39e466da5cfc08719f42550.s1.eu.hivemq.cloud"
+MQTT_PORT = 8883
+MQTT_USER = "Miguel"
+MQTT_PASSWORD = "Miguelgamer509"
+MQTT_TOPICS = [("miagua/flujo", 0), ("miagua/consumo", 0)]
 
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-
-channel_layer = get_channel_layer()
+def on_connect(client, userdata, flags, rc):
+    print("🔗 Conectado al broker HiveMQ Cloud (código:", rc, ")")
+    client.subscribe(MQTT_TOPICS)
 
 def on_message(client, userdata, msg):
-    data = json.loads(msg.payload.decode())
-    async_to_sync(channel_layer.group_send)(
-        "sensores",
-        {
-            "type": "sensor_update",  # coincide con el método en SensorConsumer
-            "data": data
-        }
-    )
-    print("📡 Datos enviados al dashboard:", data)
+    try:
+        valor = float(msg.payload.decode())
+        tipo = msg.topic.split("/")[-1]  # "flujo" o "consumo"
 
-client = mqtt.Client()
-client.connect("localhost", 1883)
-client.subscribe("sensores/flujo")
-client.on_message = on_message
-client.loop_forever()
+        Medicion.objects.create(
+            tipo=tipo,
+            valor=valor,
+            fecha=timezone.now()
+        )
+        print(f"💾 Guardado {tipo}: {valor} L")
+    except Exception as e:
+        print("⚠️ Error al guardar medición:", e)
+
+class Command(BaseCommand):
+    help = "Escucha datos MQTT del ESP32 y los guarda en la base de datos"
+
+    def handle(self, *args, **options):
+        client = mqtt.Client()
+        client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+        client.tls_set()  # Conexión segura
+        client.on_connect = on_connect
+        client.on_message = on_message
+
+        print("🚀 Iniciando escucha MQTT...")
+        client.connect(MQTT_BROKER, MQTT_PORT)
+        client.loop_forever()
