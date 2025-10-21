@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'gestorUser',
+    'sensores',
 ]
 AUTHENTICATION_BACKENDS = (
     'gestorUser.backends.EmailBackend',
@@ -60,7 +62,16 @@ TEMPLATES = [
     },
 ]
 
+
+ASGI_APPLICATION = "watermilimiter.asgi.application"
 WSGI_APPLICATION = 'watermilimiter.wsgi.application'
+
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage" #### Cambiar en despliegue por
+##STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" 
+
+
+
 
 
 # Database
@@ -72,7 +83,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
