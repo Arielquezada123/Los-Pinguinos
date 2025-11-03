@@ -18,6 +18,7 @@ def signUp(request):
     return render(request,'forms/signUp.html',{'form':form})
 
 
+
 @login_required(login_url='login')  
 def postlogin(request):
     user = request.user

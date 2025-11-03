@@ -2,49 +2,204 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>📡 Dashboard de Flujo de Agua</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.svg' %}" type="image/x-icon" />
+    <title>Panel de Control del Medidor de Agua</title>
+
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/lineicons.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/dashboard-dark-blue.css' %}" />
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
+
     <style>
-        body { font-family: Arial; background: #f4f4f4; margin: 20px; }
-        h1 { text-align: center; margin-bottom: 40px; }
-        .sensor-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .sensor { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
-        .valor { font-size: 2em; color: #007bff; }
-        canvas { width: 100%; height: 150px; }
+        /* Estilo para las tarjetas generadas dinámicamente */
+        .sensor-realtime-card {
+            background: var(--card-bg); /* Asumiendo una variable de CSS para el fondo */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-1);
+            margin-bottom: 30px;
+        }
+        .sensor-realtime-card .valor {
+            font-size: 2em;
+            color: var(--success); /* o un color relevante */
+            font-weight: bold;
+        }
+        .chart-container-realtime {
+            height: 150px; /* Altura fija para los gráficos pequeños */
+        }
     </style>
 </head>
 <body>
-    <h1>📡 Flujo de Agua en Tiempo Real</h1>
-    <div class="sensor-container" id="sensorContainer">
-        <!-- Tarjetas de sensores se generarán dinámicamente -->
-    </div>
+    <aside class="sidebar-nav-wrapper">
+      <div class="navbar-logo">
+        <a href="/">
+          <img src="{% static 'assets/images/logo/logo.svg' %}" alt="logotipo" />
+        </a>
+      </div>
+    </aside>
+    <div class="overlay"></div>
+    <main class="main-wrapper">
+      <header class="header">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-lg-5 col-md-5 col-6">
+              <div class="header-left d-flex align-items-center">
+                <button style="border-radius: 10px;" id="menu-toggle" class="main-btn rounded-10" aria-label="Alternar menú" aria-expanded="false">
+                  <i class="lni lni-chevron-left me-2"></i> Menú
+                </button>
+              </div>
+            </div>
+            <div class="col-lg-7 col-md-7 col-6">
+              <div class="header-right">
+                <div class="profile-box">
+                  <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Abrir menú de perfil">
+                    <div class="profile-info">
+                      <div class="info">
+                        <div class="image">
+                          <img src="{% static 'img/undraw_profile.svg' %}" alt="Profile" />
+                        </div>
+                        <div>
+                          <h6>{{user.username}}</h6>
+                          <p style="color: #ffffff !important;">Sistema de Medidor de Agua</p>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
+                    <li>
+                      <div class="author-info">
+                        <div class="image">
+                          <img src="{% static 'img/undraw_profile.svg' %}" alt="Profile">
+                        </div>
+                        <div class="content">
+                          <h4>{{ user.username }}</h4>
+                          <a style="color: #ffffff !important;">{{ user.email }}</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                      <form method="post" action="{% url 'logout' %}"> 
+                        {% csrf_token %} 
+                        <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"> 
+                          <i class="lni lni-exit"></i> Logout 
+                        </button> 
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="section">
+        <div class="container-fluid">
+          <div class="title-wrapper pt-30 mb-20" >
+            <div class="row align-items-center">
+              <div class="col-md-12">
+                <h2>Panel de Control - Flujo en Tiempo Real</h2>
+                <p class="text-gray">Visualización dinámica de datos de los sensores conectados vía WebSockets.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="row" id="sensorContainer">
+            <div class="col-12">
+                <p class="text-center text-gray pt-5" id="loading-message">
+                    Conectando con el servidor de datos en tiempo real...
+                </p>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-lg-12">
+                <div class="card-style mb-30">
+                    <div class="title d-flex justify-content-between align-items-center">
+                        <h6 class="text-medium mb-30">Controles Generales del Sistema</h6>
+                    </div>
+                    <div class="d-flex flex-wrap gap-3">
+                        <button style="border-radius: 10px;" class="btn btn-primary btn-sm rounded-10" aria-label="Leer medidor">Leer Medidor Global</button>
+                    </div>
+                </div>
+            </div>
+          </div>
+
+      </section>
+      
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-6 order-last order-md-first">
+              <div class="copyright text-center text-md-start">
+                <p class="text-sm">
+                  Sistema de Medidor de Agua por
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+      </main>
+
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    <script src="{% static 'assets/js/dashboard.js' %}"></script>
 
     <script>
         const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
-        const sensors = {};  // guardará datos de cada sensor
+        const sensors = {}; // guardará datos de cada sensor y su objeto Chart
+        const sensorContainer = document.getElementById("sensorContainer");
+        const loadingMessage = document.getElementById("loading-message");
 
-        ws.onopen = () => console.log("🟢 WebSocket conectado.");
-        ws.onclose = () => console.log("🔴 WebSocket desconectado.");
-        ws.onerror = (err) => console.error("⚠️ Error:", err);
+        ws.onopen = () => {
+            console.log("WebSocket conectado.");
+            if (loadingMessage) loadingMessage.textContent = "Esperando datos de sensores...";
+        };
+        ws.onclose = () => {
+            console.log("WebSocket desconectado.");
+            if (loadingMessage) loadingMessage.textContent = "Conexión WebSocket cerrada. Intentando reconectar...";
+        };
+        ws.onerror = (err) => {
+            console.error("Error en WebSocket:", err);
+            if (loadingMessage) loadingMessage.textContent = "Error de conexión WebSocket.";
+        };
 
         ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);  // {cliente_id, sensor_id, flujo}
+            const data = JSON.parse(event.data); // {cliente_id, sensor_id, flujo}
             const key = data.sensor_id;
+            
+            // Eliminar el mensaje de carga una vez que llegan los datos
+            if (loadingMessage) loadingMessage.remove();
 
             if (!sensors[key]) {
-                // Crear tarjeta y gráfico para este sensor
-                const container = document.getElementById("sensorContainer");
-                const card = document.createElement("div");
-                card.classList.add("sensor");
-                card.innerHTML = `
-                    <h3>${data.sensor_id} (${data.cliente_id})</h3>
-                    <p>Flujo actual: <span class="valor" id="${key}_valor">--</span> L/s</p>
-                    <canvas id="${key}_chart"></canvas>
+                // Crear la estructura de tarjeta y gráfico si es un sensor nuevo
+                const cardCol = document.createElement("div");
+                // Usamos col-lg-6 para que quepan dos tarjetas de gráfico grandes por fila
+                cardCol.classList.add("col-lg-6", "col-md-6"); 
+                cardCol.id = `col_${key}`;
+                cardCol.innerHTML = `
+                    <div class="card-style mb-30 sensor-realtime-card">
+                        <div class="title d-flex justify-content-between align-items-center">
+                            <h6 class="text-medium mb-10">Sensor: ${data.sensor_id} (Cliente: ${data.cliente_id})</h6>
+                            <span class="text-sm text-success">Flujo en Vivo</span>
+                        </div>
+                        <div class="d-flex align-items-end mb-20">
+                            <h3 class="valor" id="${key}_valor">--</h3>
+                            <p class="ms-2">L/s</p>
+                        </div>
+                        <div class="chart-container-realtime">
+                            <canvas id="${key}_chart"></canvas>
+                        </div>
+                    </div>
                 `;
-                container.appendChild(card);
+                sensorContainer.prepend(cardCol); // Añadir al inicio
 
                 const ctx = document.getElementById(`${key}_chart`).getContext('2d');
                 const chart = new Chart(ctx, {
@@ -54,30 +209,39 @@
                         datasets: [{
                             label: 'Flujo (L/s)',
                             data: [],
-                            borderColor: 'rgba(0,123,255,1)',
+                            borderColor: 'rgba(0,123,255,1)', // Usamos un color azul consistente
                             backgroundColor: 'rgba(0,123,255,0.2)',
                             tension: 0.3,
                             fill: true,
+                            pointRadius: 0 // Quitar puntos para un mejor aspecto de flujo continuo
                         }]
                     },
                     options: {
                         responsive: true,
-                        scales: { x: { display: false }, y: { beginAtZero: true } }
+                        maintainAspectRatio: false, // Permitir que la altura se ajuste a 150px
+                        plugins: { legend: { display: false } }, // Ocultar leyenda
+                        scales: { 
+                            x: { display: false }, 
+                            y: { beginAtZero: true } 
+                        }
                     }
                 });
 
-                sensors[key] = {chart, valores: []};
+                sensors[key] = { chart, valores: [] };
             }
 
             // Actualizar valor y gráfico
-            document.getElementById(`${key}_valor`).textContent = data.flujo;
+            document.getElementById(`${key}_valor`).textContent = parseFloat(data.flujo).toFixed(2); // Mostrar 2 decimales
             const sensor = sensors[key];
             sensor.valores.push(data.flujo);
 
-            if (sensor.valores.length > 20) sensor.valores.shift();  // mantener últimas 20 mediciones
-            sensor.chart.data.labels = Array(sensor.valores.length).fill("");
+            const maxDataPoints = 30; // Mostrar los últimos 30 segundos/mediciones
+            if (sensor.valores.length > maxDataPoints) sensor.valores.shift(); 
+            
+            // Etiquetas vacías o etiquetas de tiempo real (ej. new Date().toLocaleTimeString())
+            sensor.chart.data.labels = Array(sensor.valores.length).fill(""); 
             sensor.chart.data.datasets[0].data = sensor.valores;
-            sensor.chart.update();
+            sensor.chart.update('quiet'); // Actualizar sin animaciones para mayor fluidez
         };
     </script>
 </body>

@@ -135,8 +135,9 @@
             <a class="nav-link text-info me-md-2" href="{% url 'index' %}">Inicio</a>
           </li>
           <li class="nav-item"><a class="nav-link" href="#acerca">Acerca de</a></li>
-
-
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'post_login' %}">Interfaz</a></li>
+        {% endif %}
         </ul>
 
         {% block sesion %}
@@ -145,6 +146,7 @@
                 {% csrf_token %}
                 <button type="submit" class="btn-ola-ripple">Logout</button>
                 </form>
+
             {% else %}
                 <a href="{% url 'login' %}" class="btn-ola-ripple">
                   <span class="liquid"></span>
