@@ -10,7 +10,7 @@
     <title>{% block title %}Panel de Control{% endblock %} - Watermilimiter</title>
 
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'assets/css/lineicons.css' %}" />
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/dashboard-dark-blue.css' %}" />
 
@@ -57,26 +57,36 @@
   <aside class="sidebar-nav-wrapper">
     <div class="sidebar-logo">
       </div>
-    <nav class="sidebar-nav">
+      <nav class="sidebar-nav">
         <ul>
             <li class="nav-item active"> 
-                <a href="{% url 'post_login' %}"> <span class="icon"><i class="lni lni-dashboard"></i></span>
+                <a href="{% url 'post_login' %}"> 
+                    <span class="icon"><i class="lni lni-dashboard"></i></span>
                     <span class="text">Inicio</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/"> <span class="icon"><i class="lni lni-map"></i></span>
+                <a href="{% url 'mapa_pagina' %}"> 
+                    <span class="icon"><i class="lni lni-map"></i></span>
                     <span class="text">Mapa</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/"> <span class="icon"><i class="lni lni-stats-up"></i></span>
+                <a href="{% url 'historial_pagina' %}"> 
+                    <span class="icon"><i class="lni lni-stats-up"></i></span>
                     <span class="text">Historial</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/"> <span class="icon"><i class="lni lni-revenue"></i></span>
-                    <span class="text">Boleta</span>
+                <a href="{% url 'consumo_pagina' %}"> 
+                    <span class="icon"><i class="lni lni-revenue"></i></span>
+                    <span class="text">Consumo</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'ingreso_pagina' %}"> 
+                    <span class="icon"><i class="lni lni-drop"></i></span>
+                    <span class="text">Ingresar</span>
                 </a>
             </li>
         </ul>

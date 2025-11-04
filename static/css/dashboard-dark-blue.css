@@ -41,10 +41,7 @@ body {
     box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
 }
 
-/* Icons */
-.icon { 
-    box-shadow: 0 4px 15px rgba(37,99,235,0.3); 
-}
+ 
 
 .icon.purple { 
     background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); 
