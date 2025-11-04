@@ -5955,3 +5955,52 @@ h6,
     transform: rotate(360deg);
   }
 }
+
+
+/* --- Estilos para el nuevo Menú Sidebar --- */
+.sidebar-logo {
+  padding: 25px 30px; /* Padding para alinear el logo */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separador sutil */
+}
+
+.sidebar-nav {
+  margin-top: 20px; /* Espacio después del logo */
+}
+.sidebar-nav ul {
+  padding-left: 0;
+  margin: 0;
+  list-style: none; /* Quitar viñetas */
+}
+.sidebar-nav .nav-item {
+  margin: 0;
+}
+.sidebar-nav .nav-item a {
+  display: flex;
+  align-items: center;
+  padding: 15px 30px; /* 15px arriba/abajo, 30px izquierda */
+  color: #c9c9c9; /* Gris claro para texto no activo */
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.sidebar-nav .nav-item a .icon {
+  margin-right: 15px;
+  font-size: 20px; /* Tamaño del icono */
+  width: 20px; /* Ancho fijo para alinear el texto */
+  text-align: center;
+}
+
+/* Efecto al pasar el mouse */
+.sidebar-nav .nav-item a:hover {
+  background-color: rgba(255, 255, 255, 0.05); /* Brillo sutil */
+  color: #ffffff; /* Texto blanco al pasar el mouse */
+}
+
+/* Estilo para el ítem activo (la página actual) */
+.sidebar-nav .nav-item.active a {
+  background-color: #4A6CFD; /* Color de acento azul (de tu plantilla) */
+  color: #ffffff; /* Texto blanco */
+  font-weight: 600;
+}
+/* --- Fin Estilos Sidebar --- */

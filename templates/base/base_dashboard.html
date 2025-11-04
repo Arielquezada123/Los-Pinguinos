@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.svg' %}" type="image/x-icon" />
+    
+    <title>{% block title %}Panel de Control{% endblock %} - Watermilimiter</title>
+
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/lineicons.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/dashboard-dark-blue.css' %}" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* Estilo para las tarjetas generadas dinámicamente */
+        .sensor-realtime-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-1);
+            margin-bottom: 30px;
+        }
+        .sensor-realtime-card .valor {
+            font-size: 2em;
+            color: var(--success);
+            font-weight: bold;
+        }
+        .chart-container-realtime {
+            height: 150px; 
+        }
+        .sidebar-nav-wrapper {
+          position: fixed;     
+          top: 0;            
+          left: 0;           
+          height: 100vh;     
+          overflow-y: auto;   
+          
+          width: 260px;    
+          background: #021446;   
+          z-index: 999;       
+        }
+        #historial-lista .list-group-item {
+          background-color: #212529;
+          color: #f8f9fa;         
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+    
+    {% block page_styles %}{% endblock %}
+</head>
+<body>
+  <aside class="sidebar-nav-wrapper">
+    <div class="sidebar-logo">
+      </div>
+    <nav class="sidebar-nav">
+        <ul>
+            <li class="nav-item active"> 
+                <a href="{% url 'post_login' %}"> <span class="icon"><i class="lni lni-dashboard"></i></span>
+                    <span class="text">Inicio</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/"> <span class="icon"><i class="lni lni-map"></i></span>
+                    <span class="text">Mapa</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/"> <span class="icon"><i class="lni lni-stats-up"></i></span>
+                    <span class="text">Historial</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/"> <span class="icon"><i class="lni lni-revenue"></i></span>
+                    <span class="text">Boleta</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+  </aside>
+  <div class="overlay"></div>
+  
+  <main class="main-wrapper">
+    <header class="header">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-5 col-md-5 col-6">
+            <div class="header-left d-flex align-items-center">
+              <button style="border-radius: 10px;" id="menu-toggle" class="main-btn rounded-10" aria-label="Alternar menú" aria-expanded="false">
+                <i class="lni lni-chevron-left me-2"></i> Menú
+              </button>
+            </div>
+          </div>
+          <div class="col-lg-7 col-md-7 col-6">
+            <div class="header-right">
+              <div class="profile-box">
+                <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Abrir menú de perfil">
+                  <div class="profile-info">
+                    <div class="info">
+                      <div class="image">
+                        <img src="{% static 'img/undraw_profile.svg' %}" alt="Profile" />
+                      </div>
+                      <div>
+                        <h6>{{user.username}}</h6>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
+                  <li>
+                    <div class="author-info">
+                      <div class="image">
+                        <img src="{% static 'img/undraw_profile.svg' %}" alt="Profile">
+                      </div>
+                      <div class="content">
+                        <h4>{{ user.username }}</h4>
+                        <a style="color: #ffffff !important;">{{ user.email }}</a>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="divider"></li>
+                  <li>
+                    <form method="post" action="{% url 'logout' %}"> 
+                      {% csrf_token %} 
+                      <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"> 
+                        <i class="lni lni-exit"></i> Logout 
+                      </button> 
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="container-fluid">
+        {% block dashboard_content %}
+          {% endblock %}
+      </div>
+    </section>
+    
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-6 order-last order-md-first">
+            <div class="copyright text-center text-md-start">
+              <p class="text-sm">
+                Sistema de Medidor de Agua
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/main.js' %}"></script>
+  <script src="{% static 'assets/js/dashboard.js' %}"></script>
+
+  {% block page_scripts %}{% endblock %}
+
+</body>
+</html>

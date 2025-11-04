@@ -23,9 +23,9 @@ def signUp(request):
 def postlogin(request):
     user = request.user
     if user.is_staff:
-        return render(request,'DemoDashboard.html')
+        return render(request,'dashboard_inicio.html')
     else:
-        return render (request, 'DemoDashboard.html')
+        return render (request, 'dashboard_inicio.html')
 
 
     
