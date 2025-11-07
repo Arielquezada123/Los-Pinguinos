@@ -19,4 +19,6 @@ urlpatterns = [
     path('consumo/', sensores_views.consumo_pagina_view, name='consumo_pagina'),
     path('ingreso/', sensores_views.ingreso_pagina_view, name='ingreso_pagina'),
     path('api/historial/', sensores_views.historial_consumo, name='api_historial'),
+
+    path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
 ]

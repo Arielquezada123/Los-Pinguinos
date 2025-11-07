@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from .models import LecturaSensor, Dispositivo 
 from .forms import DispositivoForm 
 import json
+from django.db.models import Sum
+from django.db.models.functions import TruncMonth, TruncWeek
+from datetime import datetime
 
-# @login_required
-# def tu_vista_dashboard(request):
-#     return render(request, 'DemoDashboard.html')
 
 @login_required
 def historial_consumo(request):
@@ -74,3 +74,71 @@ def ingreso_pagina_view(request):
     return render(request, 'dashboard_ingreso.html', {
         'form': form
     })
+
+
+
+@login_required
+def api_historial_agregado(request):
+    """
+    API que devuelve datos de consumo agregados, separados por sensor,
+    para los gráficos del historial. Acepta ?agrupar_por=mes|semana
+    """
+    try:
+        agrupar_por = request.GET.get('agrupar_por', 'mes')
+        lecturas = LecturaSensor.objects.filter(
+            dispositivo__usuario__usuario=request.user
+        )
+
+        if agrupar_por == 'semana':
+            TruncClase = TruncWeek('timestamp')
+            formato_fecha = "Semana %W, %Y"
+        else:
+            TruncClase = TruncMonth('timestamp')
+            formato_fecha = "%b %Y"
+
+        datos_agrupados = lecturas.annotate(
+            periodo=TruncClase
+        ).values(
+            'dispositivo__nombre', 'periodo'
+        ).annotate(
+            consumo_total=Sum('valor_flujo')
+        ).order_by('periodo')
+        
+        # --- INICIO DE LA MODIFICACIÓN ---
+        
+        # 1. Procesamos los datos en una estructura anidada
+        # { "Sensor 1": {"Nov 2025": 120, "Dic 2025": 150}, ... }
+        labels_set = set()
+        sensores_data_dict = {} 
+
+        for item in datos_agrupados:
+            sensor_nombre = item['dispositivo__nombre']
+            label = item['periodo'].strftime(formato_fecha)
+            labels_set.add(label)
+            
+            if sensor_nombre not in sensores_data_dict:
+                sensores_data_dict[sensor_nombre] = {}
+            
+            sensores_data_dict[sensor_nombre][label] = item['consumo_total']
+
+        # 2. Creamos una lista de etiquetas maestras ordenada
+        labels = sorted(list(labels_set), key=lambda d: datetime.strptime(d.replace("Semana ", "") if agrupar_por == 'semana' else d, "%W, %Y" if agrupar_por == 'semana' else "%b %Y"))
+
+        # 3. Construimos el JSON final
+        # { "labels": ["Nov 2025", ...], "sensores": { "Sensor 1": [120, 0], ... } }
+        sensores_data_final = {}
+        for nombre_sensor, data_dict in sensores_data_dict.items():
+            data_list = []
+            for label in labels:
+                data_list.append(data_dict.get(label, 0)) # 0 si no hay datos
+            sensores_data_final[nombre_sensor] = data_list
+        
+        # Devolvemos una estructura que el frontend pueda iterar fácilmente
+        return JsonResponse({
+            'labels': labels, 
+            'sensores': sensores_data_final
+        })
+    
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500, safe=False)
