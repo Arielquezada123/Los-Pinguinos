@@ -7,6 +7,8 @@ import json
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth, TruncWeek
 from datetime import datetime
+from .models import Dispositivo
+from django.utils.html import mark_safe
 
 
 @login_required
@@ -45,9 +47,6 @@ def historial_pagina_view(request):
 def consumo_pagina_view(request):
     return render(request, 'dashboard_consumo.html')
 
-@login_required
-def mapa_pagina_view(request):
-    return render(request, 'dashboard_mapa.html')
 
 @login_required
 def ingreso_pagina_view(request):
@@ -74,6 +73,42 @@ def ingreso_pagina_view(request):
     return render(request, 'dashboard_ingreso.html', {
         'form': form
     })
+
+@login_required
+def mapa_pagina_view(request):
+    # 1. Obtenemos los dispositivos del usuario logueado
+    #    (usamos 'request.user.usuario' como en tu 'ingreso_pagina_view')
+    try:
+        dispositivos = Dispositivo.objects.filter(
+            usuario=request.user.usuario, 
+            latitud__isnull=False, 
+            longitud__isnull=False
+        )
+    except AttributeError:
+        # Fallback por si 'request.user.usuario' no existe (p.ej. superadmin)
+        # o si la relación es diferente, como en tus vistas de API
+        dispositivos = Dispositivo.objects.filter(
+            usuario__usuario=request.user,
+            latitud__isnull=False, 
+            longitud__isnull=False
+        )
+    
+    # 2. Creamos una lista de diccionarios simple para el JSON
+    locations = []
+    for d in dispositivos:
+        locations.append({
+            'nombre': d.nombre,
+            'lat': d.latitud,
+            'lon': d.longitud
+        })
+    
+    # 3. Convertimos la lista a un string JSON y lo marcamos como seguro
+    contexto = {
+        'locations_json': mark_safe(json.dumps(locations))
+    }
+    
+    # 4. Renderizamos la plantilla CON el contexto
+    return render(request, 'dashboard_mapa.html', contexto)
 
 
 
@@ -142,3 +177,6 @@ def api_historial_agregado(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, safe=False)
+    
+
+    
