@@ -70,7 +70,7 @@ def on_message(client, userdata, msg):
 
 
 client = mqtt.Client()
-client.connect("192.168.1.7", 1883) # Cambiar a "mosquitto" para Docker y para desarrollo y probar el pub.py colocar "localhost" 
+client.connect("localhost", 1883) # Cambiar a "mosquitto" para Docker y para desarrollo y probar el pub.py colocar "localhost" 
 client.subscribe("sensores/flujo")
 client.on_message = on_message
 client.loop_forever()

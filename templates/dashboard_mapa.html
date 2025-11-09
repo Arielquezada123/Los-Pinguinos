@@ -1,14 +1,81 @@
 {% extends "base/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Historial{% endblock %}
+{% block title %}Mapa{% endblock %}
 
+{# --- Bloque 1: ESTILOS --- #}
+{# (Este es 'page_styles', es diferente a 'page_scripts') #}
+{% block page_styles %}
+  <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
+  <style>
+    #mapa-container {
+      height: 600px; /* Define una altura para el mapa */
+      width: 100%;
+      border-radius: 10px;
+      z-index: 1; 
+    }
+  </style>
+{% endblock %}
+
+
+{# --- Bloque 2: CONTENIDO HTML --- #}
 {% block dashboard_content %}
   <div class="title-wrapper pt-30 mb-20" >
     <div class="row align-items-center">
       <div class="col-md-12">
-        <h1>Esta es la Página de Mapa</h1>
+        <h1>Mapa de Dispositivos</h1>
       </div>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card-style">
+        <div id="mapa-container"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{# --- Bloque 3: SCRIPTS JAVASCRIPT --- #}
+{# ¡ESTE es el bloque 'page_scripts'. Solo debe aparecer UNA VEZ! #}
+{% block page_scripts %}
+  <script src="{% static 'dist/leaflet.js' %}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      
+      // 1. Inicializar el mapa
+      var map = L.map('mapa-container').setView([-35.6751, -71.5430], 6);
+
+      // 2. Añadir la capa de "tiles" de OpenStreetMap
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // 3. Obtener los datos de las ubicaciones desde Django (con |safe)
+      var locations = {{ locations_json|safe }} || [];
+
+      // 4. Recorrer la lista de ubicaciones y crear marcadores
+      if (locations.length > 0) {
+        
+        var marcadores = []; // Lista para guardar los puntos [lat, lon]
+
+        locations.forEach(function(loc) {
+          // Crear marcador
+          L.marker([loc.lat, loc.lon]).addTo(map)
+            .bindPopup('<b>' + loc.nombre + '</b>'); // Añadir popup con el nombre
+          
+          marcadores.push([loc.lat, loc.lon]);
+        });
+
+        // (Opcional) Ajustar el zoom del mapa para que todos los marcadores se vean
+        var bounds = L.latLngBounds(marcadores);
+        map.fitBounds(bounds);
+
+      } else {
+        console.log("No hay dispositivos con ubicación para mostrar.");
+      }
+    });
+  </script>
 {% endblock %}
