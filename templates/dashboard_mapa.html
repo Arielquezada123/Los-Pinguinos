@@ -56,7 +56,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       
-      const owmApiKey = '27f285fec11b67237b87628979d59333'; 
+      const owmApiKey = '{{ OWM_API_KEY|escapejs }}';
 
 
       const markers = {}; 
@@ -107,7 +107,7 @@
       osmLayer.addTo(map);
 
       // -----------------------------------------------------
-      // 2. LÓGICA DE MARCADORES Y SENSORES (SIN CAMBIOS)
+      // 2. LÓGICA DE MARCADORES Y SENSORES
       // -----------------------------------------------------
       var locations = JSON.parse('{{ locations_json|escapejs }}'); 
       var marcadores_coords = [];
@@ -182,7 +182,7 @@
       }
       
       // -----------------------------------------------------
-      // 3. Conexión WebSocket (SIN CAMBIOS)
+      // 3. Conexión WebSocket
       // -----------------------------------------------------
       const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
 

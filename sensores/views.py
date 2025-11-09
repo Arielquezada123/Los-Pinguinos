@@ -11,6 +11,7 @@ from .models import Dispositivo
 from django.utils.html import mark_safe
 from django.db.models import OuterRef, Subquery, FloatField
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 
 @login_required
 def historial_consumo(request):
@@ -82,25 +83,23 @@ def mapa_pagina_view(request):
     para evitar el estado de "espera" en los pop-ups.
     """
     
-    # 1. Definir la subconsulta para obtener el valor de la última lectura (el más reciente)
+    # 1. Definir la subconsulta...
     ultima_lectura_qs = LecturaSensor.objects.filter(
-        dispositivo=OuterRef('pk') # Filtra por el ID del dispositivo principal
+        dispositivo=OuterRef('pk') 
     ).order_by('-timestamp')
 
-    # 2. Anotar los dispositivos con la última lectura (usando Subquery)
+    # 2. Anotar los dispositivos...
     dispositivos_con_ultima_lectura = Dispositivo.objects.filter(
         usuario__usuario=request.user,
         latitud__isnull=False, 
         longitud__isnull=False
     ).annotate(
-        # Obtenemos el valor_flujo de la LecturaSensor más reciente
         last_flow_value=Subquery(
             ultima_lectura_qs.values('valor_flujo')[:1],
             output_field=FloatField()
         )
-    ).values('nombre', 'id_dispositivo_mqtt', 'latitud', 'longitud', 'last_flow_value') # Incluimos el nuevo campo
+    ).values('nombre', 'id_dispositivo_mqtt', 'latitud', 'longitud', 'last_flow_value')
 
-    # 3. Serializar los datos, incluyendo el último valor
     locations_list = [
         {
             'nombre': d['nombre'] or d['id_dispositivo_mqtt'],
@@ -111,12 +110,13 @@ def mapa_pagina_view(request):
         }
         for d in dispositivos_con_ultima_lectura
     ]
-    
     locations_json = mark_safe(json.dumps(locations_list))
+    context = {
+        'locations_json': locations_json,
+        'OWM_API_KEY': settings.OWM_API_KEY
+    }
 
-    return render(request, 'dashboard_mapa.html', {
-        'locations_json': locations_json
-    })
+    return render(request, 'dashboard_mapa.html', context) 
 
 @login_required
 def api_historial_agregado(request):
@@ -144,9 +144,6 @@ def api_historial_agregado(request):
         ).annotate(
             consumo_total=Sum('valor_flujo')
         ).order_by('periodo')
-        
-        # --- INICIO DE LA MODIFICACIÓN ---
-        
         # 1. Procesamos los datos en una estructura anidada
         # { "Sensor 1": {"Nov 2025": 120, "Dic 2025": 150}, ... }
         labels_set = set()
@@ -198,7 +195,7 @@ def popup_lectura_latest(request, id_mqtt):
         id_dispositivo_mqtt=id_mqtt
     )
 
-    # 2. Obtenemos la última lectura del sensor (sin Subquery, es más simple aquí)
+    # 2. Obtenemos la última lectura del sensor
     ultima_lectura = LecturaSensor.objects.filter(
         dispositivo=dispositivo
     ).order_by('-timestamp').first()
