@@ -28,6 +28,13 @@
         font-weight: bold;
         color: #adb5bd; /* Gris (Histórico) */
     }
+    
+    /* Estilo para que el control de capas se vea bien sobre tu fondo */
+    .leaflet-control-layers {
+        background: #fff;
+        border-radius: 5px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
   </style>
 {% endblock %}
 
@@ -49,13 +56,59 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       
+      const owmApiKey = '27f285fec11b67237b87628979d59333'; 
+
+
       const markers = {}; 
       var map = L.map('mapa-container').setView([-35.6751, -71.5430], 6);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // --- Definición de Capas Base ---
+      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
+      });
 
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      });
+
+      // --- Definición de Capas de Clima (Superpuestas) ---
+      const weatherPrecipitation = L.tileLayer(
+          `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${owmApiKey}`, 
+          {
+              maxZoom: 18,
+              opacity: 0.7,
+              attribution: '© OpenWeatherMap'
+          }
+      );
+      
+      const weatherTemp = L.tileLayer(
+          `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${owmApiKey}`, 
+          {
+              maxZoom: 18,
+              opacity: 0.5,
+              attribution: '© OpenWeatherMap'
+          }
+      );
+
+      // --- Agrupar las capas ---
+      const baseLayers = {
+          "OpenStreetMap": osmLayer,
+          "Satélite": satelliteLayer
+      };
+
+      const overlayLayers = {
+          "Precipitación": weatherPrecipitation,
+          "Temperatura": weatherTemp
+      };
+
+      // --- Añadir control de capas al mapa ---
+      L.control.layers(baseLayers, overlayLayers).addTo(map);
+
+      // --- Añadir la capa base por defecto ---
+      osmLayer.addTo(map);
+
+      // -----------------------------------------------------
+      // 2. LÓGICA DE MARCADORES Y SENSORES (SIN CAMBIOS)
+      // -----------------------------------------------------
       var locations = JSON.parse('{{ locations_json|escapejs }}'); 
       var marcadores_coords = [];
 
@@ -129,7 +182,7 @@
       }
       
       // -----------------------------------------------------
-      // 2. Conexión WebSocket (Actualiza el popup MIENTRAS está abierto)
+      // 3. Conexión WebSocket (SIN CAMBIOS)
       // -----------------------------------------------------
       const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
 
