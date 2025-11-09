@@ -4,30 +4,35 @@
 {% block title %}Mapa{% endblock %}
 
 {# --- Bloque 1: ESTILOS --- #}
-{# (Este es 'page_styles', es diferente a 'page_scripts') #}
 {% block page_styles %}
   <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
   <style>
     #mapa-container {
-      height: 600px; /* Define una altura para el mapa */
+      height: 600px;
       width: 100%;
       border-radius: 10px;
       z-index: 1; 
+    }
+    .sensor-popup-content h4 {
+        margin-top: 0;
+        font-size: 1.1em;
+        color: #007bff;
+    }
+    .sensor-popup-content .valor-flujo {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #28a745; /* Verde (En vivo) */
+    }
+    .sensor-popup-content .text-muted-db {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #adb5bd; /* Gris (Histórico) */
     }
   </style>
 {% endblock %}
 
 
-{# --- Bloque 2: CONTENIDO HTML --- #}
 {% block dashboard_content %}
-  <div class="title-wrapper pt-30 mb-20" >
-    <div class="row align-items-center">
-      <div class="col-md-12">
-        <h1>Mapa de Dispositivos</h1>
-      </div>
-    </div>
-  </div>
-
   <div class="row">
     <div class="col-12">
       <div class="card-style">
@@ -38,44 +43,123 @@
 {% endblock %}
 
 
-{# --- Bloque 3: SCRIPTS JAVASCRIPT --- #}
-{# ¡ESTE es el bloque 'page_scripts'. Solo debe aparecer UNA VEZ! #}
+{# --- (Lógica de Fetch y WebSocket) --- #}
 {% block page_scripts %}
   <script src="{% static 'dist/leaflet.js' %}"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       
-      // 1. Inicializar el mapa
+      const markers = {}; 
       var map = L.map('mapa-container').setView([-35.6751, -71.5430], 6);
 
-      // 2. Añadir la capa de "tiles" de OpenStreetMap
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
-      // 3. Obtener los datos de las ubicaciones desde Django (con |safe)
-      var locations = {{ locations_json|safe }} || [];
+      var locations = JSON.parse('{{ locations_json|escapejs }}'); 
+      var marcadores_coords = [];
 
-      // 4. Recorrer la lista de ubicaciones y crear marcadores
-      if (locations.length > 0) {
+      locations.forEach(function(loc) {
         
-        var marcadores = []; // Lista para guardar los puntos [lat, lon]
+        // --- 1. DATOS INICIALES (De la carga de página) ---
+        const initialValue = parseFloat(loc.last_value).toFixed(2);
+        let displayValue, valueClass, statusText;
+        
+        if (initialValue === '0.00' || initialValue === '0.0') {
+            displayValue = '-- L/min';
+            valueClass = 'text-muted-db';
+            statusText = 'Sin datos históricos';
+        } else {
+            displayValue = `${initialValue} L/min`;
+            valueClass = 'valor-flujo'; // Asumimos 'vivo' al principio
+            statusText = 'Última lectura DB';
+        }
+        
+        // 2. CONTENIDO INICIAL (Estático)
+        const initialPopupContent = `
+          <div class="sensor-popup-content" id="popup_${loc.id_mqtt}">
+            <h4>${loc.nombre}</h4>
+            <p>ID: ${loc.id_mqtt}</p>
+            <hr style="margin: 5px 0;">
+            <p style="margin-bottom: 0;">Flujo:</p>
+            <div class="${valueClass}" data-sensor-id="${loc.id_mqtt}">${displayValue}</div>
+            <small class="text-muted" data-status-id="${loc.id_mqtt}">${statusText}</small>
+          </div>
+        `;
 
-        locations.forEach(function(loc) {
-          // Crear marcador
-          L.marker([loc.lat, loc.lon]).addTo(map)
-            .bindPopup('<b>' + loc.nombre + '</b>'); // Añadir popup con el nombre
-          
-          marcadores.push([loc.lat, loc.lon]);
+        // 3. CREAR MARCADOR Y BIND POPUP
+        var marker = L.marker([loc.lat, loc.lon]).addTo(map)
+          .bindPopup(initialPopupContent, {
+            autoPan: true, 
+            closeButton: false,
+          });
+
+        // Se dispara CADA VEZ que el popup se abre.
+        marker.on('popupopen', function (e) {
+            var popup = e.popup;
+            const dataUrl = "{% url 'api_popup_data' id_mqtt='HTMX_ID_REPLACE' %}".replace('HTMX_ID_REPLACE', loc.id_mqtt);
+
+            // 5. Refrescar el contenido con el dato más reciente de la API
+            fetch(dataUrl)
+                .then(response => {
+                    if (!response.ok) { throw new Error('Error de red'); }
+                    return response.text();
+                })
+                .then(html => {
+                    // Reemplaza el contenido del popup con el HTML fresco de la API
+                    popup.setContent(html);
+                })
+                .catch(err => {
+                    // Si falla el fetch, no hacemos nada.
+                    // El usuario seguirá viendo el valor inicial (stale),
+                    // pero NO verá un "Cargando..." atascado.
+                    console.error("Error al refrescar popup:", err);
+                });
         });
+        
+        // 6. Almacenar marcador para WebSocket
+        markers[loc.id_mqtt] = { marker: marker };
+        marcadores_coords.push([loc.lat, loc.lon]);
+      });
 
-        // (Opcional) Ajustar el zoom del mapa para que todos los marcadores se vean
-        var bounds = L.latLngBounds(marcadores);
+      // ... (Ajuste de zoom) ...
+      if (marcadores_coords.length > 0) {
+        var bounds = L.latLngBounds(marcadores_coords);
         map.fitBounds(bounds);
-
-      } else {
-        console.log("No hay dispositivos con ubicación para mostrar.");
       }
+      
+      // -----------------------------------------------------
+      // 2. Conexión WebSocket (Actualiza el popup MIENTRAS está abierto)
+      // -----------------------------------------------------
+      const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data); 
+        const sensorId = data.sensor_id;
+        const flowRate = parseFloat(data.flujo).toFixed(2);
+        
+        // Solo actualiza si el popup está ABIERTO
+        const popupContentElement = document.getElementById(`popup_${sensorId}`);
+
+        if (popupContentElement) {
+            const valueElement = popupContentElement.querySelector(`[data-sensor-id="${sensorId}"]`);
+            const statusElement = popupContentElement.querySelector(`[data-status-id="${sensorId}"]`);
+            
+            if (valueElement) {
+              valueElement.classList.remove('text-muted-db');
+              valueElement.classList.add('valor-flujo');
+              valueElement.textContent = `${flowRate} L/min`;
+            }
+            if(statusElement) {
+                statusElement.textContent = `En vivo: ${new Date().toLocaleTimeString('es-CL')}`;
+            }
+        }
+      };
+
+      ws.onerror = (err) => { console.error("Error en WebSocket del mapa:", err); };
+      ws.onopen = () => { console.log("WebSocket conectado al mapa."); };
+      ws.onclose = () => { console.log("WebSocket desconectado del mapa."); };
+
     });
   </script>
 {% endblock %}

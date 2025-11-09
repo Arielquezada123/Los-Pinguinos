@@ -9,7 +9,8 @@ from django.db.models.functions import TruncMonth, TruncWeek
 from datetime import datetime
 from .models import Dispositivo
 from django.utils.html import mark_safe
-
+from django.db.models import OuterRef, Subquery, FloatField
+from django.shortcuts import render, redirect, get_object_or_404
 
 @login_required
 def historial_consumo(request):
@@ -76,41 +77,46 @@ def ingreso_pagina_view(request):
 
 @login_required
 def mapa_pagina_view(request):
-    # 1. Obtenemos los dispositivos del usuario logueado
-    #    (usamos 'request.user.usuario' como en tu 'ingreso_pagina_view')
-    try:
-        dispositivos = Dispositivo.objects.filter(
-            usuario=request.user.usuario, 
-            latitud__isnull=False, 
-            longitud__isnull=False
-        )
-    except AttributeError:
-        # Fallback por si 'request.user.usuario' no existe (p.ej. superadmin)
-        # o si la relación es diferente, como en tus vistas de API
-        dispositivos = Dispositivo.objects.filter(
-            usuario__usuario=request.user,
-            latitud__isnull=False, 
-            longitud__isnull=False
-        )
+    """
+    Renderiza la página del mapa, pasando las ubicaciones y la ÚLTIMA LECTURA
+    para evitar el estado de "espera" en los pop-ups.
+    """
     
-    # 2. Creamos una lista de diccionarios simple para el JSON
-    locations = []
-    for d in dispositivos:
-        locations.append({
-            'nombre': d.nombre,
-            'lat': d.latitud,
-            'lon': d.longitud
-        })
-    
-    # 3. Convertimos la lista a un string JSON y lo marcamos como seguro
-    contexto = {
-        'locations_json': mark_safe(json.dumps(locations))
-    }
-    
-    # 4. Renderizamos la plantilla CON el contexto
-    return render(request, 'dashboard_mapa.html', contexto)
+    # 1. Definir la subconsulta para obtener el valor de la última lectura (el más reciente)
+    ultima_lectura_qs = LecturaSensor.objects.filter(
+        dispositivo=OuterRef('pk') # Filtra por el ID del dispositivo principal
+    ).order_by('-timestamp')
 
+    # 2. Anotar los dispositivos con la última lectura (usando Subquery)
+    dispositivos_con_ultima_lectura = Dispositivo.objects.filter(
+        usuario__usuario=request.user,
+        latitud__isnull=False, 
+        longitud__isnull=False
+    ).annotate(
+        # Obtenemos el valor_flujo de la LecturaSensor más reciente
+        last_flow_value=Subquery(
+            ultima_lectura_qs.values('valor_flujo')[:1],
+            output_field=FloatField()
+        )
+    ).values('nombre', 'id_dispositivo_mqtt', 'latitud', 'longitud', 'last_flow_value') # Incluimos el nuevo campo
 
+    # 3. Serializar los datos, incluyendo el último valor
+    locations_list = [
+        {
+            'nombre': d['nombre'] or d['id_dispositivo_mqtt'],
+            'id_mqtt': d['id_dispositivo_mqtt'], 
+            'lat': d['latitud'],
+            'lon': d['longitud'],
+            'last_value': d['last_flow_value'] if d['last_flow_value'] is not None else 0.0,
+        }
+        for d in dispositivos_con_ultima_lectura
+    ]
+    
+    locations_json = mark_safe(json.dumps(locations_list))
+
+    return render(request, 'dashboard_mapa.html', {
+        'locations_json': locations_json
+    })
 
 @login_required
 def api_historial_agregado(request):
@@ -179,4 +185,29 @@ def api_historial_agregado(request):
         return JsonResponse({"error": str(e)}, status=500, safe=False)
     
 
-    
+
+# Datos del MAPA
+@login_required
+def popup_lectura_latest(request, id_mqtt):
+    """
+    Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX.
+    """
+    # 1. Obtenemos el dispositivo del usuario actual y el id_mqtt
+    dispositivo = get_object_or_404(
+        Dispositivo, 
+        usuario__usuario=request.user, 
+        id_dispositivo_mqtt=id_mqtt
+    )
+
+    # 2. Obtenemos la última lectura del sensor (sin Subquery, es más simple aquí)
+    ultima_lectura = LecturaSensor.objects.filter(
+        dispositivo=dispositivo
+    ).order_by('-timestamp').first()
+
+    last_flow_value = ultima_lectura.valor_flujo if ultima_lectura else 0.0
+
+    return render(request, 'sensores/popup_content.html', {
+        'nombre': dispositivo.nombre or dispositivo.id_dispositivo_mqtt,
+        'id_mqtt': id_mqtt,
+        'last_flow_value': last_flow_value
+    })

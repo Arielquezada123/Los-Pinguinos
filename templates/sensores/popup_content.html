@@ -1,0 +1,18 @@
+<div class="sensor-popup-content" id="popup_{{ id_mqtt }}">
+    <h4>{{ nombre }}</h4>
+    <p>ID: {{ id_mqtt }}</p>
+    <hr style="margin: 5px 0;">
+    <p style="margin-bottom: 0;">Flujo:</p>
+    
+    {# --- Lógica de Valor --- #}
+    {% with value=last_flow_value|floatformat:2 %}
+        {% if value == "0.00" %}
+            <div class="text-muted-db" data-sensor-id="{{ id_mqtt }}">-- L/min</div>
+            <small class="text-muted" data-status-id="{{ id_mqtt }}">Sin datos históricos</small>
+        {% else %}
+            <div class="valor-flujo" data-sensor-id="{{ id_mqtt }}">{{ value }} L/min</div>
+            <small class="text-muted" data-status-id="{{ id_mqtt }}">Última lectura DB</small>
+        {% endif %}
+    {% endwith %}
+    
+</div>
