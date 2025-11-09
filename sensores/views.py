@@ -174,7 +174,6 @@ def api_historial_agregado(request):
                 data_list.append(data_dict.get(label, 0)) # 0 si no hay datos
             sensores_data_final[nombre_sensor] = data_list
         
-        # Devolvemos una estructura que el frontend pueda iterar fácilmente
         return JsonResponse({
             'labels': labels, 
             'sensores': sensores_data_final
@@ -211,3 +210,35 @@ def popup_lectura_latest(request, id_mqtt):
         'id_mqtt': id_mqtt,
         'last_flow_value': last_flow_value
     })
+
+@login_required
+def api_inicio_data(request):
+    """
+    API que devuelve el estado inicial de TODOS los sensores del usuario,
+    incluyendo su última lectura registrada en la BD.
+    """
+    # 1. Subconsulta para obtener la última lectura (la misma que usamos en el mapa)
+    ultima_lectura_qs = LecturaSensor.objects.filter(
+        dispositivo=OuterRef('pk')
+    ).order_by('-timestamp')
+
+    # 2. Obtenemos todos los dispositivos del usuario y anotamos la última lectura
+    dispositivos = Dispositivo.objects.filter(
+        usuario__usuario=request.user
+    ).annotate(
+        last_flow_value=Subquery(
+            ultima_lectura_qs.values('valor_flujo')[:1],
+            output_field=FloatField()
+        )
+    )
+
+    data_list = []
+    for d in dispositivos:
+        data_list.append({
+            # Usamos el username del 'User' de Django
+            'cliente_id': d.usuario.usuario.username,
+            'sensor_id': d.id_dispositivo_mqtt,
+            'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
+        })
+
+    return JsonResponse(data_list, safe=False)
