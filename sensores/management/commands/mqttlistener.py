@@ -12,7 +12,7 @@ django.setup()
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from sensores.models import Dispositivo, LecturaSensor
-from reportes.models import Alerta # <--- NUEVO: Importa el modelo de Alerta
+from reportes.models import Alerta  
 
 channel_layer = get_channel_layer()
 
@@ -56,22 +56,18 @@ def on_message(client, userdata, msg):
                 if not alerta_reciente:
                     # Si no hay alertas recientes, crea una nueva
                     Alerta.objects.create(
-                        usuario=dispositivo.usuario, # 'dispositivo.usuario' es la instancia de 'Usuario' (de gestorUser)
+                        usuario=dispositivo.usuario, #
                         dispositivo=dispositivo,
                         tipo='EXCESO',
                         mensaje=f"¡Alerta de Flujo Excesivo! Detectado {flow_value} L/min en {dispositivo.nombre}."
                     )
                     print(f"!!! ALERTA DE EXCESO CREADA para {dispositivo.nombre} !!!")
-            # --- FIN DE LÓGICA DE ALERTA ---
-
-
-            # 3. Obtener el ID del usuario dueño de este dispositivo
+ 
             user_id = dispositivo.usuario.usuario.id 
-            
-            # 4. Definir el nombre del grupo privado de ESE usuario
+ 
             user_group_name = f"sensores_{user_id}"
 
-            # 5. Enviar el mensaje SÓLO a ese grupo privado (esto ya lo tenías)
+ 
             async_to_sync(channel_layer.group_send)(
                 user_group_name,
                 {

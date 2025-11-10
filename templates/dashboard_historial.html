@@ -81,8 +81,8 @@
         }
 
         try {
-          // Buscar la inspiración (Datos)
-          const response = await fetch(`{% url 'api_historial_grafico' %}?agrupar_por=${agruparPor}`);
+           
+          const response = await fetch(`{% url 'api_reporte_consumo' %}?agrupar_por=${agruparPor}`);
           if (!response.ok) {
             throw new Error('No se pudo cargar la musa (datos)');
           }
