@@ -7,11 +7,14 @@ import json
 from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth, TruncWeek
 from datetime import datetime
-from .models import Dispositivo
 from django.utils.html import mark_safe
 from django.db.models import OuterRef, Subquery, FloatField
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
+
+
+
+
 
 @login_required
 def historial_consumo(request):
@@ -243,3 +246,70 @@ def api_inicio_data(request):
         })
 
     return JsonResponse(data_list, safe=False)
+
+
+
+
+
+
+@login_required
+def lista_sensores_view(request):
+    """
+    (READ) Muestra la galería de todos los sensores registrados 
+    por el usuario.
+    """
+    sensores = Dispositivo.objects.filter(usuario__usuario=request.user)
+    context = {
+        'sensores': sensores
+    }
+    return render(request, 'sensores/dashboard_sensores.html', context)
+
+
+@login_required
+def editar_sensor_view(request, id_mqtt):
+    """
+    (UPDATE) Muestra el formulario para editar un sensor existente.
+    """
+    # Buscamos el dispositivo específico de ese usuario
+    dispositivo = get_object_or_404(
+        Dispositivo, 
+        id_dispositivo_mqtt=id_mqtt, 
+        usuario__usuario=request.user
+    )
+    
+    if request.method == 'POST':
+        # Si el formulario se envía, lo validamos con los datos nuevos
+        form = DispositivoForm(request.POST, instance=dispositivo)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_sensores') 
+    else:
+        # Si es GET, mostramos el formulario con los datos existentes
+        form = DispositivoForm(instance=dispositivo)
+
+    context = {
+        'form': form,
+        'dispositivo': dispositivo
+    }
+    return render(request, 'sensores/dashboard_sensor_editar.html', context)
+
+
+@login_required
+def eliminar_sensor_view(request, id_mqtt):
+    """
+    (DELETE) Muestra la confirmación antes de borrar un sensor.
+    """
+    dispositivo = get_object_or_404(
+        Dispositivo, 
+        id_dispositivo_mqtt=id_mqtt, 
+        usuario__usuario=request.user
+    )
+    
+    if request.method == 'POST':
+        dispositivo.delete()
+        return redirect('lista_sensores')
+
+    context = {
+        'dispositivo': dispositivo
+    }
+    return render(request, 'sensores/dashboard_sensor_confirmar_borrado.html', context)

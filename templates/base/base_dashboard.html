@@ -13,6 +13,7 @@
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/dashboard-dark-blue.css' %}" />
+    <link rel="stylesheet" href="{% static 'estilocss/style.css' %}" />
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
@@ -46,6 +47,11 @@
         }
         .section {
           padding-top: 20px;
+        }
+        #historial-lista .list-group-item {
+          background-color: #ffffff;
+          color: #f8f9fa;         
+          border-color: rgba(246, 246, 246, 0.1);
         }
     </style>
     
@@ -92,6 +98,11 @@
                     <span class="icon"><i class="lni lni-warning"></i></span>
                     <span class="text">Reportes</span>
                 </a>
+            </li>
+            <li>
+              <a href="{% url 'lista_sensores' %}"> <span class="icon"><i class="lni lni-cloud-network"></i></span>
+                  <span class="text">Sensores</span>
+              </a>
             </li>
         </ul>
       </nav>
@@ -165,9 +176,7 @@
         <div class="row">
           <div class="col-md-6 order-last order-md-first">
             <div class="copyright text-center text-md-start">
-              <p class="text-sm">
-                Sistema de Medidor de Agua
-              </p>
+ 
             </div>
           </div>
         </div>
