@@ -11,8 +11,10 @@ from django.utils.html import mark_safe
 from django.db.models import OuterRef, Subquery, FloatField
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-
-
+from django.forms import modelformset_factory
+from gestorUser.forms import LimiteMensualForm 
+from .forms import LimiteDispositivoForm     
+from django.contrib import messages
 
 
 
@@ -313,3 +315,44 @@ def eliminar_sensor_view(request, id_mqtt):
         'dispositivo': dispositivo
     }
     return render(request, 'sensores/dashboard_sensor_confirmar_borrado.html', context)
+
+
+@login_required
+def configuracion_pagina(request):
+    # Preparamos el FormSet para los dispositivos del usuario
+    DispositivoFormSet = modelformset_factory(
+        Dispositivo, 
+        form=LimiteDispositivoForm, 
+        extra=0 # No mostrar formularios vacíos
+    )
+
+    if request.method == 'POST':
+        # Identificar qué formulario se envió
+        if 'submit_limite_mensual' in request.POST:
+            limite_mensual_form = LimiteMensualForm(request.POST, instance=request.user.usuario)
+            dispositivo_formset = DispositivoFormSet(queryset=Dispositivo.objects.filter(usuario=request.user.usuario))
+
+            if limite_mensual_form.is_valid():
+                limite_mensual_form.save()
+                messages.success(request, 'Límite mensual actualizado.')
+                return redirect('configuracion_pagina')
+
+        elif 'submit_limites_dispositivos' in request.POST:
+            limite_mensual_form = LimiteMensualForm(instance=request.user.usuario)
+            dispositivo_formset = DispositivoFormSet(request.POST, queryset=Dispositivo.objects.filter(usuario=request.user.usuario))
+
+            if dispositivo_formset.is_valid():
+                dispositivo_formset.save()
+                messages.success(request, 'Límites de dispositivos actualizados.')
+                return redirect('configuracion_pagina')
+
+    else:
+        # Petición GET: Instanciar formularios
+        limite_mensual_form = LimiteMensualForm(instance=request.user.usuario)
+        dispositivo_formset = DispositivoFormSet(queryset=Dispositivo.objects.filter(usuario=request.user.usuario))
+
+    context = {
+        'limite_mensual_form': limite_mensual_form,
+        'dispositivo_formset': dispositivo_formset
+    }
+    return render(request, 'dashboard_configuracion.html', context)
