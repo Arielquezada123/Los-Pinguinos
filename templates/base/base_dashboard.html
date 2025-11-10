@@ -44,10 +44,8 @@
           background: #021446;   
           z-index: 999;       
         }
-        #historial-lista .list-group-item {
-          background-color: #212529;
-          color: #f8f9fa;         
-          border-color: rgba(255, 255, 255, 0.1);
+        .section {
+          padding-top: 20px;
         }
     </style>
     
@@ -89,8 +87,14 @@
                     <span class="text">Ingresar</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'reportes_pagina' %}"> 
+                    <span class="icon"><i class="lni lni-warning"></i></span>
+                    <span class="text">Reportes</span>
+                </a>
+            </li>
         </ul>
-    </nav>
+      </nav>
   </aside>
   <div class="overlay"></div>
   

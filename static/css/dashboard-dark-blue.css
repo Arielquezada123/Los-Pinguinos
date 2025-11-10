@@ -176,3 +176,40 @@ h2, h3, h4, h5, h6 {
     background: rgba(0,0,0,0.7); 
 }
 
+
+/* Seccion Reportes*/
+
+
+.card {
+    background-color: #1a233a; 
+    border: 1px solid #2a3550;
+    
+}
+
+/* Arregla el texto de las tarjetas */
+.card-body, .card-body p {
+    color: #e3e3e3;
+}
+
+/* Arregla los títulos */
+h1, h2, h3, h4, h5, h6, .card-title, .card-header h6 {
+    color: #ffffff;
+}
+
+/* Arregla las listas (para la página de Reportes) */
+.list-group-item {
+    background-color: #1a233a;
+    border: 1px solid #2a3550;
+    color: #e3e3e3;
+}
+
+/* Arregla los colores de alerta de la lista */
+.list-group-item-danger {
+    background-color: #4a2731;
+}
+.list-group-item-warning {
+    background-color: #4d3c21;
+}
+.list-group-item-info {
+    background-color: #213c4d;
+}

@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.views.generic.base import TemplateView
 from gestorUser.views import *
 from sensores import views as sensores_views
+from reportes.views import reportes_pagina
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,6 +20,7 @@ urlpatterns = [
     path('api/popup/<str:id_mqtt>/', sensores_views.popup_lectura_latest, name='api_popup_data'),
     path('consumo/', sensores_views.consumo_pagina_view, name='consumo_pagina'),
     path('ingreso/', sensores_views.ingreso_pagina_view, name='ingreso_pagina'),
+    path('dashboard/reportes/', reportes_pagina, name='reportes_pagina'),
 
     path('api/inicio_data/', sensores_views.api_inicio_data, name='api_inicio_data'),
     path('api/historial/', sensores_views.historial_consumo, name='api_historial'),

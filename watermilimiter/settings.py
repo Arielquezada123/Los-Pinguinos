@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'channels',
     'gestorUser',
     'sensores',
+    'reportes'
 ]
 AUTHENTICATION_BACKENDS = (
     'gestorUser.backends.EmailBackend',

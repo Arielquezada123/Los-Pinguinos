@@ -3,6 +3,8 @@ import json
 import paho.mqtt.client as mqtt
 import os
 import django
+import datetime 
+from django.utils import timezone 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "watermilimiter.settings")
 django.setup()
@@ -10,6 +12,7 @@ django.setup()
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from sensores.models import Dispositivo, LecturaSensor
+from reportes.models import Alerta # <--- NUEVO: Importa el modelo de Alerta
 
 channel_layer = get_channel_layer()
 
@@ -36,18 +39,41 @@ def on_message(client, userdata, msg):
             )
             print(f"Lectura guardada para {device_id_mqtt}")
 
-            # --- INICIO DE LA MODIFICACIÓN ---
+            # --- INICIO DE LÓGICA DE ALERTA ---
+            LIMITE_FLUJO_EXCESIVO = 50.0 # Define tu límite (ej. 50 L/min)
+
+            if flow_value > LIMITE_FLUJO_EXCESIVO:
+                # ¡Flujo excesivo detectado!
+                
+                # Evitar duplicados: revisa si ya hay una alerta reciente para este sensor
+                alerta_reciente = Alerta.objects.filter(
+                    dispositivo=dispositivo,
+                    tipo='EXCESO',
+                    # Busca alertas de este tipo en los últimos 30 minutos
+                    timestamp__gte=timezone.now() - datetime.timedelta(minutes=30)
+                ).exists()
+
+                if not alerta_reciente:
+                    # Si no hay alertas recientes, crea una nueva
+                    Alerta.objects.create(
+                        usuario=dispositivo.usuario, # 'dispositivo.usuario' es la instancia de 'Usuario' (de gestorUser)
+                        dispositivo=dispositivo,
+                        tipo='EXCESO',
+                        mensaje=f"¡Alerta de Flujo Excesivo! Detectado {flow_value} L/min en {dispositivo.nombre}."
+                    )
+                    print(f"!!! ALERTA DE EXCESO CREADA para {dispositivo.nombre} !!!")
+            # --- FIN DE LÓGICA DE ALERTA ---
+
 
             # 3. Obtener el ID del usuario dueño de este dispositivo
-            # (dispositivo.usuario es un 'Usuario', dispositivo.usuario.usuario es un 'User')
             user_id = dispositivo.usuario.usuario.id 
             
             # 4. Definir el nombre del grupo privado de ESE usuario
             user_group_name = f"sensores_{user_id}"
 
-            # 5. Enviar el mensaje SÓLO a ese grupo privado
+            # 5. Enviar el mensaje SÓLO a ese grupo privado (esto ya lo tenías)
             async_to_sync(channel_layer.group_send)(
-                user_group_name,  # <-- El grupo dinámico y privado
+                user_group_name,
                 {
                     "type": "sensor_update",
                     "data": data
@@ -58,7 +84,6 @@ def on_message(client, userdata, msg):
 
         except Dispositivo.DoesNotExist:
             print(f"Error: Dispositivo con ID '{device_id_mqtt}' no encontrado en la DB. No se guardó ni envió.")
-            # Si el dispositivo no existe, no podemos saber a qué grupo enviar, así que paramos.
             return 
         except Exception as e:
             print(f"Error al guardar en DB o enviar a Channels: {e}")
@@ -70,7 +95,7 @@ def on_message(client, userdata, msg):
 
 
 client = mqtt.Client()
-client.connect("localhost", 1883) # Cambiar a "mosquitto" para Docker y para desarrollo y probar el pub.py colocar "localhost" 
+client.connect("localhost", 1883) ##Cambiar a "mosquitto" para Docker y para desarrollo y probar el pub.py colocar "localhost"
 client.subscribe("sensores/flujo")
 client.on_message = on_message
 client.loop_forever()
