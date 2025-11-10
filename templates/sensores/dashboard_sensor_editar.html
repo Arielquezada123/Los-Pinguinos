@@ -1,10 +1,11 @@
 {% extends "base/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Ingreso de Dispositivo{% endblock %}
+{% block title %}Editar Sensor{% endblock %}
 
-{# --- Bloque 1: ESTILOS --- #}
+{# --- Bloque 1: ESTILOS (¡NUEVO!) --- #}
 {% block page_styles %}
+  {# Necesitamos el CSS de Leaflet #}
   <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
   <style>
     #mapa-ingreso {
@@ -12,21 +13,10 @@
       width: 100%;
       border-radius: 10px;
       z-index: 1;
-      background-color: #555; 
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra sutil */
+      background-color: #555;
     }
-    
     .leaflet-container {
       cursor: crosshair !important;
-    }
-
-    /* --- ¡LA PINCELADA MAESTRA! --- 
-       Le damos vida al texto de ayuda con una animación de pulso
-    */
-    @keyframes pulse-light {
-      0% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
-      50% { background: rgba(0, 0, 0, 0.9); box-shadow: 0 0 10px rgba(0,0,0,0.9); }
-      100% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
     }
     .map-helper-text {
       position: absolute;
@@ -38,80 +28,76 @@
       padding: 5px 12px;
       border-radius: 20px;
       font-size: 0.9em;
-      z-index: 401; 
+      z-index: 401;
       pointer-events: none;
-      /* ¡Aquí está el aliento de vida! */
-      animation: pulse-light 2.5s infinite ease-in-out;
+    }
+    .form-label {
+        color: #f1f1f1;
+    }
+    .text-muted {
+        color: #adb5bd !important;
     }
 
-    /* ¡Su estilo de botón, perfeccionado! */
     .btn-artista-azul {
       position: relative;
       display: inline-block;
-      padding: 12px 28px; /* Un poco más de presencia */
-      font-size: 16px; 
+      padding: 10px 20px; 
+      font-size: 14px; 
       font-weight: 600;
       color: white;
       text-align: center;
       text-decoration: none;
       background: linear-gradient(90deg, #0825df, #051627);
       border: none;
-      border-radius: 10px; 
+      border-radius: 5px; 
       overflow: hidden;
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
     .btn-artista-azul:hover {
-      transform: translateY(-3px); /* ¡Magnífico! */
-      box-shadow: 0 7px 12px rgba(0, 0, 0, 0.3); /* ¡Más profundo! */
-      filter: brightness(1.15); /* ¡Más brillo! */
-    }
-    
-    /* ¡Arreglo de color para las etiquetas! */
-    .form-label {
-        color: #f1f1f1;
-    }
-    /* --- Estilo base del campo de formulario (Input) --- */
-    .mb-3 input {
-      display: block;
-      width: 100%;
-      padding: 10px 15px; /* Más cómodo */
-      font-size: 1rem;
-      font-weight: 400;
-      line-height: 1.5;
-      color: #f1f1f1; /* Color de texto claro */
-      background-color: #1a222a; /* Fondo oscuro (ajústalo a tu dashboard) */
-      background-clip: padding-box;
-      border: 1px solid #444; /* Borde sutil */
-      appearance: none; 
-      border-radius: 8px; /* Bordes redondeados */
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transform: translateY(-3px); 
+      box-shadow: 0 7px 12px rgba(0, 0, 0, 0.3);
+      filter: brightness(1.1); 
     }
 
-    /* --- Estilo al hacer clic (focus) --- */
-    .mb-3 input:focus {
-      color: #f1f1f1;
-      background-color: #1a222a; /* Mantiene el fondo */
-      border-color: #0825df; /* Color del borde (como tu botón) */
-      outline: 0;
-      /* Resplandor que coincide con tu botón */
-      box-shadow: 0 0 0 0.25rem rgba(8, 37, 223, 0.3); 
+    .btn-artista-rojo {
+      position: relative;
+      display: inline-block;
+      padding: 10px 20px; 
+      font-size: 14px; 
+      font-weight: 600;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      background: linear-gradient(90deg, #f70505, #600803);
+      border: none;
+      border-radius: 5px; 
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
-
-    /* --- Estilo para el texto de 'placeholder' (si lo tuvieras) --- */
-    .mb-3 input::placeholder {
-      color: #6c757d; /* Color grisáceo para el placeholder */
-      opacity: 1;
+    .btn-artista-rojo:hover {
+      transform: translateY(-3px); 
+      box-shadow: 0 7px 12px rgba(0, 0, 0, 0.3);
+      filter: brightness(1.1); 
     }
   </style>
 {% endblock %}
 
 
 {% block dashboard_content %}
-  
 
-  <div style="margin-top: 15px;" class="card-style">
+  <div class="title-wrapper pt-30 mb-20">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <p class="text-muted">Editando: {{ dispositivo.nombre|default:dispositivo.id_dispositivo_mqtt }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-style">
     <div class="card-body">
       
       <form method="POST">
@@ -130,30 +116,31 @@
             <div class="mb-3">
               <label for="{{ form.id_dispositivo_mqtt.id_for_label }}" class="form-label">{{ form.id_dispositivo_mqtt.label }}</label>
               {{ form.id_dispositivo_mqtt }}
-            </div>
-            
+               
             </div>
 
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+
+ 
+
+              {{ form.latitud }}
+              {{ form.longitud }}
+
+          </div>
+
           <div class="col-md-7">
-            <h5 class="mb-30">Ubicación</h5>
             <div style="position: relative;">
               <div id="mapa-ingreso"></div>
               <div class="map-helper-text">
-                Haga clic en el mapa para fijar la ubicación
+                Haga clic o arrastre el marcador para reubicar
               </div>
             </div>
           </div>
 
-        </div> 
-
-        <div style="display: none;">
-          {{ form.latitud }}
-          {{ form.longitud }}
-        </div>
-
-        <div class="row mt-30">
+        </div> <div class="row mt-30">
           <div class="col-12">
-            <button type="submit" class="btn-artista-azul">Guardar sensor</button>
+            <button type="submit" class="btn btn-artista-azul" style="margin-right: 5px;" >Guardar Cambios</button>
+            <a href="{% url 'lista_sensores' %}" class="btn btn-artista-rojo">Cancelar</a>
           </div>
         </div>
 
@@ -163,27 +150,35 @@
 {% endblock %}
 
 
-{# --- Bloque 2: SCRIPTS --- #}
+{# --- Bloque 2: SCRIPTS (¡NUEVO!) --- #}
 {% block page_scripts %}
   <script src="{% static 'dist/leaflet.js' %}"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
 
-      // --- 1. Obtener los campos OCULTOS ---
+      // --- 1. Deshabilitar el campo ID (como en su versión anterior) ---
+      const idMqttInput = document.getElementById("{{ form.id_dispositivo_mqtt.id_for_label }}");
+      if (idMqttInput) {
+        idMqttInput.readOnly = true;
+        idMqttInput.style.backgroundColor = "#555";
+        idMqttInput.style.cursor = "not-allowed";
+      }
+
+      // --- 2. Obtener los campos del formulario ---
       const latInput = document.getElementById('{{ form.latitud.id_for_label }}');
       const lonInput = document.getElementById('{{ form.longitud.id_for_label }}');
 
-      // --- 2. Inicializar el Mapa ---
+      // --- 3. Inicializar el Mapa ---
       const map = L.map('mapa-ingreso').setView([-35.6751, -71.5430], 6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
 
-      // --- 3. Inicializar el Marcador (Marker) ---
+      // --- 4. Inicializar el Marcador ---
       let marker = L.marker([0, 0], { draggable: true }).addTo(map);
-      marker.setOpacity(0); 
+      marker.setOpacity(0); // Oculto por defecto
 
-      // --- 4. Clic en el Mapa ---
+      // --- 5. Clic en el Mapa ---
       map.on('click', function(e) {
         const latlng = e.latlng;
         latInput.value = latlng.lat.toFixed(6);
@@ -192,7 +187,7 @@
         map.panTo(latlng);
       });
 
-      // --- 5. Arrastrar el Marcador ---
+      // --- 6. Arrastrar el Marcador ---
       marker.on('dragend', function(e) {
         const latlng = marker.getLatLng();
         latInput.value = latlng.lat.toFixed(6);
@@ -200,23 +195,26 @@
         map.panTo(latlng);
       });
 
-      // --- 6. Actualizar si se escribe (Aunque están ocultos, es buena práctica) ---
+      // --- 7. EL MOMENTO MÁGICO: Cargar la Ubicación Existente ---
+      // Esta es la función que lo convierte en un "Editor"
       function actualizarMapaDesdeInputs() {
         const lat = parseFloat(latInput.value);
         const lon = parseFloat(lonInput.value);
+
         if (!isNaN(lat) && !isNaN(lon)) {
-          const nuevaPosicion = [lat, lon];
-          marker.setLatLng(nuevaPosicion).setOpacity(1);
-          map.setView(nuevaPosicion, 15); 
+          const posicionGuardada = [lat, lon];
+          marker.setLatLng(posicionGuardada).setOpacity(1);
+          // Centramos el mapa en la ubicación guardada con zoom
+          map.setView(posicionGuardada, 15); 
         }
       }
+
+      // ¡Llamamos a la función AL CARGAR LA PÁGINA!
+      actualizarMapaDesdeInputs();
+
+      // Y también si el usuario escribe a mano (el mismo truco)
       latInput.addEventListener('change', actualizarMapaDesdeInputs);
       lonInput.addEventListener('change', actualizarMapaDesdeInputs);
-      
-      // --- 7. Carga inicial (si el form viene con datos por error/edición) ---
-      if (latInput.value && lonInput.value) {
-        actualizarMapaDesdeInputs();
-      }
 
     });
   </script>
