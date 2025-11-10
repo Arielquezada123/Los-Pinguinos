@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 class Usuario(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
-
+    limite_consumo_mensual = models.FloatField(null=True, blank=True)
     def __str__(self):
         return self.usuario.username
 

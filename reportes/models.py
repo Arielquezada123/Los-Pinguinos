@@ -11,12 +11,9 @@ class Alerta(models.Model):
         ('INFO', 'Resumen/Información'),
     ]
 
-    # El usuario a que corresponde la alerta
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="alertas")
-    
     dispositivo = models.ForeignKey(Dispositivo, on_delete=models.SET_NULL, null=True, blank=True)
     
-    # Info de alerta
     tipo = models.CharField(max_length=10, choices=TIPO_ALERTA)
     mensaje = models.TextField(help_text="Descripción detallada de la alerta")
     timestamp = models.DateTimeField(auto_now_add=True)

@@ -10,8 +10,10 @@ class Dispositivo(models.Model):
     
     nombre = models.CharField(max_length=100, blank=True)
 
+    limite_flujo_excesivo = models.FloatField(null=True, blank=True)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
+    
 
     def __str__(self):
         return f"{self.nombre} ({self.id_dispositivo_mqtt})"
