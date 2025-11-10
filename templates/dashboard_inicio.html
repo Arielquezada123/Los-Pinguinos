@@ -27,18 +27,15 @@
         <h6 class="m-0 font-weight-bold text-light">Historial de Consumo Reciente</h6>
     </div>
     
-    <div class="card-body">
-        <ul class="list-group overflow-auto" style="max-height: 400px;" id="historial-lista">
-            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+    <div class="card-body" style="padding: 0;">
+        <div class="activity-feed" style="max-height: 400px; overflow-y: auto;" id="historial-feed-container">
+            <div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">
                 Cargando historial...
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
   </div>
-
- 
-
-{% endblock %}
+  {% endblock %}
 
 
 {% block page_scripts %}
@@ -51,7 +48,7 @@
     const loadingMessage = document.getElementById("loading-message");
 
     // -----------------------------------------------------------------
-    // FUNCIÓN: Crear Tarjeta de Sensor
+    // FUNCIÓN: Crear Tarjeta de Sensor (SIN CAMBIOS)
     // -----------------------------------------------------------------
     function createSensorCard(data) {
         const key = data.sensor_id;
@@ -111,7 +108,7 @@
     }
 
     // -----------------------------------------------------------------
-    // FUNCIÓN: Actualizar Valor de Sensor
+    // FUNCIÓN: Actualizar Valor de Sensor (SIN CAMBIOS)
     // -----------------------------------------------------------------
     function updateSensorValue(data) {
         const key = data.sensor_id;
@@ -143,7 +140,7 @@
     // -----------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', function() {
         
-        // --- Fetch para los GRÁFICOS en vivo ---
+        // --- Fetch para los GRÁFICOS en vivo (SIN CAMBIOS) ---
         fetch("{% url 'api_inicio_data' %}")
             .then(response => response.json())
             .then(initialData => {
@@ -160,9 +157,9 @@
                 if (loadingMessage) loadingMessage.textContent = "Error al cargar datos.";
             });
 
-        // --- Fetch para el HISTORIAL RECIENTE (Restaurado) ---
+        // --- Fetch para el HISTORIAL RECIENTE (MODIFICADO) ---
         
-        // Función de ayuda para formatear la fecha
+        // ### CAMBIO: Usamos la función de formato de fecha original ###
         function formatearFecha(fechaISO) {
             const opciones = { 
                 year: 'numeric', month: '2-digit', day: '2-digit', 
@@ -171,7 +168,7 @@
             return new Date(fechaISO).toLocaleString('es-CL', opciones);
         }
 
-        fetch('/api/historial/')
+        fetch("{% url 'api_historial' %}")
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error al cargar el historial');
@@ -179,40 +176,42 @@
                 return response.json();
             })
             .then(data => {
-                const lista = document.getElementById('historial-lista');
-                lista.innerHTML = ''; // Limpiar "Cargando..."
+                const container = document.getElementById('historial-feed-container');
+                container.innerHTML = ''; // Limpiar "Cargando..."
     
                 if (data.length === 0) {
-                    lista.innerHTML = '<li class="list-group-item list-group-item-dark">No hay datos históricos.</li>';
+                    container.innerHTML = '<div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">No hay datos históricos.</div>';
                     return;
                 }
     
-                // Lógica de renderizado que faltaba
+                // Lógica de renderizado con el "Feed" y la fecha "real"
                 data.forEach(lectura => {
-                    const item = document.createElement('li');
-                    // Asegúrate de que las clases coincidan con tu CSS
-                    item.className = 'list-group-item list-group-item-dark d-flex justify-content-between align-items-center'; 
-                    
-                    item.innerHTML = `
-                        <span>
-                            <strong>${lectura.sensor_nombre}:</strong> 
-                            ${lectura.valor.toFixed(2)} L/min
-                        </span>
-                        <small class="text-light">${formatearFecha(lectura.timestamp)}</small>
+                    const valor = parseFloat(lectura.valor).toFixed(2);
+                    // ### CAMBIO: Llamamos a la nueva función ###
+                    const tiempo = formatearFecha(lectura.timestamp); 
+
+                    const itemHTML = `
+                        <div class="activity-item">
+                            <i class="icon lni lni-bolt-alt"></i> 
+                            <div class="text-content">
+                                <span class="sensor-name">${lectura.sensor_nombre}</span>
+                                <span class="timestamp">${tiempo}</span>
+                            </div>
+                            <div class="value-hero">${valor} L/min</div>
+                        </div>
                     `;
-                    
-                    lista.appendChild(item);
+                    container.innerHTML += itemHTML;
                 });
             })
             .catch(error => {
                 console.error('Error en fetch historial:', error);
-                const lista = document.getElementById('historial-lista');
-                lista.innerHTML = '<li class="list-group-item text-danger">No se pudo cargar el historial.</li>';
+                const container = document.getElementById('historial-feed-container');
+                container.innerHTML = '<div class="activity-item text-danger" style="padding: 1.25rem;">No se pudo cargar el historial.</div>';
             });
     });
 
     // -----------------------------------------------------------------
-    // 2. CONEXIÓN WEBSOCKET (Para datos en vivo)
+    // 2. CONEXIÓN WEBSOCKET (Para datos en vivo) (SIN CAMBIOS)
     // -----------------------------------------------------------------
     const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
 

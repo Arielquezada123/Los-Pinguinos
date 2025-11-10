@@ -3,177 +3,157 @@
 
 {% block title %}Historial de Consumo{% endblock %}
 
+{% block page_styles %}
+<style>
+  /* Estilo para los botones activos (¡esencial!) */
+  .btn-group .btn.btn-primary.active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+  }
+  .btn-group .btn.btn-primary:not(.active) {
+    background-color: #343a40;
+    color: #f1f1f1;
+    border-color: #444;
+  }
+</style>
+{% endblock %}
+
+
 {% block dashboard_content %}
-  <div class="title-wrapper pt-30 mb-20" >
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <h2>Historial de Consumo Agregado</h2>
-        <p class="text-light" style="opacity: 0.7;">Consumo total por sensor (L/min sumados)</p>
-      </div>
-      <div class="col-md-6 text-md-end">
-        <div class="btn-group" role="group" aria-label="Selección de periodo">
-          <button type="button" class="btn btn-primary" id="btn-mes" data-periodo="mes">
-            Mensual
+
+
+
+  <div class="card-style" style="margin-top: 20px;">
+    <div class="card-body">
+
+      <div class="d-flex justify-content-end mb-3">
+        <div class="btn-group" role="group" aria-label="Agrupar por">
+          <button type="button" class="btn btn-primary active" id="btn-group-mes">
+            Mes
           </button>
-          <button type="button" class="btn btn-outline-primary" id="btn-semana" data-periodo="semana">
-            Semanal
+          <button type="button" class="btn btn-primary" id="btn-group-semana">
+            Semana
           </button>
         </div>
       </div>
+
+      <div style="height: 450px;">
+        <canvas id="historialChart"></canvas>
+      </div>
+
     </div>
   </div>
 
-  <div class="row" id="charts-container">
-    </div>
-  
-  <div id="chart-loading-message">
-      <p class="text-center text-gray pt-5">Cargando datos del gráfico...</p>
-  </div>
 {% endblock %}
 
 
 {% block page_scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    const loadingMessage = document.getElementById('chart-loading-message');
-    const chartsContainer = document.getElementById('charts-container');
-    const btnMes = document.getElementById('btn-mes');
-    const btnSemana = document.getElementById('btn-semana');
-    
-    // Guardaremos las instancias de los gráficos para destruirlas
-    let activeChartInstances = [];
+  
+  <script src="{% static 'assets/js/Chart.min.js' %}"></script>
 
-    // 1. Función principal para buscar y renderizar
-    async function fetchAndRenderChart(agruparPor) {
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+      const ctx = document.getElementById('historialChart').getContext('2d');
+      const btnMes = document.getElementById('btn-group-mes');
+      const btnSemana = document.getElementById('btn-group-semana');
+      
+      let miGraficoHistorial = null;
+
+      // --- 1. La Paleta de Colores ---
+      function generarColorAleatorio() {
+        const r = Math.floor(Math.random() * 155) + 100;
+        const g = Math.floor(Math.random() * 155) + 100;
+        const b = Math.floor(Math.random() * 155) + 100;
+        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+      }
+
+      async function cargarGrafico(agruparPor) {
         
-        loadingMessage.style.display = 'block';
-        
-        // Destruir gráficos anteriores
-        activeChartInstances.forEach(chart => chart.destroy());
-        activeChartInstances = [];
-        
-        // Limpiar contenedor
-        chartsContainer.innerHTML = '';
+        // Actualiza el estado visual de los botones
+        if (agruparPor === 'mes') {
+          btnMes.classList.add('active');
+          btnSemana.classList.remove('active');
+        } else {
+          btnMes.classList.remove('active');
+          btnSemana.classList.add('active');
+        }
 
         try {
-            const response = await fetch(`/api/historial/grafico/?agrupar_por=${agruparPor}`);
-            if (!response.ok) throw new Error('Error al cargar los datos');
+          // Buscar la inspiración (Datos)
+          const response = await fetch(`{% url 'api_historial_grafico' %}?agrupar_por=${agruparPor}`);
+          if (!response.ok) {
+            throw new Error('No se pudo cargar la musa (datos)');
+          }
+          const data = await response.json();
+
+          // Preparar los pigmentos (datasets)
+          const datasets = [];
+          for (const nombreSensor in data.sensores) {
+            const color = generarColorAleatorio();
+            datasets.push({
+              label: nombreSensor,
+              data: data.sensores[nombreSensor],
+              borderColor: color,
+              // Un color de fondo más sólido para las barras
+              backgroundColor: color.replace('0.7', '0.5'), 
+              borderWidth: 1
+            });
+          }
+
+          if (miGraficoHistorial) {
+            miGraficoHistorial.destroy();
+          }
+
+          miGraficoHistorial = new Chart(ctx, {
             
-            const data = await response.json();
-            
-            loadingMessage.style.display = 'none';
+            type: 'bar', 
 
-            if (!data.labels || data.labels.length === 0) {
-                loadingMessage.innerHTML = '<p class="text-center text-gray pt-5">No hay datos históricos para mostrar.</p>';
-                loadingMessage.style.display = 'block';
-                return;
+
+            data: {
+              labels: data.labels,
+              datasets: datasets
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { color: '#f1f1f1' } 
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { color: '#adb5bd' },
+                  grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: {
+                  ticks: { color: '#adb5bd' },
+                  grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+              }
             }
-
-            // --- INICIO DE LA MODIFICACIÓN ---
-
-            // 2. Iterar por cada sensor en los datos recibidos
-            for (const sensorNombre in data.sensores) {
-                
-                const sensorData = data.sensores[sensorNombre];
-
-                // 3. Crear los elementos HTML para la tarjeta del gráfico
-                const col = document.createElement('div');
-                // Asigna col-lg-6 para que quepan 2 por fila, solucionando el "ancho"
-                col.className = 'col-lg-6 mb-30'; 
-                
-                const card = document.createElement('div');
-                card.className = 'card-style';
-                
-                // Creamos un ID único para el canvas
-                const canvasId = `chart-${sensorNombre.replace(/[^a-z0-9]/gi, '-')}`;
-                
-                card.innerHTML = `
-                    <h6 class="mb-25">${sensorNombre}</h6>
-                    <canvas id="${canvasId}"></canvas>
-                `;
-                
-                col.appendChild(card);
-                chartsContainer.appendChild(col);
-
-                // 4. Crear el gráfico para ESTE sensor
-                const ctx = document.getElementById(canvasId).getContext('2d');
-                const newChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Consumo Total',
-                            data: sensorData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: false } // Ocultamos la leyenda (el título ya está)
-                        },
-                        scales: {
-                            x: {
-                                ticks: { color: '#f8f9fa' },
-                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Consumo (Suma L/min)',
-                                    color: '#f8f9fa'
-                                },
-                                ticks: { color: '#f8f9fa' },
-                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                            }
-                        }
-                    }
-                });
-                
-                // Guardamos la instancia para destruirla luego
-                activeChartInstances.push(newChart);
-            }
-            // --- FIN DE LA MODIFICACIÓN ---
+          });
 
         } catch (error) {
-            console.error('Error en fetchAndRenderChart:', error);
-            loadingMessage.innerHTML = '<p class="text-center text-danger pt-5">No se pudieron cargar los datos del gráfico.</p>';
-            loadingMessage.style.display = 'block';
+          console.error("¡La crítica se ha equivocado!", error);
+          ctx.font = "20px Arial";
+          ctx.fillStyle = "red";
+          ctx.textAlign = "center";
+          ctx.fillText("Error al cargar la obra.", 150, 100);
         }
-    }
+      }
 
-    // 3. Lógica de los botones (sin cambios)
-    function actualizarBotones(periodoActivo) {
-        if (periodoActivo === 'mes') {
-            btnMes.classList.add('btn-primary');
-            btnMes.classList.remove('btn-outline-primary');
-            btnSemana.classList.add('btn-outline-primary');
-            btnSemana.classList.remove('btn-primary');
-        } else {
-            btnSemana.classList.add('btn-primary');
-            btnSemana.classList.remove('btn-outline-primary');
-            btnMes.classList.add('btn-outline-primary');
-            btnMes.classList.remove('btn-primary');
-        }
-    }
+      // --- 3. Los Eventos (El Público) ---
+      btnMes.addEventListener('click', () => cargarGrafico('mes'));
+      btnSemana.addEventListener('click', () => cargarGrafico('semana'));
 
-    btnMes.addEventListener('click', function() {
-        actualizarBotones('mes');
-        fetchAndRenderChart('mes');
+      // --- 4. La Inauguración (Carga Inicial) ---
+      // La obra se revela, en su forma correcta, desde el inicio.
+      cargarGrafico('mes');
+
     });
-
-    btnSemana.addEventListener('click', function() {
-        actualizarBotones('semana');
-        fetchAndRenderChart('semana');
-    });
-
-    // 4. Carga inicial de datos (Mensual por defecto)
-    fetchAndRenderChart('mes');
-
-});
-</script>
+  </script>
 {% endblock %}

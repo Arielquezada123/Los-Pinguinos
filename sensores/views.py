@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import LecturaSensor, Dispositivo 
 from .forms import DispositivoForm 
 import json
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth, TruncWeek
 from datetime import datetime
 from .models import Dispositivo
@@ -142,8 +142,13 @@ def api_historial_agregado(request):
         ).values(
             'dispositivo__nombre', 'periodo'
         ).annotate(
-            consumo_total=Sum('valor_flujo')
+
+            # Sumamos el (Flujo * Tiempo) para obtener VOLUMEN
+            # (valor_flujo L/min) * (5 seg / 60 seg/min) = Litros
+            consumo_total=Sum(F('valor_flujo') / 12.0, output_field=FloatField())
+
         ).order_by('periodo')
+
         # 1. Procesamos los datos en una estructura anidada
         # { "Sensor 1": {"Nov 2025": 120, "Dic 2025": 150}, ... }
         labels_set = set()
@@ -178,8 +183,7 @@ def api_historial_agregado(request):
     
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500, safe=False)
-    
+        return JsonResponse({"error": str(e)}, status=500, safe=False)  
 
 
 # Datos del MAPA
@@ -214,7 +218,7 @@ def api_inicio_data(request):
     API que devuelve el estado inicial de TODOS los sensores del usuario,
     incluyendo su última lectura registrada en la BD.
     """
-    # 1. Subconsulta para obtener la última lectura (la misma que usamos en el mapa)
+    # 1. Subconsulta para obtener la última lectura
     ultima_lectura_qs = LecturaSensor.objects.filter(
         dispositivo=OuterRef('pk')
     ).order_by('-timestamp')
