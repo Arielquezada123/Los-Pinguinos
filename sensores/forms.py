@@ -26,3 +26,12 @@ class DispositivoForm(forms.ModelForm):
             'placeholder': 'Ej: sensor001',
             'aria-describedby': 'id_help'
         })
+
+    class LimiteDispositivoForm(forms.ModelForm):
+        class Meta:
+            model = Dispositivo
+            fields = ['nombre', 'limite_flujo_excesivo']
+            widgets = {
+                'nombre': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}), # Solo lectura
+                'limite_flujo_excesivo': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

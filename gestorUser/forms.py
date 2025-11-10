@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Usuario
 
 class SignUpForm(UserCreationForm):
     Nombres = forms.CharField(max_length=140, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -31,3 +32,15 @@ class SignUpForm(UserCreationForm):
         if commit:
             user.save()
         return user
+    
+    
+class LimiteMensualForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['limite_consumo_mensual']
+        widgets = {
+            'limite_consumo_mensual': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'limite_consumo_mensual': 'Límite de Consumo Mensual (Litros)'
+        }

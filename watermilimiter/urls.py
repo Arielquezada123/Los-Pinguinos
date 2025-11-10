@@ -4,6 +4,7 @@ from django.views.generic.base import TemplateView
 from gestorUser.views import *
 from sensores import views as sensores_views
 from reportes.views import reportes_pagina
+from sensores.views import configuracion_pagina
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,5 +32,7 @@ urlpatterns = [
     ########################################################################################################
     path('api/inicio_data/', sensores_views.api_inicio_data, name='api_inicio_data'),
     path('api/historial/', sensores_views.historial_consumo, name='api_historial'),
+    path('dashboard/ingreso/', ingreso_pagina, name='ingreso_pagina'),
+    path('dashboard/configuracion/', configuracion_pagina, name='configuracion_pagina'),
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
 ]
