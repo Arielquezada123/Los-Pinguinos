@@ -29,7 +29,6 @@ class Usuario(models.Model):
         blank=True
     )
     
-    # 2. Nuevo campo para el RUT del cliente
     rut_cliente = models.CharField(
         "RUT del Cliente", 
         max_length=12, 
@@ -37,7 +36,6 @@ class Usuario(models.Model):
         help_text="Ej: 12.345.678-9"
     )
 
-    # 3. Nuevos campos solo para la EMPRESA
     rut_empresa = models.CharField(
         "RUT de la Empresa", 
         max_length=12, 
@@ -50,7 +48,6 @@ class Usuario(models.Model):
         blank=True
     )
     
-    # --- FIN DE LA MODIFICACIÓN ---
 
     def __str__(self):
         return f"{self.usuario.username} ({self.get_rol_display()})"

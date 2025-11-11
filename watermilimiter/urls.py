@@ -22,7 +22,8 @@ urlpatterns = [
     path('consumo/', sensores_views.consumo_pagina_view, name='consumo_pagina'),
     
     path('empresa/crear_cliente/', sensores_views.empresa_crear_cliente_view, name='empresa_crear_cliente'),
-
+    path('empresa/clientes/', sensores_views.empresa_lista_clientes_view, name='empresa_lista_clientes'),
+    path('empresa/cliente/<int:cliente_id>/', sensores_views.empresa_ver_cliente_view, name='empresa_ver_cliente'),
     
     # CRUD SENSORES
     path('ingreso/', sensores_views.ingreso_pagina_view, name='ingreso_pagina'),
@@ -35,6 +36,8 @@ urlpatterns = [
     path('api/historial/', sensores_views.historial_consumo, name='api_historial'),
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
 
+
+    
 
    
 ]

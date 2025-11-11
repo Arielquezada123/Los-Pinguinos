@@ -13,7 +13,6 @@ class SignUpForm(UserCreationForm):
     password1 = forms.CharField(label="Contraseña",widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     password2 = forms.CharField(label="Contraseña (confirmación)", widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
-
     class Meta:
         model = User
         fields = ('username', 'Nombres', 'Apellidos', 'email', 'password1', 'password2')
@@ -38,12 +37,12 @@ class SignUpForm(UserCreationForm):
 
 
 class EmpresaCreaClienteForm(forms.Form):
-    # Campos del Cliente (User y Usuario)
+
     username = forms.CharField(label="Nombre completo del Cliente", max_length=150, required=True)
     direccion = forms.CharField(label="Dirección del Cliente", widget=forms.Textarea(attrs={'rows': 3}), required=True)
     rut_cliente = forms.CharField(label="RUT del Cliente", max_length=12, required=True)
     nombre_sensor = forms.CharField(label="Nombre del Sensor", max_length=100, required=True)
-    id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo)", max_length=100, required=True)
+    id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo", max_length=100, required=True)
     
     latitud = forms.FloatField(widget=forms.HiddenInput(), required=True)
     longitud = forms.FloatField(widget=forms.HiddenInput(), required=True)
@@ -60,12 +59,10 @@ class EmpresaCreaClienteForm(forms.Form):
     @transaction.atomic
     def save(self, empresa_admin):
         data = self.cleaned_data
-        
         nuevo_user_auth = User.objects.create_user(
             username=data['username'],
             password=User.objects.make_random_password()
         )
-        
         nuevo_user_perfil = nuevo_user_auth.usuario
         nuevo_user_perfil.rol = Usuario.Rol.CLIENTE
         nuevo_user_perfil.empresa_asociada = empresa_admin

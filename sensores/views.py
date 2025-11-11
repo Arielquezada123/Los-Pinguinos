@@ -20,14 +20,15 @@ from gestorUser.models import Usuario
 @login_required
 def historial_consumo(request):
     """
-    Una vista de API que devuelve las últimas 50 lecturas 
-    históricas para el usuario autenticado.
+    API que devuelve las últimas 50 lecturas.
+    Modificada para aceptar ?cliente_id=X
     """
+    usuario_perfil = get_usuario_a_filtrar(request)
+    
     try:
-
         lecturas = LecturaSensor.objects.filter(
-            dispositivo__usuario__usuario=request.user
-        ).order_by('-timestamp')[:50] 
+            dispositivo__usuario=usuario_perfil # <-- MODIFICADO
+        ).order_by('-timestamp')[:50]
 
         #Preparamos los datos para convertirlos a JSON
         data = [
@@ -345,3 +346,89 @@ def empresa_crear_cliente_view(request):
     return render(request, 'empresa/crear_cliente.html', {
         'form': form
     })
+
+@login_required
+def empresa_lista_clientes_view(request):
+    """
+    Muestra a la Empresa una tabla con todos los clientes
+    que administra.
+    """
+    # Seguridad
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    # Obtenemos los clientes usando el 'related_name' que definimos en el modelo
+    clientes_administrados = request.user.usuario.clientes_administrados.all()
+
+    context = {
+        'clientes': clientes_administrados
+    }
+    return render(request, 'empresa/lista_clientes.html', context)
+
+
+@login_required
+def empresa_ver_cliente_view(request, cliente_id):
+    """
+    Muestra el dashboard de consumo de un cliente específico
+    a la empresa administradora.
+    """
+
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    cliente = get_object_or_404(Usuario, id=cliente_id)
+    if cliente.empresa_asociada != request.user.usuario:
+        return redirect('empresa_inicio')
+
+    context = {
+        'cliente': cliente
+    }
+    return render(request, 'empresa/ver_cliente.html', context)
+
+def get_usuario_a_filtrar(request):
+    """
+    Función de ayuda para determinar qué usuario filtrar en las APIs.
+    """
+    # Por defecto, filtramos por el usuario que hace la petición
+    usuario_filtrado = request.user.usuario
+    
+    # Obtenemos el ID del cliente de la URL (si existe)
+    cliente_id = request.GET.get('cliente_id')
+
+    # Si el que pide es una EMPRESA y especificó un cliente_id...
+    if request.user.usuario.rol == Usuario.Rol.EMPRESA and cliente_id:
+        try:
+            # Buscamos a ese cliente
+            cliente = Usuario.objects.get(id=cliente_id)
+            # ¡Seguridad! Verificamos que ese cliente pertenezca a la empresa
+            if cliente.empresa_asociada == request.user.usuario:
+                usuario_filtrado = cliente
+        except Usuario.DoesNotExist:
+            # Si el cliente no existe, no devolvemos nada
+            pass
+    
+    return usuario_filtrado
+@login_required
+def api_inicio_data(request):
+    """
+    API que devuelve el estado inicial de los sensores.
+    Modificada para aceptar ?cliente_id=X
+    """
+    # Obtenemos el perfil de usuario a filtrar (ya sea el propio o el cliente)
+    usuario_perfil = get_usuario_a_filtrar(request)
+
+    # El resto de la función usa 'usuario_perfil' en lugar de 'request.user'
+    ultima_lectura_qs = LecturaSensor.objects.filter(dispositivo=OuterRef('pk')).order_by('-timestamp')
+    dispositivos = Dispositivo.objects.filter(
+        usuario=usuario_perfil # <-- MODIFICADO
+    ).annotate(...)
+    
+    data_list = []
+    for d in dispositivos:
+        data_list.append({
+            'cliente_id': d.usuario.usuario.username,
+            'sensor_id': d.id_dispositivo_mqtt,
+            'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
+            'is_initial_data': True
+        })
+    return JsonResponse(data_list, safe=False)
