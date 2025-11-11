@@ -19,13 +19,20 @@ def signUp(request):
 
 
 
-@login_required(login_url='login')  
+@login_required
 def postlogin(request):
-    user = request.user
-    if user.is_staff:
-        return render(request,'dashboard_inicio.html')
-    else:
-        return render (request, 'dashboard_inicio.html')
+    """
+    Actúa como un enrutador después del login.
+    Dirige al usuario a su panel correspondiente según su rol.
+    """
+    try:
+        rol = request.user.usuario.rol
+    except:
+        return redirect('index') 
 
+    if rol == 'EMPRESA':
+        return redirect('empresa_inicio')
+    else:
+        return render(request, 'dashboard_inicio.html')
 
     

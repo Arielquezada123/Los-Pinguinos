@@ -11,7 +11,8 @@ from django.utils.html import mark_safe
 from django.db.models import OuterRef, Subquery, FloatField
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-
+from gestorUser.forms import EmpresaCreaClienteForm 
+from gestorUser.models import Usuario
 
 
 
@@ -59,22 +60,16 @@ def ingreso_pagina_view(request):
     if request.method == 'POST':
         form = DispositivoForm(request.POST)
         if form.is_valid():
-            # Guardamos el formulario pero sin enviarlo a la DB todavía (commit=False)
+
             dispositivo = form.save(commit=False)
-            # Asignamos el perfil de usuario (Usuario) que está logueado
-            # request.user es el 'User' de Django, request.user.usuario es el 'Usuario' de gestorUser
             dispositivo.usuario = request.user.usuario
-            
-            # Ahora sí, guardamos en la base de datos
+
             dispositivo.save()
-            # Redirigimos al usuario al inicio del dashboard
             return redirect('post_login') 
     
-    # Si el método es GET (o si el formulario no fue válido), mostramos la página
     else:
         form = DispositivoForm()
 
-    # Renderizamos la plantilla y le pasamos el formulario
     return render(request, 'dashboard_ingreso.html', {
         'form': form
     })
@@ -313,3 +308,40 @@ def eliminar_sensor_view(request, id_mqtt):
         'dispositivo': dispositivo
     }
     return render(request, 'sensores/dashboard_sensor_confirmar_borrado.html', context)
+
+@login_required
+def empresa_dashboard_view(request):
+    """
+    Muestra el panel de inicio para el rol EMPRESA.
+    """
+    if request.user.usuario.rol != 'EMPRESA':
+        return redirect('post_login') 
+
+    context = {
+        'total_clientes': request.user.usuario.clientes_administrados.count()
+    }
+    return render(request, 'empresa/dashboard_empresa.html', context)
+
+
+@login_required
+def empresa_crear_cliente_view(request):
+    """
+    Vista para que la Empresa cree un nuevo Cliente y su primer dispositivo.
+    """
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    if request.method == 'POST':
+        form = EmpresaCreaClienteForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save(empresa_admin=request.user.usuario)
+                return redirect('empresa_inicio') 
+            except Exception as e:
+                form.add_error(None, f"Ocurrió un error inesperado: {e}")
+    else:
+        form = EmpresaCreaClienteForm()
+
+    return render(request, 'empresa/crear_cliente.html', {
+        'form': form
+    })

@@ -1,0 +1,24 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Panel de Empresa{% endblock %}
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20" >
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h2>Panel de Administración de Empresa</h2>
+        <p class="text-light" style="opacity: 0.7;">Bienvenido, {{ request.user.username }}.</p>
+      </div>
+      
+      <div class="col-md-6 text-md-end">
+        <a href="{% url 'empresa_crear_cliente' %}" class="btn btn-primary">
+          <i class="lni lni-plus"></i> Registrar Nuevo Cliente
+        </a>
+      </div>
+      </div>
+  </div>
+
+  <div class="row">
+    </div>
+{% endblock %}
