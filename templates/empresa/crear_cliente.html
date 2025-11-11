@@ -103,7 +103,6 @@
         {% endif %}
 
         <div class="row">
-            
           <div class="col-md-5">
             <h5 class="mb-30">Datos del Cliente</h5>
             <div class="mb-3">
@@ -111,13 +110,18 @@
               {{ form.username }}
               {% if form.username.errors %}<div class="text-danger">{{ form.username.errors }}</div>{% endif %}
             </div>
+            
             <div class="mb-3">
               <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
               {{ form.direccion }}
               {% if form.direccion.errors %}<div class="text-danger">{{ form.direccion.errors }}</div>{% endif %}
             </div>
 
-            <hr class="my-4" style="background-color: #555;">
+            <div class="mb-3">
+              <label for="{{ form.rut_cliente.id_for_label }}" class="form-label">{{ form.rut_cliente.label }}</label>
+              {{ form.rut_cliente }}
+              {% if form.rut_cliente.errors %}<div class="text-danger">{{ form.rut_cliente.errors }}</div>{% endif %}
+            </div>
 
             <h5 class="mb-30">Datos del Medidor</h5>
             <div class="mb-3">
@@ -130,13 +134,15 @@
               {{ form.id_dispositivo_mqtt }}
               {% if form.id_dispositivo_mqtt.errors %}<div class="text-danger">{{ form.id_dispositivo_mqtt.errors }}</div>{% endif %}
             </div>
+            <hr class="my-4" style="background-color: #555;">
+            
           </div>
 
           <div class="col-md-7">
             <h5 class="mb-30">Ubicación del Medidor</h5>
             <div style="position: relative;">
               <div id="mapa-ingreso"></div>
-              <div class="map-helper-text">Haga clic en el mapa para fijar la ubicación</div>
+              <div class="map-helper-text">Haga clic en el mapa para fijar la ubicación del sensor</div>
             </div>
           </div>
         </div> 
@@ -194,7 +200,7 @@
         map.panTo(latlng);
       });
 
-      // --- 6. Actualizar si se escribe (Aunque están ocultos, es buena práctica) ---
+      
       function actualizarMapaDesdeInputs() {
         const lat = parseFloat(latInput.value);
         const lon = parseFloat(lonInput.value);
@@ -207,11 +213,30 @@
       latInput.addEventListener('change', actualizarMapaDesdeInputs);
       lonInput.addEventListener('change', actualizarMapaDesdeInputs);
       
-      // --- 7. Carga inicial (si el form viene con datos por error/edición) ---
+     
       if (latInput.value && lonInput.value) {
         actualizarMapaDesdeInputs();
       }
+      const rutInput = document.getElementById('{{ form.rut_cliente.id_for_label }}');
 
+        
+      function formatRut(rut) {
+          // Limpiar RUT de puntos y guiones
+          var cleanRut = rut.replace(/[\.-]/g, '');
+          if (cleanRut.length < 2) return rut; 
+          var body = cleanRut.slice(0, -1);
+          var dv = cleanRut.slice(-1).toUpperCase();        
+          // Formatear el cuerpo con puntos (revirtiendo, agregando puntos, y revirtiendo de nuevo)
+          var formattedBody = body.split('').reverse().join('')
+                                .replace(/(\d{3})(?=\d)/g, '$1.')
+                                .split('').reverse().join('');
+          return formattedBody + '-' + dv;
+      }
+      if (rutInput) {
+          rutInput.addEventListener('blur', function(e) {
+              e.target.value = formatRut(e.target.value);
+          });
+        }
     });
   </script>
 {% endblock %}

@@ -36,60 +36,43 @@ class SignUpForm(UserCreationForm):
         return user
 
 
- 
-class EmpresaCreaClienteForm(forms.Form):
-    """
-    Formulario para que una Empresa cree un Cliente, un Usuario,
-    y un Dispositivo, todo en un solo paso.
-    """
-    username = forms.CharField(label="Nombre del Cliente", max_length=150, required=True)
-    direccion = forms.CharField(label="Dirección del Cliente", widget=forms.Textarea(attrs={'rows': 3}), required=True)
 
+class EmpresaCreaClienteForm(forms.Form):
+    # Campos del Cliente (User y Usuario)
+    username = forms.CharField(label="Nombre completo del Cliente", max_length=150, required=True)
+    direccion = forms.CharField(label="Dirección del Cliente", widget=forms.Textarea(attrs={'rows': 3}), required=True)
+    rut_cliente = forms.CharField(label="RUT del Cliente", max_length=12, required=True)
     nombre_sensor = forms.CharField(label="Nombre del Sensor", max_length=100, required=True)
-    id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo (MQTT)", max_length=100, required=True)
+    id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo)", max_length=100, required=True)
     
     latitud = forms.FloatField(widget=forms.HiddenInput(), required=True)
     longitud = forms.FloatField(widget=forms.HiddenInput(), required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Ej: juan_perez'})
+
+        self.fields['username'].widget.attrs.update({'class': 'form-control'})
         self.fields['direccion'].widget.attrs.update({'class': 'form-control'})
-        self.fields['nombre_sensor'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Ej: Medidor Principal Casa'})
-        self.fields['id_dispositivo_mqtt'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Ej: sensor_casa_123'})
+        self.fields['rut_cliente'].widget.attrs.update({'class': 'form-control', 'placeholder': '12.345.678-9'})
+        self.fields['nombre_sensor'].widget.attrs.update({'class': 'form-control'})
+        self.fields['id_dispositivo_mqtt'].widget.attrs.update({'class': 'form-control'})
 
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Este nombre de usuario ya existe.")
-        return username
-
-    def clean_id_dispositivo_mqtt(self):
-        id_mqtt = self.cleaned_data.get('id_dispositivo_mqtt')
-        if Dispositivo.objects.filter(id_dispositivo_mqtt=id_mqtt).exists():
-            raise forms.ValidationError("Este ID de dispositivo ya está registrado en el sistema.")
-        return id_mqtt
-
-    @transaction.atomic 
+    @transaction.atomic
     def save(self, empresa_admin):
-        """
-        Guarda el User, Usuario (perfil) y Dispositivo.
-        'empresa_admin' es el objeto 'Usuario' del admin de la empresa logueado.
-        """
         data = self.cleaned_data
-        
         
         nuevo_user_auth = User.objects.create_user(
             username=data['username'],
-            password=User.objects.make_random_password() 
+            password=User.objects.make_random_password()
         )
         
-        nuevo_user_perfil = nuevo_user_auth.usuario #
+        nuevo_user_perfil = nuevo_user_auth.usuario
         nuevo_user_perfil.rol = Usuario.Rol.CLIENTE
-        nuevo_user_perfil.empresa_asociada = empresa_admin 
+        nuevo_user_perfil.empresa_asociada = empresa_admin
         nuevo_user_perfil.direccion = data['direccion']
+        nuevo_user_perfil.rut_cliente = data['rut_cliente']
         nuevo_user_perfil.save()
-        
+
         Dispositivo.objects.create(
             usuario=nuevo_user_perfil,
             id_dispositivo_mqtt=data['id_dispositivo_mqtt'],
