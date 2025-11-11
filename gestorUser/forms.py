@@ -44,8 +44,16 @@ class EmpresaCreaClienteForm(forms.Form):
     nombre_sensor = forms.CharField(label="Nombre del Sensor", max_length=100, required=True)
     id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo", max_length=100, required=True)
     
-    latitud = forms.FloatField(widget=forms.HiddenInput(), required=True)
-    longitud = forms.FloatField(widget=forms.HiddenInput(), required=True)
+    latitud = forms.FloatField(
+        label="Latitud",
+        required=True,
+        widget=forms.NumberInput(attrs={'step': 'any'}) # Campo numérico
+    )
+    longitud = forms.FloatField(
+        label="Longitud",
+        required=True,
+        widget=forms.NumberInput(attrs={'step': 'any'}) # Campo numérico
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

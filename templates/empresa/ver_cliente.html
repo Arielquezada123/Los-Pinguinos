@@ -132,9 +132,6 @@
         sensor.chart.update('quiet');
     }
 
-    // -----------------------------------------------------------------
-    // 1. CARGA INICIAL DE DATOS (Fetch)
-    // -----------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', function() {
  
         // Obtenemos el ID del cliente desde el contexto de Django
@@ -206,6 +203,30 @@
                 const container = document.getElementById('historial-lista');
                 container.innerHTML = '<div class="activity-item text-danger" style="padding: 1.25rem;">No se pudo cargar el historial.</div>';
             });
+
+    const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
+
+    ws.onopen = () => {
+        console.log("WebSocket de Empresa conectado.");
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const key = data.sensor_id;
+        
+        // Esta es la clave:
+        // 'sensors' solo tiene los IDs de los sensores del cliente
+        // que cargamos con 'api_inicio_data'.
+        // Si el mensaje (data) es de un sensor que SÍ está en
+        // esta página, lo actualiza. Si no, lo ignora.
+        if (sensors[key]) {
+            updateSensorValue(data);
+        }
+    };
+    
+    ws.onclose = () => { console.log("WebSocket de Empresa desconectado."); };
+    ws.onerror = (err) => { console.error("Error en WebSocket:", err); };
+
     });
 
  

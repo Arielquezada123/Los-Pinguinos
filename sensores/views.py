@@ -23,24 +23,23 @@ def historial_consumo(request):
     API que devuelve las últimas 50 lecturas.
     Modificada para aceptar ?cliente_id=X
     """
+
     usuario_perfil = get_usuario_a_filtrar(request)
     
     try:
         lecturas = LecturaSensor.objects.filter(
-            dispositivo__usuario=usuario_perfil # <-- MODIFICADO
-        ).order_by('-timestamp')[:50]
+            dispositivo__usuario=usuario_perfil 
+        ).order_by('-timestamp')[:50] 
 
-        #Preparamos los datos para convertirlos a JSON
         data = [
             {
                 "sensor_nombre": lectura.dispositivo.nombre or lectura.dispositivo.id_dispositivo_mqtt,
                 "valor": lectura.valor_flujo,
-                "timestamp": lectura.timestamp.isoformat() #Usamos formato ISO
+                "timestamp": lectura.timestamp.isoformat()
             }
             for lectura in lecturas
         ]
         
-        #Devolvemos la lista de datos como JSON
         return JsonResponse(data, safe=False)
 
     except Exception as e:
@@ -392,7 +391,7 @@ def get_usuario_a_filtrar(request):
     # Por defecto, filtramos por el usuario que hace la petición
     usuario_filtrado = request.user.usuario
     
-    # Obtenemos el ID del cliente de la URL (si existe)
+    # Obtenemos el ID del cliente de la URL (ej: ?cliente_id=16)
     cliente_id = request.GET.get('cliente_id')
 
     # Si el que pide es una EMPRESA y especificó un cliente_id...
@@ -404,7 +403,6 @@ def get_usuario_a_filtrar(request):
             if cliente.empresa_asociada == request.user.usuario:
                 usuario_filtrado = cliente
         except Usuario.DoesNotExist:
-            # Si el cliente no existe, no devolvemos nada
             pass
     
     return usuario_filtrado
@@ -414,15 +412,22 @@ def api_inicio_data(request):
     API que devuelve el estado inicial de los sensores.
     Modificada para aceptar ?cliente_id=X
     """
-    # Obtenemos el perfil de usuario a filtrar (ya sea el propio o el cliente)
+
     usuario_perfil = get_usuario_a_filtrar(request)
 
-    # El resto de la función usa 'usuario_perfil' en lugar de 'request.user'
-    ultima_lectura_qs = LecturaSensor.objects.filter(dispositivo=OuterRef('pk')).order_by('-timestamp')
+    ultima_lectura_qs = LecturaSensor.objects.filter(
+        dispositivo=OuterRef('pk')
+    ).order_by('-timestamp')
+
     dispositivos = Dispositivo.objects.filter(
-        usuario=usuario_perfil # <-- MODIFICADO
-    ).annotate(...)
-    
+        usuario=usuario_perfil
+    ).annotate(
+        last_flow_value=Subquery(
+            ultima_lectura_qs.values('valor_flujo')[:1],
+            output_field=FloatField()
+        )
+    )
+
     data_list = []
     for d in dispositivos:
         data_list.append({
@@ -431,4 +436,5 @@ def api_inicio_data(request):
             'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
             'is_initial_data': True
         })
+
     return JsonResponse(data_list, safe=False)
