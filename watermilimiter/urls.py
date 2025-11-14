@@ -36,7 +36,7 @@ urlpatterns = [
     path('api/historial/', sensores_views.historial_consumo, name='api_historial'),
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
 
-
+    path('empresa/mapa/', sensores_views.empresa_mapa_view, name='empresa_mapa_general'),
     
 
    

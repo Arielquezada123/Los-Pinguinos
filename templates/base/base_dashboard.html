@@ -60,27 +60,33 @@
       </div>
       <nav class="sidebar-nav">
         <nav class="sidebar-nav">
-      <ul>
-        {% if request.user.usuario.rol == 'EMPRESA' %}
-          <li class="nav-item"> 
-              <a href="{% url 'empresa_inicio' %}"> 
-                  <span class="icon"><i class="lni lni-apartment"></i></span>
-                  <span class="text">Inicio Empresa</span>
-              </a>
-          </li>
-          <li class="nav-item">
-              <a href="{% url 'empresa_lista_clientes' %}"> 
-                  <span class="icon"><i class="lni lni-users"></i></span>
-                  <span class="text">Lista de Clientes</span>
-              </a>
-          </li>
-          <li class="nav-item">
-              <a href="{% url 'empresa_crear_cliente' %}"> 
-                  <span class="icon"><i class="lni lni-plus"></i></span>
-                  <span class="text">Registrar Cliente</span>
-              </a>
-          </li>
-
+          <ul>
+            {% if request.user.usuario.rol == 'EMPRESA' %}
+              <li class="nav-item"> 
+                  <a href="{% url 'empresa_inicio' %}"> 
+                      <span class="icon"><i class="lni lni-apartment"></i></span>
+                      <span class="text">Inicio Empresa</span>
+                  </a>
+              </li>
+              
+              <li class="nav-item">
+                  <a href="{% url 'empresa_mapa_general' %}"> 
+                      <span class="icon"><i class="lni lni-map-marker"></i></span>
+                      <span class="text">Mapa General</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'empresa_lista_clientes' %}"> 
+                      <span class="icon"><i class="lni lni-users"></i></span>
+                      <span class="text">Lista de Clientes</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'empresa_crear_cliente' %}"> 
+                      <span class="icon"><i class="lni lni-plus"></i></span>
+                      <span class="text">Registrar Cliente</span>
+                  </a>
+              </li>
 
 
           {% else %}

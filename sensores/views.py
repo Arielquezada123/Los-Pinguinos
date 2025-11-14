@@ -1,5 +1,4 @@
-from django.shortcuts import render, redirect 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from .models import LecturaSensor, Dispositivo 
 from .forms import DispositivoForm 
@@ -13,7 +12,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from gestorUser.forms import EmpresaCreaClienteForm 
 from gestorUser.models import Usuario
-
+from django.db.models import Count, Max
+from django.utils import timezone
+from datetime import timedelta
 
 
 
@@ -184,31 +185,37 @@ def api_historial_agregado(request):
         return JsonResponse({"error": str(e)}, status=500, safe=False)  
 
 
-# Datos del MAPA
 @login_required
 def popup_lectura_latest(request, id_mqtt):
     """
-    Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX.
+    Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX/Fetch.
     """
-    # 1. Obtenemos el dispositivo del usuario actual y el id_mqtt
     dispositivo = get_object_or_404(
         Dispositivo, 
-        usuario__usuario=request.user, 
         id_dispositivo_mqtt=id_mqtt
     )
 
-    # 2. Obtenemos la última lectura del sensor
+    es_dueño_cliente = (dispositivo.usuario.usuario == request.user)
+    es_empresa_admin = (dispositivo.usuario.empresa_asociada == request.user.usuario)
+    if not (es_dueño_cliente or es_empresa_admin):
+        return HttpResponse("Acceso denegado.", status=403)
+
     ultima_lectura = LecturaSensor.objects.filter(
         dispositivo=dispositivo
     ).order_by('-timestamp').first()
 
     last_flow_value = ultima_lectura.valor_flujo if ultima_lectura else 0.0
 
-    return render(request, 'sensores/popup_content.html', {
+    context = {
         'nombre': dispositivo.nombre or dispositivo.id_dispositivo_mqtt,
         'id_mqtt': id_mqtt,
-        'last_flow_value': last_flow_value
-    })
+        'last_flow_value': last_flow_value,
+        'cliente_username': dispositivo.usuario.usuario.username,
+        'cliente_direccion': dispositivo.usuario.direccion #
+    }
+
+
+    return render(request, 'sensores/popup_content.html', context)
 
 @login_required
 def api_inicio_data(request):
@@ -314,12 +321,37 @@ def empresa_dashboard_view(request):
     """
     Muestra el panel de inicio para el rol EMPRESA.
     """
-    if request.user.usuario.rol != 'EMPRESA':
-        return redirect('post_login') 
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
 
+    #Obtener clientes y dispositivos
+    clientes_de_la_empresa = request.user.usuario.clientes_administrados.all()
+    dispositivos_de_la_empresa = Dispositivo.objects.filter(
+        usuario__in=clientes_de_la_empresa
+    )
+
+    #(KPI) Calcular SENSORES offline (sin reportar en 1h)
+    una_hora_atras = timezone.now() - timedelta(hours=1)
+    sensores_offline = dispositivos_de_la_empresa.annotate(
+        ultima_lectura=Max('lecturas__timestamp')
+    ).filter(
+        ultima_lectura__lt=una_hora_atras
+    ).distinct()
+
+    clientes_offline_ids = sensores_offline.values_list('usuario_id', flat=True).distinct()
+    clientes_offline = Usuario.objects.filter(id__in=clientes_offline_ids)
     context = {
-        'total_clientes': request.user.usuario.clientes_administrados.count()
+        'total_clientes': clientes_de_la_empresa.count(),
+        'total_sensores': dispositivos_de_la_empresa.count(),
+        'total_sensores_offline': sensores_offline.count(),
+        'total_clientes_offline': clientes_offline.count(), 
+        
+        'sensores_offline_list': sensores_offline,     
+        'clientes_administrados': clientes_de_la_empresa, 
+        'clientes_offline_list': clientes_offline,     
     }
+    # --- FIN DE LA NUEVA LÓGICA ---
+    
     return render(request, 'empresa/dashboard_empresa.html', context)
 
 
@@ -383,6 +415,59 @@ def empresa_ver_cliente_view(request, cliente_id):
         'cliente': cliente
     }
     return render(request, 'empresa/ver_cliente.html', context)
+
+@login_required
+def empresa_mapa_view(request):
+    """
+    Renderiza un mapa general con TODOS los dispositivos
+    de TODOS los clientes administrados por la empresa.
+    """
+    # Seguridad
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    #Obtenemos todos los 'Usuario' (clientes) que administra esta empresa
+    clientes_administrados = Usuario.objects.filter(empresa_asociada=request.user.usuario)
+
+    #Obtenemos todos los dispositivos de ESOS clientes (que tengan ubicación)
+    dispositivos_de_clientes = Dispositivo.objects.filter(
+        usuario__in=clientes_administrados,
+        latitud__isnull=False, 
+        longitud__isnull=False
+    )
+
+    #Reutilizamos la lógica de Subquery para obtener la última lectura de CADA uno
+    ultima_lectura_qs = LecturaSensor.objects.filter(
+        dispositivo=OuterRef('pk')
+    ).order_by('-timestamp')
+
+    dispositivos_con_lectura = dispositivos_de_clientes.annotate(
+        last_flow_value=Subquery(
+            ultima_lectura_qs.values('valor_flujo')[:1],
+            output_field=FloatField()
+        )
+    ).values('nombre', 'id_dispositivo_mqtt', 'latitud', 'longitud', 'last_flow_value')
+
+    # 4. Serializamos a JSON (igual que en 'mapa_pagina_view')
+    locations_list = [
+        {
+            'nombre': d['nombre'] or d['id_dispositivo_mqtt'],
+            'id_mqtt': d['id_dispositivo_mqtt'], 
+            'lat': d['latitud'],
+            'lon': d['longitud'],
+            'last_value': d['last_flow_value'] if d['last_flow_value'] is not None else 0.0,
+        }
+        for d in dispositivos_con_lectura
+    ]
+    
+    locations_json = mark_safe(json.dumps(locations_list))
+
+    return render(request, 'empresa/mapa_general.html', {
+        'locations_json': locations_json
+    })
+
+
+
 
 def get_usuario_a_filtrar(request):
     """

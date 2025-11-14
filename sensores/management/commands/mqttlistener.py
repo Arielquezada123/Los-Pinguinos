@@ -66,7 +66,6 @@ def on_message(client, userdata, msg):
 
         except Dispositivo.DoesNotExist:
             print(f"Error: Dispositivo con ID '{device_id_mqtt}' no encontrado en la DB. No se guardó ni envió.")
-            # Si el dispositivo no existe, no podemos saber a qué grupo enviar, así que paramos.
             return 
         except Exception as e:
             print(f"Error al guardar en DB o enviar a Channels: {e}")
