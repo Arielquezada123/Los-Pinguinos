@@ -1,46 +1,50 @@
 {% extends "base/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Inicio{% endblock %}
-
+{% block title %}Consumo de {{ cliente.usuario.username }}{% endblock %}
 
 {% block dashboard_content %}
 
   <div class="title-wrapper pt-30 mb-20" >
     <div class="row align-items-center">
       <div class="col-md-12">
-        <h2>Flujo Actual</h2>
+        <h2>Flujo en Tiempo Real de: {{ cliente.usuario.username }}</h2>
+        <p class="text-light" style="opacity: 0.7;">
+          RUT: {{ cliente.rut_cliente|default:"N/A" }} | Dirección: {{ cliente.direccion|default:"N/A" }}
+        </p>
       </div>
     </div>
   </div>
-
+  
   <div class="row" id="sensorContainer">
     <div class="col-12">
         <p class="text-center text-gray pt-5 mb-20" id="loading-message">
-            Conectando con el servidor de datos en tiempo real...
+            Cargando datos iniciales del cliente...
         </p>
     </div>
   </div>
 
   <div class="card bg-dark mb-4" style="border: 1px solid rgba(255, 255, 255, 0.1);">
     <div class="card-header py-3 bg-dark" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-        <h6 class="m-0 font-weight-bold text-light">Historial de Consumo Reciente</h6>
+        <h6 class="m-0 font-weight-bold text-light">Historial Reciente del Cliente</h6>
     </div>
     
     <div class="card-body" style="padding: 0;">
-        <div class="activity-feed" style="max-height: 400px; overflow-y: auto;" id="historial-feed-container">
+        <div class="activity-feed" style="max-height: 400px; overflow-y: auto;" id="historial-lista">
             <div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">
                 Cargando historial...
             </div>
         </div>
     </div>
   </div>
-  {% endblock %}
+{% endblock %}
 
 
 {% block page_scripts %}
   
   <script>
+    // --- Lógica del Dashboard (Reutilizada de dashboard_inicio.html)
+    
     const sensors = {}; 
     const sensorContainer = document.getElementById("sensorContainer");
     const loadingMessage = document.getElementById("loading-message");
@@ -101,6 +105,8 @@
         sensors[key] = { chart, valores: [] };
         updateSensorValue(data);
     }
+
+ 
     function updateSensorValue(data) {
         const key = data.sensor_id;
         const sensor = sensors[key];
@@ -127,9 +133,15 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        
-        // --- Fetch para los GRÁFICOS en vivo (SIN CAMBIOS) ---
-        fetch("{% url 'api_inicio_data' %}")
+ 
+        // Obtenemos el ID del cliente desde el contexto de Django
+        const clienteId = "{{ cliente.id }}";
+        // Creamos los parámetros de URL para las APIs
+        const urlParams = `?cliente_id=${clienteId}`;
+ 
+
+        // --- Fetch para los GRÁFICOS en vivo (Modificado) ---
+        fetch(`{% url 'api_inicio_data' %}${urlParams}`) 
             .then(response => response.json())
             .then(initialData => {
                 if (initialData.length > 0) {
@@ -137,12 +149,12 @@
                         createSensorCard(sensorData);
                     });
                 } else {
-                    if (loadingMessage) loadingMessage.textContent = "No tienes sensores registrados.";
+                    if (loadingMessage) loadingMessage.textContent = "Este cliente no tiene sensores registrados.";
                 }
             })
             .catch(err => {
                 console.error("Error cargando datos iniciales:", err);
-                if (loadingMessage) loadingMessage.textContent = "Error al cargar datos.";
+                if (loadingMessage) loadingMessage.textContent = "Error al cargar datos del cliente.";
             });
 
         function formatearFecha(fechaISO) {
@@ -153,7 +165,7 @@
             return new Date(fechaISO).toLocaleString('es-CL', opciones);
         }
 
-        fetch("{% url 'api_historial' %}")
+        fetch(`/api/historial/${urlParams}`) // <-- Añadimos urlParams
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error al cargar el historial');
@@ -161,14 +173,14 @@
                 return response.json();
             })
             .then(data => {
-                const container = document.getElementById('historial-feed-container');
-                container.innerHTML = ''; // Limpiar "Cargando..."
+                const container = document.getElementById('historial-lista');
+                container.innerHTML = ''; 
     
                 if (data.length === 0) {
                     container.innerHTML = '<div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">No hay datos históricos.</div>';
                     return;
                 }
-
+    
                 data.forEach(lectura => {
                     const valor = parseFloat(lectura.valor).toFixed(2);
                     const tiempo = formatearFecha(lectura.timestamp); 
@@ -188,33 +200,36 @@
             })
             .catch(error => {
                 console.error('Error en fetch historial:', error);
-                const container = document.getElementById('historial-feed-container');
+                const container = document.getElementById('historial-lista');
                 container.innerHTML = '<div class="activity-item text-danger" style="padding: 1.25rem;">No se pudo cargar el historial.</div>';
             });
-    });
 
     const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
 
     ws.onopen = () => {
-        console.log("WebSocket conectado.");
-        if (loadingMessage && loadingMessage.textContent.includes("Conectando")) {
-             loadingMessage.textContent = "Esperando datos de sensores...";
-        }
+        console.log("WebSocket de Empresa conectado.");
     };
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         const key = data.sensor_id;
         
-        if (!sensors[key]) {
-            createSensorCard(data);
-        } else {
+        // Esta es la clave:
+        // 'sensors' solo tiene los IDs de los sensores del cliente
+        // que cargamos con 'api_inicio_data'.
+        // Si el mensaje (data) es de un sensor que SÍ está en
+        // esta página, lo actualiza. Si no, lo ignora.
+        if (sensors[key]) {
             updateSensorValue(data);
         }
     };
     
-    ws.onclose = () => { console.log("WebSocket desconectado."); };
+    ws.onclose = () => { console.log("WebSocket de Empresa desconectado."); };
     ws.onerror = (err) => { console.error("Error en WebSocket:", err); };
 
+    });
+
+ 
+    
   </script>
 {% endblock %}

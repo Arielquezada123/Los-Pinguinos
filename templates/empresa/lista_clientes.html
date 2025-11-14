@@ -1,11 +1,10 @@
 {% extends "base/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Galería de Sensores{% endblock %}
+{% block title %}Mis Clientes{% endblock %}
 
 {% block page_styles %}
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
-
   <style>
     .btn-artista-rojo:hover {
       transform: translateY(-3px); 
@@ -65,11 +64,11 @@
   <div class="title-wrapper pt-30 mb-20 d-flex justify-content-between align-items-center">
     <div class="row align-items-center">
       <div class="col-md-12">
-        <h2>Sensores</h2>
+        <h2>Mis Clientes</h2>
       </div>
     </div>
-    <a href="{% url 'ingreso_pagina' %}" class="btn btn-primary">
-      <i class="lni lni-plus"></i> Añadir Nuevo Sensor
+    <a href="{% url 'empresa_crear_cliente' %}" class="btn btn-primary">
+      <i class="lni lni-plus"></i> Añadir Nuevo Cliente
     </a>
   </div>
 
@@ -77,30 +76,24 @@
     <div class="card-body">
       <div class="table-responsive">
         
-        <table id="sensoresTabla" class="table table-hover">
+        <table id="clientesTabla" class="table table-hover">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>ID</th>
-              <th>Latitud</th>
-              <th>Longitud</th>
+              <th>Username</th>
+              <th>RUT Cliente</th>
+              <th>Dirección</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {% for sensor in sensores %}
+            {% for cliente in clientes %}
             <tr>
-              <td>{{ sensor.nombre|default:"Sin Nombre" }}</td>
-              <td>{{ sensor.id_dispositivo_mqtt }}</td>
-              <td>{{ sensor.latitud|default:"N/A" }}</td>
-              <td>{{ sensor.longitud|default:"N/A" }}</td>
+              <td>{{ cliente.usuario.username }}</td>
+              <td>{{ cliente.rut_cliente|default:"N/A" }}</td>
+              <td>{{ cliente.direccion|default:"N/A" }}</td>
               <td>
-                <a href="{% url 'editar_sensor' id_mqtt=sensor.id_dispositivo_mqtt %}" class="btn btn-artista-azul" style="margin-right: 3px;" title="Editar">
-                  <i class="lni lni-pencil"></i>
-                </a>
-                
-                <a href="{% url 'eliminar_sensor' id_mqtt=sensor.id_dispositivo_mqtt %}" class="btn btn-artista-rojo" title="Eliminar">
-                  <i class="lni lni-trash-can"></i>
+                <a href="{% url 'empresa_ver_cliente' cliente_id=cliente.id %}" class="btn btn-artista-azul" title="Ver Consumo">
+                  <i class="lni lni-stats-up"></i> Ver Consumo
                 </a>
               </td>
             </tr>
@@ -118,13 +111,10 @@
   <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      $('#sensoresTabla').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-        }
+      $('#clientesTabla').DataTable({
+        "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" }
       });
     });
   </script>

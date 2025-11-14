@@ -1,12 +1,10 @@
-from django.shortcuts import render, redirect 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from .models import LecturaSensor, Dispositivo 
 from .forms import DispositivoForm 
 import json
 from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth, TruncWeek
-from datetime import datetime
 from django.utils.html import mark_safe
 from django.db.models import OuterRef, Subquery, FloatField
 from django.shortcuts import render, redirect, get_object_or_404
@@ -15,32 +13,37 @@ from django.forms import modelformset_factory
 from gestorUser.forms import LimiteMensualForm 
 from .forms import LimiteDispositivoForm     
 from django.contrib import messages
+from gestorUser.forms import EmpresaCreaClienteForm 
+from gestorUser.models import Usuario
+from django.db.models import Count, Max
+from django.utils import timezone
+from datetime import timedelta, datetime
 
 
 
 @login_required
 def historial_consumo(request):
     """
-    Una vista de API que devuelve las últimas 50 lecturas 
-    históricas para el usuario autenticado.
+    API que devuelve las últimas 50 lecturas.
+    Modificada para aceptar ?cliente_id=X
     """
-    try:
 
+    usuario_perfil = get_usuario_a_filtrar(request)
+    
+    try:
         lecturas = LecturaSensor.objects.filter(
-            dispositivo__usuario__usuario=request.user
+            dispositivo__usuario=usuario_perfil 
         ).order_by('-timestamp')[:50] 
 
-        #Preparamos los datos para convertirlos a JSON
         data = [
             {
                 "sensor_nombre": lectura.dispositivo.nombre or lectura.dispositivo.id_dispositivo_mqtt,
                 "valor": lectura.valor_flujo,
-                "timestamp": lectura.timestamp.isoformat() #Usamos formato ISO
+                "timestamp": lectura.timestamp.isoformat()
             }
             for lectura in lecturas
         ]
         
-        #Devolvemos la lista de datos como JSON
         return JsonResponse(data, safe=False)
 
     except Exception as e:
@@ -61,22 +64,16 @@ def ingreso_pagina_view(request):
     if request.method == 'POST':
         form = DispositivoForm(request.POST)
         if form.is_valid():
-            # Guardamos el formulario pero sin enviarlo a la DB todavía (commit=False)
+
             dispositivo = form.save(commit=False)
-            # Asignamos el perfil de usuario (Usuario) que está logueado
-            # request.user es el 'User' de Django, request.user.usuario es el 'Usuario' de gestorUser
             dispositivo.usuario = request.user.usuario
-            
-            # Ahora sí, guardamos en la base de datos
+
             dispositivo.save()
-            # Redirigimos al usuario al inicio del dashboard
             return redirect('post_login') 
     
-    # Si el método es GET (o si el formulario no fue válido), mostramos la página
     else:
         form = DispositivoForm()
 
-    # Renderizamos la plantilla y le pasamos el formulario
     return render(request, 'dashboard_ingreso.html', {
         'form': form
     })
@@ -191,31 +188,37 @@ def api_historial_agregado(request):
         return JsonResponse({"error": str(e)}, status=500, safe=False)  
 
 
-# Datos del MAPA
 @login_required
 def popup_lectura_latest(request, id_mqtt):
     """
-    Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX.
+    Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX/Fetch.
     """
-    # 1. Obtenemos el dispositivo del usuario actual y el id_mqtt
     dispositivo = get_object_or_404(
         Dispositivo, 
-        usuario__usuario=request.user, 
         id_dispositivo_mqtt=id_mqtt
     )
 
-    # 2. Obtenemos la última lectura del sensor
+    es_dueño_cliente = (dispositivo.usuario.usuario == request.user)
+    es_empresa_admin = (dispositivo.usuario.empresa_asociada == request.user.usuario)
+    if not (es_dueño_cliente or es_empresa_admin):
+        return HttpResponse("Acceso denegado.", status=403)
+
     ultima_lectura = LecturaSensor.objects.filter(
         dispositivo=dispositivo
     ).order_by('-timestamp').first()
 
     last_flow_value = ultima_lectura.valor_flujo if ultima_lectura else 0.0
 
-    return render(request, 'sensores/popup_content.html', {
+    context = {
         'nombre': dispositivo.nombre or dispositivo.id_dispositivo_mqtt,
         'id_mqtt': id_mqtt,
-        'last_flow_value': last_flow_value
-    })
+        'last_flow_value': last_flow_value,
+        'cliente_username': dispositivo.usuario.usuario.username,
+        'cliente_direccion': dispositivo.usuario.direccion #
+    }
+
+
+    return render(request, 'sensores/popup_content.html', context)
 
 @login_required
 def api_inicio_data(request):
@@ -356,3 +359,209 @@ def configuracion_pagina(request):
         'dispositivo_formset': dispositivo_formset
     }
     return render(request, 'dashboard_configuracion.html', context)
+@login_required
+def empresa_dashboard_view(request):
+    """
+    Muestra el panel de inicio para el rol EMPRESA.
+    """
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    #Obtener clientes y dispositivos
+    clientes_de_la_empresa = request.user.usuario.clientes_administrados.all()
+    dispositivos_de_la_empresa = Dispositivo.objects.filter(
+        usuario__in=clientes_de_la_empresa
+    )
+
+    #(KPI) Calcular SENSORES offline (sin reportar en 1h)
+    una_hora_atras = timezone.now() - timedelta(hours=1)
+    sensores_offline = dispositivos_de_la_empresa.annotate(
+        ultima_lectura=Max('lecturas__timestamp')
+    ).filter(
+        ultima_lectura__lt=una_hora_atras
+    ).distinct()
+
+    clientes_offline_ids = sensores_offline.values_list('usuario_id', flat=True).distinct()
+    clientes_offline = Usuario.objects.filter(id__in=clientes_offline_ids)
+    context = {
+        'total_clientes': clientes_de_la_empresa.count(),
+        'total_sensores': dispositivos_de_la_empresa.count(),
+        'total_sensores_offline': sensores_offline.count(),
+        'total_clientes_offline': clientes_offline.count(), 
+        
+        'sensores_offline_list': sensores_offline,     
+        'clientes_administrados': clientes_de_la_empresa, 
+        'clientes_offline_list': clientes_offline,     
+    }
+    
+    return render(request, 'empresa/dashboard_empresa.html', context)
+
+
+@login_required
+def empresa_crear_cliente_view(request):
+    """
+    Vista para que la Empresa cree un nuevo Cliente y su primer dispositivo.
+    """
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    if request.method == 'POST':
+        form = EmpresaCreaClienteForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save(empresa_admin=request.user.usuario)
+                return redirect('empresa_inicio') 
+            except Exception as e:
+                form.add_error(None, f"Ocurrió un error inesperado: {e}")
+    else:
+        form = EmpresaCreaClienteForm()
+
+    return render(request, 'empresa/crear_cliente.html', {
+        'form': form
+    })
+
+@login_required
+def empresa_lista_clientes_view(request):
+    """
+    Muestra a la Empresa una tabla con todos los clientes
+    que administra.
+    """
+    # Seguridad
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    # Obtenemos los clientes usando el 'related_name' que definimos en el modelo
+    clientes_administrados = request.user.usuario.clientes_administrados.all()
+
+    context = {
+        'clientes': clientes_administrados
+    }
+    return render(request, 'empresa/lista_clientes.html', context)
+
+
+@login_required
+def empresa_ver_cliente_view(request, cliente_id):
+    """
+    Muestra el dashboard de consumo de un cliente específico
+    a la empresa administradora.
+    """
+
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    cliente = get_object_or_404(Usuario, id=cliente_id)
+    if cliente.empresa_asociada != request.user.usuario:
+        return redirect('empresa_inicio')
+
+    context = {
+        'cliente': cliente
+    }
+    return render(request, 'empresa/ver_cliente.html', context)
+
+@login_required
+def empresa_mapa_view(request):
+    """
+    Renderiza un mapa general con TODOS los dispositivos
+    de TODOS los clientes administrados por la empresa.
+    """
+    # Seguridad
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    #Obtenemos todos los 'Usuario' (clientes) que administra esta empresa
+    clientes_administrados = Usuario.objects.filter(empresa_asociada=request.user.usuario)
+
+    #Obtenemos todos los dispositivos de ESOS clientes (que tengan ubicación)
+    dispositivos_de_clientes = Dispositivo.objects.filter(
+        usuario__in=clientes_administrados,
+        latitud__isnull=False, 
+        longitud__isnull=False
+    )
+
+    #Reutilizamos la lógica de Subquery para obtener la última lectura de CADA uno
+    ultima_lectura_qs = LecturaSensor.objects.filter(
+        dispositivo=OuterRef('pk')
+    ).order_by('-timestamp')
+
+    dispositivos_con_lectura = dispositivos_de_clientes.annotate(
+        last_flow_value=Subquery(
+            ultima_lectura_qs.values('valor_flujo')[:1],
+            output_field=FloatField()
+        )
+    ).values('nombre', 'id_dispositivo_mqtt', 'latitud', 'longitud', 'last_flow_value')
+
+    #Serializamos a JSON (igual que en 'mapa_pagina_view')
+    locations_list = [
+        {
+            'nombre': d['nombre'] or d['id_dispositivo_mqtt'],
+            'id_mqtt': d['id_dispositivo_mqtt'], 
+            'lat': d['latitud'],
+            'lon': d['longitud'],
+            'last_value': d['last_flow_value'] if d['last_flow_value'] is not None else 0.0,
+        }
+        for d in dispositivos_con_lectura
+    ]
+    
+    locations_json = mark_safe(json.dumps(locations_list))
+
+    return render(request, 'empresa/mapa_general.html', {
+        'locations_json': locations_json
+    })
+
+
+
+
+def get_usuario_a_filtrar(request):
+    """
+    Función de ayuda para determinar qué usuario filtrar en las APIs.
+    """
+    #Por defecto, filtramos por el usuario que hace la petición
+    usuario_filtrado = request.user.usuario
+    
+    # Obtenemos el ID del cliente de la URL (ej: ?cliente_id=16)
+    cliente_id = request.GET.get('cliente_id')
+
+    # Si el que pide es una EMPRESA y especificó un cliente_id...
+    if request.user.usuario.rol == Usuario.Rol.EMPRESA and cliente_id:
+        try:
+            # Buscamos a ese cliente
+            cliente = Usuario.objects.get(id=cliente_id)
+            # ¡Seguridad! Verificamos que ese cliente pertenezca a la empresa
+            if cliente.empresa_asociada == request.user.usuario:
+                usuario_filtrado = cliente
+        except Usuario.DoesNotExist:
+            pass
+    
+    return usuario_filtrado
+@login_required
+def api_inicio_data(request):
+    """
+    API que devuelve el estado inicial de los sensores.
+    Modificada para aceptar ?cliente_id=X
+    """
+
+    usuario_perfil = get_usuario_a_filtrar(request)
+
+    ultima_lectura_qs = LecturaSensor.objects.filter(
+        dispositivo=OuterRef('pk')
+    ).order_by('-timestamp')
+
+    dispositivos = Dispositivo.objects.filter(
+        usuario=usuario_perfil
+    ).annotate(
+        last_flow_value=Subquery(
+            ultima_lectura_qs.values('valor_flujo')[:1],
+            output_field=FloatField()
+        )
+    )
+
+    data_list = []
+    for d in dispositivos:
+        data_list.append({
+            'cliente_id': d.usuario.usuario.username,
+            'sensor_id': d.id_dispositivo_mqtt,
+            'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
+            'is_initial_data': True
+        })
+
+    return JsonResponse(data_list, safe=False)

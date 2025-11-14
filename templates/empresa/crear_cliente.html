@@ -1,0 +1,263 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Crear Nuevo Cliente{% endblock %}
+
+{% block page_styles %}
+  <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
+  
+  <style>
+    #mapa-ingreso {
+      height: 450px; 
+      width: 100%;
+      border-radius: 10px;
+      z-index: 1;
+      background-color: #555; 
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .leaflet-container {
+      cursor: crosshair !important;
+    }
+
+    @keyframes pulse-light {
+      0% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
+      50% { background: rgba(0, 0, 0, 0.9); box-shadow: 0 0 10px rgba(0,0,0,0.9); }
+      100% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
+    }
+    .map-helper-text {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      z-index: 401; 
+      pointer-events: none;
+      animation: pulse-light 2.5s infinite ease-in-out;
+    }
+    
+    .form-label {
+        color: #f1f1f1;
+    }
+    
+    /* Estilo general para inputs y textareas */
+    .mb-3 input[type="text"],
+    .mb-3 input[type="number"],
+    .mb-3 textarea {
+      display: block;
+      width: 100%;
+      padding: 10px 15px; 
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #f1f1f1;
+      background-color: #1a222a; 
+      background-clip: padding-box;
+      border: 1px solid #444;
+      appearance: none; 
+      border-radius: 8px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .mb-3 input:focus,
+    .mb-3 textarea:focus {
+      color: #f1f1f1;
+      background-color: #1a222a; 
+      border-color: #0825df; 
+      outline: 0;
+      box-shadow: 0 0 0 0.25rem rgba(8, 37, 223, 0.3); 
+    }
+    
+    .mb-3 input::placeholder,
+    .mb-3 textarea::placeholder {
+      color: #6c757d;
+      opacity: 1;
+    }
+    
+    .text-danger {
+        font-size: 0.9em;
+        margin-top: 5px;
+        color: #f87171 !important;
+    }
+  </style>
+{% endblock %}
+
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20" >
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <h2>Registrar Nuevo Cliente y Medidor</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-style">
+    <div class="card-body">
+      
+      <form method="POST">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="row">
+
+          <div class="col-md-5">
+            <h5 class="mb-30">Datos del Cliente</h5>
+            <div class="mb-3">
+              <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            
+            <div class="mb-3">
+              <label for="{{ form.rut_cliente.id_for_label }}" class="form-label">{{ form.rut_cliente.label }}</label>
+              {{ form.rut_cliente }}
+              {% if form.rut_cliente.errors %}<div class="text-danger">{{ form.rut_cliente.errors }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
+              {{ form.direccion }}
+              {% if form.direccion.errors %}<div class="text-danger">{{ form.direccion.errors }}</div>{% endif %}
+            </div>
+
+            <hr class="my-4" style="background-color: #555;">
+
+            <h5 class="mb-30">Datos del Medidor</h5>
+            <div class="mb-3">
+              <label for="{{ form.nombre_sensor.id_for_label }}" class="form-label">{{ form.nombre_sensor.label }}</label>
+              {{ form.nombre_sensor }}
+              {% if form.nombre_sensor.errors %}<div class="text-danger">{{ form.nombre_sensor.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.id_dispositivo_mqtt.id_for_label }}" class="form-label">{{ form.id_dispositivo_mqtt.label }}</label>
+              {{ form.id_dispositivo_mqtt }}
+              {% if form.id_dispositivo_mqtt.errors %}<div class="text-danger">{{ form.id_dispositivo_mqtt.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-7">
+            <h5 class="mb-30">Ubicación del Medidor</h5>
+            <div style="position: relative;">
+              <div id="mapa-ingreso"></div>
+              <div class="map-helper-text">Haga clic en el mapa o ingrese las coordenadas</div>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="{{ form.latitud.id_for_label }}" class="form-label">{{ form.latitud.label }}</label>
+                  {{ form.latitud }}
+                  {% if form.latitud.errors %}<div class="text-danger">{{ form.latitud.errors }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="{{ form.longitud.id_for_label }}" class="form-label">{{ form.longitud.label }}</label>
+                  {{ form.longitud }}
+                  {% if form.longitud.errors %}<div class="text-danger">{{ form.longitud.errors }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> 
+
+        <div class="row mt-30">
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Ingresar Cliente y Sensor</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block page_scripts %}
+  <script src="{% static 'dist/leaflet.js' %}"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // --- 1. Obtener los campos ---
+        const latInput = document.getElementById('{{ form.latitud.id_for_label }}');
+        const lonInput = document.getElementById('{{ form.longitud.id_for_label }}');
+
+        // --- 2. Inicializar el Mapa ---
+        const map = L.map('mapa-ingreso').setView([-35.6751, -71.5430], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // --- 3. Inicializar el Marcador (Marker) ---
+        let marker = L.marker([0, 0], { draggable: true }).addTo(map);
+        marker.setOpacity(0); 
+
+        // --- 4. VÍA 1: Clic/Arrastre en el Mapa actualiza los Inputs ---
+        function actualizarInputsDesdeMarcador(latlng) {
+            latInput.value = latlng.lat.toFixed(6);
+            lonInput.value = latlng.lng.toFixed(6);
+            marker.setLatLng(latlng).setOpacity(1);
+            map.panTo(latlng);
+        }
+
+        map.on('click', function(e) {
+            actualizarInputsDesdeMarcador(e.latlng);
+        });
+
+        marker.on('dragend', function(e) {
+            actualizarInputsDesdeMarcador(marker.getLatLng());
+        });
+
+        // --- 5. VÍA 2: Escribir en Inputs actualiza el Mapa ---
+        function actualizarMapaDesdeInputs() {
+            const lat = parseFloat(latInput.value);
+            const lon = parseFloat(lonInput.value);
+            
+            if (!isNaN(lat) && !isNaN(lon)) {
+                const nuevaPosicion = [lat, lon];
+                marker.setLatLng(nuevaPosicion).setOpacity(1);
+                map.setView(nuevaPosicion, 15); // Hacemos zoom al punto
+            }
+        }
+        
+        latInput.addEventListener('input', actualizarMapaDesdeInputs);
+        lonInput.addEventListener('input', actualizarMapaDesdeInputs);
+        
+        // --- 6. Carga inicial (si el form viene con datos por error/edición) ---
+        if (latInput.value && lonInput.value) {
+          actualizarMapaDesdeInputs();
+        }
+
+        // --- 7. Formateo de RUT ---
+        const rutInput = document.getElementById('{{ form.rut_cliente.id_for_label }}');
+
+        function formatRut(rut) {
+            var cleanRut = rut.replace(/[\.-]/g, '');
+            if (cleanRut.length < 2) return rut; 
+            var body = cleanRut.slice(0, -1);
+            var dv = cleanRut.slice(-1).toUpperCase();
+            var formattedBody = body.split('').reverse().join('')
+                                  .replace(/(\d{3})(?=\d)/g, '$1.')
+                                  .split('').reverse().join('');
+            return formattedBody + '-' + dv;
+        }
+
+        if (rutInput) {
+            rutInput.addEventListener('blur', function(e) {
+                e.target.value = formatRut(e.target.value);
+            });
+        }
+    });
+  </script>
+{% endblock %}
