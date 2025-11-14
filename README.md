@@ -1,4 +1,4 @@
-# 💧 WaterMillimiter - Proyecto IoT (Despliegue "Los Pingüinos")
+# 💧 MiAgua - Proyecto IoT
 
 Este repositorio contiene el código fuente de "WaterMillimiter", una aplicación web completa de IoT (Internet de las Cosas) diseñada para la monitorización y gestión de medidores de agua en tiempo real.
 
