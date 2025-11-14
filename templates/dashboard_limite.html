@@ -1,0 +1,68 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Definir Límite Mensual{% endblock %}
+
+{% block dashboard_content %}
+
+{% if messages %}
+    <div class="row">
+        <div class="col-12">
+            {% for message in messages %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+
+<div class="row">
+
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Establecer Límite de Consumo Mensual</h6>
+            </div>
+            <div class="card-body">
+                <p>Ingresa el consumo total de agua (en Litros) que deseas establecer como tu límite para el mes.</p>
+                <hr>
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        {{ form.limite_consumo_mensual.label_tag }}
+                        {{ form.limite_consumo_mensual }}
+
+                        <div class="form-text" style="color: #adb5bd; margin-top: 8px;">
+                            Tu límite actual es: <strong>{{ request.user.usuario.limite_consumo_mensual }} Litros</strong>.
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="main-btn rounded-10">
+                            <i class="lni lni-save me-2"></i> Guardar Límite
+                        </button>
+                    </div>
+                    </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow mb-4" style="border-left: 3px solid var(--primary);">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="lni lni-question-circle me-2"></i>¿Para qué sirve esto?
+                </h6>
+            </div>
+            <div class="card-body">
+                <p>Al definir un límite, el sistema de <strong>Reportes</strong> podrá avisarte si tu consumo total del mes supera este valor.</p>
+                <p class="mb-0">Esto te ayuda a controlar tus gastos y detectar consumos inusualmente altos a tiempo, dándote un mejor control sobre tu cuenta.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

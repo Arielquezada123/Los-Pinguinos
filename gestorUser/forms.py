@@ -39,8 +39,11 @@ class LimiteMensualForm(forms.ModelForm):
         model = Usuario
         fields = ['limite_consumo_mensual']
         widgets = {
-            'limite_consumo_mensual': forms.NumberInput(attrs={'class': 'form-control'}),
+            'limite_consumo_mensual': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Ej: 10000 Litros'
+            }),
         }
         labels = {
-            'limite_consumo_mensual': 'Límite de Consumo Mensual (Litros)'
+            'limite_consumo_mensual': 'Tu Límite Mensual (en Litros)'
         }
