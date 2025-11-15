@@ -1,0 +1,96 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Configuración de Tarifas{% endblock %}
+
+{% block page_styles %}
+<style>
+  
+  .form-label {
+      color: #f1f1f1 !important;
+  }
+  .form-control {
+    display: block;
+    width: 100%;
+    padding: 10px 15px; 
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #f1f1f1;
+    background-color: #1a222a; 
+    background-clip: padding-box;
+    border: 1px solid #444;
+    appearance: none; 
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .form-control:focus {
+    color: #f1f1f1 !important;
+    background-color: #1a222a; 
+    border-color: #0825df; 
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(8, 37, 223, 0.3); 
+  }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20">
+    <h2>Configuración de Tarifas de Facturación</h2>
+    <p class="text-light" style="opacity: 0.7;">Define los valores que se usarán para calcular las boletas (SISS).</p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card-style mb-30">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <h6 class="mb-25">Cargos Fijos y Variables</h6>
+            
+            <div class="mb-3">
+                <label class="form-label">{{ form.cargo_fijo.label }}</label>
+                {{ form.cargo_fijo }}
+                <small class="text-muted">{{ form.cargo_fijo.help_text }}</small>
+            </div>
+            
+            <hr class="my-4" style="background-color: #555;">
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.limite_tramo_1.label }}</label>
+                        {{ form.limite_tramo_1 }}
+                        <small class="text-muted">{{ form.limite_tramo_1.help_text }}</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.valor_tramo_1.label }}</label>
+                        {{ form.valor_tramo_1 }}
+                        <small class="text-muted">{{ form.valor_tramo_1.help_text }}</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.valor_tramo_2.label }}</label>
+                        {{ form.valor_tramo_2 }}
+                        <small class="text-muted">{{ form.valor_tramo_2.help_text }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4" style="background-color: #555;">
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.iva.label }}</label>
+                {{ form.iva }}
+                <small class="text-muted">{{ form.iva.help_text }}</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Guardar Configuración</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

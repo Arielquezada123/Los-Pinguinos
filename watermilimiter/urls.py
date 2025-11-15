@@ -1,14 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import TemplateView
-
-
 from gestorUser.views import signUp, postlogin, limite_pagina 
-# ----------------------------------------
-
 from sensores import views as sensores_views
 from reportes.views import reportes_pagina
-
+from reportes import views as reportes_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,6 +29,11 @@ urlpatterns = [
     path('empresa/crear_cliente/', sensores_views.empresa_crear_cliente_view, name='empresa_crear_cliente'),
     path('empresa/clientes/', sensores_views.empresa_lista_clientes_view, name='empresa_lista_clientes'),
     path('empresa/cliente/<int:cliente_id>/', sensores_views.empresa_ver_cliente_view, name='empresa_ver_cliente'),
+    path('empresa/facturacion/', reportes_views.facturacion_view, name='empresa_facturacion'),
+    path('empresa/mapa/', sensores_views.empresa_mapa_view, name='empresa_mapa_general'),
+    path('empresa/configuracion_tarifas/', reportes_views.configuracion_tarifas_view, name='empresa_configuracion_tarifas'),
+    path('empresa/facturacion/<int:ano>/<int:mes>/', reportes_views.facturacion_detalle_mes_view, name='empresa_facturacion_detalle'),
+
     
     # CRUD SENSORES
     path('ingreso/', sensores_views.ingreso_pagina_view, name='ingreso_pagina'),
@@ -47,7 +48,7 @@ urlpatterns = [
     
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
 
-    path('empresa/mapa/', sensores_views.empresa_mapa_view, name='empresa_mapa_general'),
+    
     
 
    

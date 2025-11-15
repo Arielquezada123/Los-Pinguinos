@@ -88,6 +88,18 @@
                       <span class="text">Registrar Cliente</span>
                   </a>
               </li>
+              <li class="nav-item">
+                <a href="{% url 'empresa_facturacion' %}"> 
+                    <span class="icon"><i class="lni lni-revenue"></i></span>
+                    <span class="text">Facturación</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'empresa_configuracion_tarifas' %}">
+                      <span class="icon"><i class="lni lni-cog"></i></span>
+                      <span class="text">Configurar Tarifas</span>
+                  </a>
+              </li>
           {% else %}
           <li class="nav-item"> 
               <a href="{% url 'post_login' %}"> 

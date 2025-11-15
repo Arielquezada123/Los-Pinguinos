@@ -80,23 +80,21 @@
 
 .icon-boxes .icon-box {         
   display: flex;
-  flex-direction: column;      /* ícono arriba, texto debajo */
-  align-items: center;         /* centra el ícono horizontalmente */
-  justify-content: flex-start; /* contenido empieza arriba */
+  flex-direction: column;      
+  align-items: center;         
+  justify-content: flex-start; 
 }
-/* Efecto de acercamiento en hover para los icon-box */
 .icon-box {
   transition: transform 0.4s ease, box-shadow 0.4s ease;
   cursor: pointer;
 }
 
 .icon-box:hover {
-  transform: scale(1.05); /* Acercamiento */
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25); /* Más profundidad */
+  transform: scale(1.05); 
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
 }
 
 
-/* Solo afecta a los íconos de la parte de arriba */
 .icon-boxes .icon-box i {
   display: inline-flex;
   align-items: center;
@@ -104,7 +102,7 @@
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background-color: #0d6efd; /* azul Bootstrap */
+  background-color: #0d6efd; 
   color: #fff;
   font-size: 30px;
   transition: all 0.3s ease;
@@ -113,14 +111,14 @@
 
 /* Hover solo arriba */
 .icon-boxes .icon-box i:hover {
-  background-color: #6610f2; /* cambia al pasar el puntero */
+  background-color: #6610f2;
   transform: scale(1.1);
 }
 
 
 
 /*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Gradiente animado sobre la imagen $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
-/* Caja con efecto cristal */
+
 .glass-box {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
@@ -129,7 +127,6 @@
   color: #fff;
 }
 
-/* Encabezados */
 .glass-box h2 {
   font-size: 1.8rem;
   font-weight: 700;
@@ -144,7 +141,6 @@
   text-align: justify;
 }
 
-/* Hover efecto zoom */
 .hover-zoom {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: #ffffff;
@@ -156,7 +152,6 @@
   box-shadow: 0px 10px 25px rgba(33, 150, 243, 0.2);
 }
 
-/* Íconos */
 .icon-box i {
   font-size: 2rem;
   color: #2196F3;
@@ -175,11 +170,10 @@
   background: linear-gradient(45deg, #2196F3 0%, #0d47a1 100%);
   background-size: 200% 200%;
   animation: backgroundAnim 6s ease infinite;
-  mix-blend-mode: overlay; /* mezcla con la imagen */
-  pointer-events: none; /* que no bloquee clicks */
+  mix-blend-mode: overlay;
+  pointer-events: none; 
 }
 
-/* Animación */
 @keyframes backgroundAnim { 
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -187,9 +181,6 @@
 }
 
 
-
- 
-/* Contenido de texto */
 .description-section .description-content h3 {
   font-size: 2rem;
   font-weight: 700;
@@ -205,9 +196,7 @@
   margin-bottom: 15px;
 }
 
-/* Estilo cursiva para el primer párrafo */
 .description-section .description-content p.fst-italic {
   font-style: italic;
   color: #cceeff;
 }
-
