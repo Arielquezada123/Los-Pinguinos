@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Alerta, Tarifa, Boleta
 from gestorUser.models import Usuario
@@ -7,7 +7,7 @@ from django.db.models import Sum, F, FloatField, Count
 from django.db import transaction
 from django.contrib import messages
 import datetime
-from .forms import TarifaForm
+from .forms import TarifaForm 
 
 
 @login_required
@@ -30,7 +30,7 @@ def configuracion_tarifas_view(request):
 
     empresa = request.user.usuario
     
-    # Usamos get_or_create para obtener la tarifa o crear una vacía
+    #Usamos get_or_create para obtener la tarifa o crear una vacía
     tarifa_obj, created = Tarifa.objects.get_or_create(empresa=empresa)
 
     if request.method == 'POST':
@@ -38,7 +38,7 @@ def configuracion_tarifas_view(request):
         if form.is_valid():
             form.save()
             messages.success(request, '¡Tarifas actualizadas correctamente!')
-            return redirect('empresa_facturacion') # Regresar al panel de facturación
+            return redirect('empresa_facturacion') #Regresar al panel de facturación
     else:
         form = TarifaForm(instance=tarifa_obj)
 
@@ -88,17 +88,17 @@ def facturacion_view(request):
 
             for lectura_actual in lecturas:
                 if prev_lectura:
-                    # 2. Calcular la duración (en segundos) desde la última lectura
+                    #Calcular la duración (en segundos) desde la última lectura
                     duration_sec = (lectura_actual.timestamp - prev_lectura.timestamp).total_seconds()
 
-                    # Si el tiempo es 0, negativo, o muy grande (ej. sensor se apagó 1 día),
-                    # no podemos calcular el volumen de forma fiable.
-                    # Asumimos un máximo de 5 minutos (300 seg) entre lecturas válidas.
+                    #Si el tiempo es 0, negativo, o muy grande (ej. sensor se apagó 1 día),
+                    #no podemos calcular el volumen de forma fiable.
+                    #Asumimos un máximo de 5 minutos (300 seg) entre lecturas válidas.
                     if duration_sec <= 0 or duration_sec > 300:
                         prev_lectura = lectura_actual
                         continue
 
-                    # 3. Convertir la duración a MINUTOS
+                    #Convertir la duración a MINUTOS
                     duration_min = duration_sec / 60.0
                     
                     # 4. Calcular el volumen de este "tramo".
@@ -112,7 +112,7 @@ def facturacion_view(request):
             #Convertir Litros a Metros Cúbicos
             consumo_m3 = total_litros / 1000.0
             
-            # 6. Aplicar Lógica de Tramos (SISS)
+            #Aplicar Lógica de Tramos (SISS)
             monto_consumo = 0
             if consumo_m3 <= tarifa_activa.limite_tramo_1:
                 monto_consumo = consumo_m3 * tarifa_activa.valor_tramo_1
@@ -188,3 +188,26 @@ def facturacion_detalle_mes_view(request, ano, mes):
         'periodo_ano': ano,
     }
     return render(request, 'reportes/facturacion_detalle_mes.html', context)
+
+@login_required
+def ver_boleta_view(request, boleta_id):
+    """
+    Fase 3 (SISS): Muestra el detalle de una única boleta.
+    """
+    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+        return redirect('post_login')
+
+    boleta = get_object_or_404(Boleta, id=boleta_id)
+
+    if boleta.empresa != request.user.usuario:
+        messages.error(request, "No tiene permiso para ver esta boleta.")
+        return redirect('empresa_facturacion')
+        
+    iva_decimal = getattr(boleta.tarifa_aplicada, 'iva', 0)
+    iva_porcentaje = int(iva_decimal * 100) 
+    
+    context = {
+        'boleta': boleta,
+        'iva_porcentaje': iva_porcentaje 
+    }
+    return render(request, 'reportes/boleta_detalle.html', context)

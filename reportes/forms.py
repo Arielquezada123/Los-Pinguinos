@@ -15,17 +15,15 @@ class TarifaForm(forms.ModelForm):
         ]
         
         labels = {
-            'cargo_fijo': 'Cargo Fijo Mensual (CLP)',
-            'limite_tramo_1': 'Límite Primer Tramo (en m³)',
-            'valor_tramo_1': 'Valor Tramo 1 (CLP por m³)',
-            'valor_tramo_2': 'Valor Tramo 2 (CLP por m³)',
-            'iva': 'IVA (Ej: 0.19 para 19%)'
+            'cargo_fijo': 'Cargo Fijo',
+            'limite_tramo_1': 'Límite Tramo 1',
+            'valor_tramo_1': 'Valor Tramo 1',
+            'valor_tramo_2': 'Valor Tramo 2',
+            'iva': 'IVA'
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Aplicamos los estilos oscuros de tu dashboard
         for field_name in self.fields:
             field = self.fields[field_name]
-            # Usamos las clases de 'crear_cliente.html'
             field.widget.attrs.update({'class': 'form-control'})

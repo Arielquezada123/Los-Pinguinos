@@ -33,7 +33,8 @@ urlpatterns = [
     path('empresa/mapa/', sensores_views.empresa_mapa_view, name='empresa_mapa_general'),
     path('empresa/configuracion_tarifas/', reportes_views.configuracion_tarifas_view, name='empresa_configuracion_tarifas'),
     path('empresa/facturacion/<int:ano>/<int:mes>/', reportes_views.facturacion_detalle_mes_view, name='empresa_facturacion_detalle'),
-
+    path('empresa/boleta/<int:boleta_id>/', reportes_views.ver_boleta_view, name='empresa_boleta_detalle'),
+    
     
     # CRUD SENSORES
     path('ingreso/', sensores_views.ingreso_pagina_view, name='ingreso_pagina'),

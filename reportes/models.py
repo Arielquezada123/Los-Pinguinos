@@ -40,7 +40,10 @@ class Tarifa(models.Model):
     valor_tramo_2 = models.PositiveIntegerField(default=1000, help_text="Valor por m³ sobre el Tramo 1 (CLP)")
     
     # Impuestos (IVA)
-    iva = models.FloatField(default=0.19, help_text="Porcentaje de IVA (ej: 0.19)")
+    iva = models.FloatField(default=0.19, help_text="Porcentaje de IVA (Ej: 0.19 para 19%)")
+    @property
+    def iva_porcentaje(self):
+        return int(self.iva * 100)
 
     def __str__(self):
         return f"Tarifas para {self.empresa.usuario.username}"
