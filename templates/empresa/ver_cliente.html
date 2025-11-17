@@ -5,10 +5,10 @@
 
 {% block dashboard_content %}
 
-  <div class="title-wrapper pt-30 mb-20" >
+  <div class="title-wrapper pt-30 mb-20" > 
     <div class="row align-items-center">
       <div class="col-md-12">
-        <h2>Flujo en Tiempo Real de: {{ cliente.usuario.username }}</h2>
+        <h2>Flujo en Tiempo Real de: {{ cliente.usuario.get_full_name }}</h2>
         <p class="text-light" style="opacity: 0.7;">
           RUT: {{ cliente.rut_cliente|default:"N/A" }} | Dirección: {{ cliente.direccion|default:"N/A" }}
         </p>

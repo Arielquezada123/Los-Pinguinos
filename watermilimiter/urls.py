@@ -24,7 +24,7 @@ urlpatterns = [
     path('consumo/', sensores_views.consumo_pagina_view, name='consumo_pagina'),
 
     
-    path('dashboard/reportes/', reportes_pagina, name='reportes_pagina'),
+    path('dashboard/reportes/', reportes_views.reportes_pagina, name='reportes_pagina'),
 
     path('empresa/crear_cliente/', sensores_views.empresa_crear_cliente_view, name='empresa_crear_cliente'),
     path('empresa/clientes/', sensores_views.empresa_lista_clientes_view, name='empresa_lista_clientes'),

@@ -79,7 +79,7 @@
         <table id="clientesTabla" class="table table-hover">
           <thead>
             <tr>
-              <th>Username</th>
+              <th>Nombre Cliente</th>
               <th>RUT Cliente</th>
               <th>Dirección</th>
               <th>Acciones</th>
@@ -88,7 +88,7 @@
           <tbody>
             {% for cliente in clientes %}
             <tr>
-              <td>{{ cliente.usuario.username }}</td>
+              <td>{{ cliente.usuario.get_full_name }}</td>
               <td>{{ cliente.rut_cliente|default:"N/A" }}</td>
               <td>{{ cliente.direccion|default:"N/A" }}</td>
               <td>

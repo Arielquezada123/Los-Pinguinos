@@ -10,6 +10,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
+from django.conf import settings
+from django.utils.text import slugify
 
 
 class SignUpForm(UserCreationForm):
@@ -59,40 +61,69 @@ class LimiteMensualForm(forms.ModelForm):
 
 
 class EmpresaCreaClienteForm(forms.Form):
-
-    username = forms.CharField(label="Nombre completo del Cliente", max_length=150, required=True)
+    """
+    Formulario para que la Empresa cree un Cliente.
+    Username se genera automáticamente.
+    """
+    first_name = forms.CharField(label="Nombre(s) del Cliente", max_length=150, required=True)
+    last_name = forms.CharField(label="Apellido(s) del Cliente", max_length=150, required=True)
+    email = forms.EmailField(label="Email del Cliente", required=True)
     direccion = forms.CharField(label="Dirección del Cliente", widget=forms.Textarea(attrs={'rows': 3}), required=True)
     rut_cliente = forms.CharField(label="RUT del Cliente", max_length=12, required=True)
+
+
     nombre_sensor = forms.CharField(label="Nombre del Sensor", max_length=100, required=True)
-    id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo", max_length=100, required=True)
-    
-    latitud = forms.FloatField(
-        label="Latitud",
-        required=True,
-        widget=forms.NumberInput(attrs={'step': 'any'}) # Campo numérico
-    )
-    longitud = forms.FloatField(
-        label="Longitud",
-        required=True,
-        widget=forms.NumberInput(attrs={'step': 'any'}) # Campo numérico
-    )
+    id_dispositivo_mqtt = forms.CharField(label="ID del Dispositivo ", max_length=100, required=True)
+    latitud = forms.FloatField(label="Latitud", required=True, widget=forms.NumberInput(attrs={'step': 'any'}))
+    longitud = forms.FloatField(label="Longitud", required=True, widget=forms.NumberInput(attrs={'step': 'any'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['direccion'].widget.attrs.update({'class': 'form-control'})
-        self.fields['rut_cliente'].widget.attrs.update({'class': 'form-control', 'placeholder': '12.345.678-9'})
+        self.fields['rut_cliente'].widget.attrs.update({'class': 'form-control'})
         self.fields['nombre_sensor'].widget.attrs.update({'class': 'form-control'})
         self.fields['id_dispositivo_mqtt'].widget.attrs.update({'class': 'form-control'})
+        self.fields['latitud'].widget.attrs.update({'class': 'form-control', 'id': 'lat-input'})
+        self.fields['longitud'].widget.attrs.update({'class': 'form-control', 'id': 'lon-input'})
+
+    def clean_id_dispositivo_mqtt(self):
+        id_mqtt = self.cleaned_data.get('id_dispositivo_mqtt')
+        if Dispositivo.objects.filter(id_dispositivo_mqtt=id_mqtt).exists():
+            raise forms.ValidationError("Este ID de dispositivo ya está registrado en el sistema.")
+        return id_mqtt 
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este email ya está en uso.")
+        return email
 
     @transaction.atomic
-    def save(self, empresa_admin):
+    def save(self, request):
+        empresa_admin = request.user.usuario
         data = self.cleaned_data
+        
+
+        base_username = slugify(data['first_name'][0] + data['last_name']).replace('-', '')
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+
         nuevo_user_auth = User.objects.create_user(
-            username=data['username'],
-            password=User.objects.make_random_password()
+            username=username, 
+            email=data['email'],
+            password=User.objects.make_random_password(),
+            first_name=data['first_name'],
+            last_name=data['last_name']
         )
+        
+
         nuevo_user_perfil = nuevo_user_auth.usuario
         nuevo_user_perfil.rol = Usuario.Rol.CLIENTE
         nuevo_user_perfil.empresa_asociada = empresa_admin
@@ -107,5 +138,30 @@ class EmpresaCreaClienteForm(forms.Form):
             latitud=data['latitud'],
             longitud=data['longitud']
         )
+
+        self.enviar_email_bienvenida(request, nuevo_user_auth)
         
         return nuevo_user_perfil
+
+    def enviar_email_bienvenida(self, request, user):
+        current_site = get_current_site(request)
+        subject = '¡Bienvenido a MiAgua! Activa tu cuenta.'
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+
+        empresa_logueada = request.user
+        nombre_empresa = empresa_logueada.get_full_name()
+        if not nombre_empresa:
+            nombre_empresa = empresa_logueada.username
+
+        message = render_to_string('registration/email_bienvenida.html', {
+            'user': user,
+            'protocol': request.scheme,
+            'domain': current_site.domain,
+            'uid': uid,
+            'token': token,
+            'empresa_nombre': nombre_empresa
+        })
+        
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])

@@ -112,10 +112,28 @@
 
           <div class="col-md-5">
             <h5 class="mb-30">Datos del Cliente</h5>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                  {{ form.first_name }}
+                  {% if form.first_name.errors %}<div class="text-danger">{{ form.first_name.errors }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3"> 
+                  <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                  {{ form.last_name }}
+                  {% if form.last_name.errors %}<div class="text-danger">{{ form.last_name.errors }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
             <div class="mb-3">
-              <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
-              {{ form.username }}
-              {% if form.username.errors %}<div class="text-danger">{{ form.username.errors }}</div>{% endif %}
+              <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger">{{ form.email.errors }}</div>{% endif %}
             </div>
             
             <div class="mb-3">
@@ -129,7 +147,7 @@
               {{ form.direccion }}
               {% if form.direccion.errors %}<div class="text-danger">{{ form.direccion.errors }}</div>{% endif %}
             </div>
-
+            
             <hr class="my-4" style="background-color: #555;">
 
             <h5 class="mb-30">Datos del Medidor</h5>
@@ -189,21 +207,16 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
         
-        // --- 1. Obtener los campos ---
         const latInput = document.getElementById('{{ form.latitud.id_for_label }}');
         const lonInput = document.getElementById('{{ form.longitud.id_for_label }}');
 
-        // --- 2. Inicializar el Mapa ---
         const map = L.map('mapa-ingreso').setView([-35.6751, -71.5430], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // --- 3. Inicializar el Marcador (Marker) ---
         let marker = L.marker([0, 0], { draggable: true }).addTo(map);
         marker.setOpacity(0); 
-
-        // --- 4. VÍA 1: Clic/Arrastre en el Mapa actualiza los Inputs ---
         function actualizarInputsDesdeMarcador(latlng) {
             latInput.value = latlng.lat.toFixed(6);
             lonInput.value = latlng.lng.toFixed(6);
@@ -219,7 +232,6 @@
             actualizarInputsDesdeMarcador(marker.getLatLng());
         });
 
-        // --- 5. VÍA 2: Escribir en Inputs actualiza el Mapa ---
         function actualizarMapaDesdeInputs() {
             const lat = parseFloat(latInput.value);
             const lon = parseFloat(lonInput.value);
@@ -227,19 +239,18 @@
             if (!isNaN(lat) && !isNaN(lon)) {
                 const nuevaPosicion = [lat, lon];
                 marker.setLatLng(nuevaPosicion).setOpacity(1);
-                map.setView(nuevaPosicion, 15); // Hacemos zoom al punto
+                map.setView(nuevaPosicion, 15);
             }
         }
         
         latInput.addEventListener('input', actualizarMapaDesdeInputs);
         lonInput.addEventListener('input', actualizarMapaDesdeInputs);
         
-        // --- 6. Carga inicial (si el form viene con datos por error/edición) ---
+    
         if (latInput.value && lonInput.value) {
           actualizarMapaDesdeInputs();
         }
 
-        // --- 7. Formateo de RUT ---
         const rutInput = document.getElementById('{{ form.rut_cliente.id_for_label }}');
 
         function formatRut(rut) {

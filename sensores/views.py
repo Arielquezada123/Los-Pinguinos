@@ -205,6 +205,7 @@ def popup_lectura_latest(request, id_mqtt):
 
     ultima_lectura = LecturaSensor.objects.filter(
         dispositivo=dispositivo
+
     ).order_by('-timestamp').first()
 
     last_flow_value = ultima_lectura.valor_flujo if ultima_lectura else 0.0
@@ -213,7 +214,7 @@ def popup_lectura_latest(request, id_mqtt):
         'nombre': dispositivo.nombre or dispositivo.id_dispositivo_mqtt,
         'id_mqtt': id_mqtt,
         'last_flow_value': last_flow_value,
-        'cliente_username': dispositivo.usuario.usuario.username,
+        'cliente_username': dispositivo.usuario.usuario.get_full_name(),
         'cliente_direccion': dispositivo.usuario.direccion #
     }
 
@@ -409,7 +410,8 @@ def empresa_crear_cliente_view(request):
         form = EmpresaCreaClienteForm(request.POST)
         if form.is_valid():
             try:
-                form.save(empresa_admin=request.user.usuario)
+                form.save(request=request)
+                messages.success(request, f"Cliente {form.cleaned_data['first_name']} creado. Se ha enviado un email de activación.")
                 return redirect('empresa_inicio') 
             except Exception as e:
                 form.add_error(None, f"Ocurrió un error inesperado: {e}")
