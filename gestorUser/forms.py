@@ -103,8 +103,7 @@ class EmpresaCreaClienteForm(forms.Form):
         return email
 
     @transaction.atomic
-    def save(self, request):
-        empresa_admin = request.user.usuario
+    def save(self, request, organizacion_actual):
         data = self.cleaned_data
         
 
@@ -125,8 +124,7 @@ class EmpresaCreaClienteForm(forms.Form):
         
 
         nuevo_user_perfil = nuevo_user_auth.usuario
-        nuevo_user_perfil.rol = Usuario.Rol.CLIENTE
-        nuevo_user_perfil.empresa_asociada = empresa_admin
+        nuevo_user_perfil.organizacion_admin = organizacion_actual
         nuevo_user_perfil.direccion = data['direccion']
         nuevo_user_perfil.rut_cliente = data['rut_cliente']
         nuevo_user_perfil.save()

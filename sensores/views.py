@@ -1,21 +1,18 @@
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from .models import LecturaSensor, Dispositivo 
-from .forms import DispositivoForm 
+from .forms import DispositivoForm, LimiteDispositivoForm   
 import json
-from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth, TruncWeek
 from django.utils.html import mark_safe
 from django.db.models import OuterRef, Subquery, FloatField
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.forms import modelformset_factory
-from gestorUser.forms import LimiteMensualForm 
-from .forms import LimiteDispositivoForm     
 from django.contrib import messages
-from gestorUser.forms import EmpresaCreaClienteForm 
-from gestorUser.models import Usuario
-from django.db.models import Count, Max
+from gestorUser.forms import EmpresaCreaClienteForm, LimiteMensualForm 
+from gestorUser.models import Usuario, Membresia, Organizacion
+from django.db.models import Count, Max,  Sum, F
 from django.utils import timezone
 from datetime import timedelta, datetime
 
@@ -360,21 +357,35 @@ def configuracion_pagina(request):
         'dispositivo_formset': dispositivo_formset
     }
     return render(request, 'dashboard_configuracion.html', context)
+
+
+def get_organizacion_actual(usuario_perfil):
+    """
+    Obtiene la Organización a la que pertenece un empleado.
+    """
+    try:
+        membresia = Membresia.objects.get(usuario=usuario_perfil)
+        return membresia.organizacion
+    except Membresia.DoesNotExist:
+        return None
+        
 @login_required
 def empresa_dashboard_view(request):
     """
     Muestra el panel de inicio para el rol EMPRESA.
+    (Versión corregida con lógica de Membresia)
     """
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    
+    if not organizacion_actual:
         return redirect('post_login')
 
-    #Obtener clientes y dispositivos
-    clientes_de_la_empresa = request.user.usuario.clientes_administrados.all()
+
+    clientes_de_la_empresa = organizacion_actual.clientes_administrados.all()
     dispositivos_de_la_empresa = Dispositivo.objects.filter(
         usuario__in=clientes_de_la_empresa
     )
 
-    #(KPI) Calcular SENSORES offline (sin reportar en 1h)
     una_hora_atras = timezone.now() - timedelta(hours=1)
     sensores_offline = dispositivos_de_la_empresa.annotate(
         ultima_lectura=Max('lecturas__timestamp')
@@ -384,17 +395,16 @@ def empresa_dashboard_view(request):
 
     clientes_offline_ids = sensores_offline.values_list('usuario_id', flat=True).distinct()
     clientes_offline = Usuario.objects.filter(id__in=clientes_offline_ids)
+
     context = {
         'total_clientes': clientes_de_la_empresa.count(),
         'total_sensores': dispositivos_de_la_empresa.count(),
         'total_sensores_offline': sensores_offline.count(),
-        'total_clientes_offline': clientes_offline.count(), 
-        
-        'sensores_offline_list': sensores_offline,     
+        'total_clientes_offline': clientes_offline.count(),
+        'sensores_offline_list': sensores_offline,
         'clientes_administrados': clientes_de_la_empresa, 
-        'clientes_offline_list': clientes_offline,     
+        'clientes_offline_list': clientes_offline,
     }
-    
     return render(request, 'empresa/dashboard_empresa.html', context)
 
 
@@ -403,14 +413,15 @@ def empresa_crear_cliente_view(request):
     """
     Vista para que la Empresa cree un nuevo Cliente y su primer dispositivo.
     """
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    if not organizacion_actual:
         return redirect('post_login')
 
     if request.method == 'POST':
         form = EmpresaCreaClienteForm(request.POST)
         if form.is_valid():
             try:
-                form.save(request=request)
+                form.save(request=request, organizacion_actual=organizacion_actual)
                 messages.success(request, f"Cliente {form.cleaned_data['first_name']} creado. Se ha enviado un email de activación.")
                 return redirect('empresa_inicio') 
             except Exception as e:
@@ -428,12 +439,11 @@ def empresa_lista_clientes_view(request):
     Muestra a la Empresa una tabla con todos los clientes
     que administra.
     """
-    # Seguridad
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    if not organizacion_actual:
         return redirect('post_login')
-
-    # Obtenemos los clientes usando el 'related_name' que definimos en el modelo
-    clientes_administrados = request.user.usuario.clientes_administrados.all()
+    
+    clientes_administrados = organizacion_actual.clientes_administrados.all()
 
     context = {
         'clientes': clientes_administrados
@@ -447,12 +457,12 @@ def empresa_ver_cliente_view(request, cliente_id):
     Muestra el dashboard de consumo de un cliente específico
     a la empresa administradora.
     """
-
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    if not organizacion_actual:
         return redirect('post_login')
-
+    
     cliente = get_object_or_404(Usuario, id=cliente_id)
-    if cliente.empresa_asociada != request.user.usuario:
+    if cliente.organizacion_admin != organizacion_actual:
         return redirect('empresa_inicio')
 
     context = {
@@ -466,14 +476,12 @@ def empresa_mapa_view(request):
     Renderiza un mapa general con TODOS los dispositivos
     de TODOS los clientes administrados por la empresa.
     """
-    # Seguridad
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    if not organizacion_actual:
         return redirect('post_login')
 
-    #Obtenemos todos los 'Usuario' (clientes) que administra esta empresa
-    clientes_administrados = Usuario.objects.filter(empresa_asociada=request.user.usuario)
-
-    #Obtenemos todos los dispositivos de ESOS clientes (que tengan ubicación)
+    clientes_administrados = organizacion_actual.clientes_administrados.all()
+    
     dispositivos_de_clientes = Dispositivo.objects.filter(
         usuario__in=clientes_administrados,
         latitud__isnull=False, 

@@ -1,5 +1,5 @@
 from django.db import models
-from gestorUser.models import Usuario 
+from gestorUser.models import Usuario, Organizacion
 from sensores.models import Dispositivo
 
 class Alerta(models.Model):
@@ -27,33 +27,27 @@ class Alerta(models.Model):
 
 
 class Tarifa(models.Model):
-    """
-    Define las reglas de cobro para una empresa.
-    Cumple con los requisitos de la SISS (cargo fijo, tramos).
-    """
-    empresa = models.OneToOneField(Usuario, on_delete=models.CASCADE, limit_choices_to={'rol': 'EMPRESA'})
-    # Cargo Fijo (SISS)
     cargo_fijo = models.PositiveIntegerField(default=3000, help_text="Monto fijo mensual en CLP")
-    # Tarifas por Tramos (SISS) - en m³ (1m³ = 1000 Litros)
     limite_tramo_1 = models.FloatField(default=15, help_text="Límite del primer tramo en m³")
     valor_tramo_1 = models.PositiveIntegerField(default=500, help_text="Valor por m³ en Tramo 1 (CLP)")
     valor_tramo_2 = models.PositiveIntegerField(default=1000, help_text="Valor por m³ sobre el Tramo 1 (CLP)")
-    
-    # Impuestos (IVA)
-    iva = models.FloatField(default=0.19, help_text="Porcentaje de IVA (Ej: 0.19 para 19%)")
+    iva = models.FloatField(default=0.19, help_text="Porcentaje de IVA (ej: 0.19)")
+
     @property
     def iva_porcentaje(self):
         return int(self.iva * 100)
 
     def __str__(self):
-        return f"Tarifas para {self.empresa.usuario.username}"
+        if hasattr(self, 'organizacion'):
+             return f"Tarifas para {self.organizacion.nombre}"
+        return f"Tarifa ID {self.id} (Sin asignar)"
 
 class Boleta(models.Model):
     """
     Representa una boleta generada, cumpliendo con SISS y SII.
     """
-    empresa = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="boletas_emitidas", limit_choices_to={'rol': 'EMPRESA'})
-    cliente = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name="boletas_recibidas", limit_choices_to={'rol': 'CLIENTE'})
+    empresa = models.ForeignKey(Organizacion, on_delete=models.CASCADE, related_name="boletas_emitidas")
+    cliente = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name="boletas_recibidas", limit_choices_to={'organizacion_admin__isnull': False})
     tarifa_aplicada = models.ForeignKey(Tarifa, on_delete=models.PROTECT)
 
     # Periodo de facturación

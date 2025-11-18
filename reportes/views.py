@@ -1,44 +1,42 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Alerta, Tarifa, Boleta
-from gestorUser.models import Usuario
+from gestorUser.models import Usuario, Membresia, Organizacion
 from sensores.models import Dispositivo, LecturaSensor
 from django.db.models import Sum, F, FloatField, Count
 from django.db import transaction
 from django.contrib import messages
 import datetime
 from .forms import TarifaForm 
-
+from sensores.views import get_organizacion_actual
 
 @login_required
 def reportes_pagina(request):
-    
-    alertas = Alerta.objects.filter(usuario=request.user.usuario)
-    
-    context = {
-        'alertas_list': alertas
-    }
-    return render(request, 'dashboard_reportes.html', context)
+    """
+    Página de reportes para el CLIENTE.
+    """
+    if Membresia.objects.filter(usuario=request.user.usuario).exists():
+        return redirect('empresa_inicio')
+
+    return render(request, 'dashboard_reportes.html')
 
 @login_required
 def configuracion_tarifas_view(request):
     """
     Permite a la empresa crear o actualizar sus tarifas de cobro.
+    (Versión corregida con lógica de Membresia)
     """
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
-        return redirect('post_login')
-
-    empresa = request.user.usuario
-    
-    #Usamos get_or_create para obtener la tarifa o crear una vacía
-    tarifa_obj, created = Tarifa.objects.get_or_create(empresa=empresa)
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    if not organizacion_actual:
+        return redirect('post_login') 
+    tarifa_obj, created = Tarifa.objects.get_or_create(organizacion=organizacion_actual)
 
     if request.method == 'POST':
         form = TarifaForm(request.POST, instance=tarifa_obj)
         if form.is_valid():
             form.save()
             messages.success(request, '¡Tarifas actualizadas correctamente!')
-            return redirect('empresa_facturacion') #Regresar al panel de facturación
+            return redirect('empresa_facturacion') 
     else:
         form = TarifaForm(instance=tarifa_obj)
 
@@ -53,12 +51,17 @@ def facturacion_view(request):
     Motor de Facturación y página principal de gestión.
     (Versión con cálculo de consumo preciso)
     """
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
-        return redirect('post_login')
-
-    empresa = request.user.usuario
     try:
-        tarifa_activa = Tarifa.objects.get(empresa=empresa)
+        membresia = Membresia.objects.get(usuario=request.user.usuario)
+        organizacion_actual = membresia.organizacion
+    except Membresia.DoesNotExist:
+        return redirect('post_login')
+         
+    empresa = organizacion_actual
+    try:
+        tarifa_activa = organizacion_actual.tarifa 
+        if not tarifa_activa:
+            raise Tarifa.DoesNotExist
     except Tarifa.DoesNotExist:
         messages.error(request, "Error: Debe configurar sus tarifas antes de poder facturar.")
         return redirect('empresa_configuracion_tarifas')
@@ -67,6 +70,7 @@ def facturacion_view(request):
         mes = int(request.POST.get('mes'))
         ano = int(request.POST.get('ano'))
         clientes_a_facturar = empresa.clientes_administrados.all()
+
         boletas_creadas = 0
         boletas_omitidas = 0
 
@@ -75,8 +79,6 @@ def facturacion_view(request):
             if boleta_existe:
                 boletas_omitidas += 1
                 continue
-    
-            #Obtenemos todas las lecturas del cliente para el mes, ordenadas.
             lecturas = LecturaSensor.objects.filter(
                 dispositivo__usuario=cliente,
                 timestamp__year=ano,
@@ -88,30 +90,25 @@ def facturacion_view(request):
 
             for lectura_actual in lecturas:
                 if prev_lectura:
-                    #Calcular la duración (en segundos) desde la última lectura
                     duration_sec = (lectura_actual.timestamp - prev_lectura.timestamp).total_seconds()
-
                     #Si el tiempo es 0, negativo, o muy grande (ej. sensor se apagó 1 día),
                     #no podemos calcular el volumen de forma fiable.
                     #Asumimos un máximo de 5 minutos (300 seg) entre lecturas válidas.
                     if duration_sec <= 0 or duration_sec > 300:
                         prev_lectura = lectura_actual
                         continue
-
                     #Convertir la duración a MINUTOS
                     duration_min = duration_sec / 60.0
-                    
-                    # 4. Calcular el volumen de este "tramo".
-                    # Usamos el caudal (L/min) de la lectura anterior
-                    # y lo multiplicamos por el tiempo (min) transcurrido.
-                    # (Caudal * Tiempo = Volumen)
+                    #Calcular el volumen de este "tramo".
+                    #Usamos el caudal (L/min) de la lectura anterior
+                    #y lo multiplicamos por el tiempo (min) transcurrido.
+                    #(Caudal * Tiempo = Volumen)
                     volumen_tramo = prev_lectura.valor_flujo * duration_min
                     total_litros += volumen_tramo
                 
                 prev_lectura = lectura_actual
             #Convertir Litros a Metros Cúbicos
             consumo_m3 = total_litros / 1000.0
-            
             #Aplicar Lógica de Tramos (SISS)
             monto_consumo = 0
             if consumo_m3 <= tarifa_activa.limite_tramo_1:
@@ -123,7 +120,6 @@ def facturacion_view(request):
                                 (consumo_tramo_2 * tarifa_activa.valor_tramo_2)
 
             monto_consumo = round(monto_consumo)
-
             #Calcular Total (SISS + SII)
             monto_neto = tarifa_activa.cargo_fijo + monto_consumo
             monto_iva = round(monto_neto * tarifa_activa.iva)
@@ -158,7 +154,7 @@ def facturacion_view(request):
         .annotate(
             total_facturado=Sum('monto_total'),
             cantidad_boletas=Count('id')
-        ).order_by('-ano', '-mes')  
+        ).order_by('-ano', '-mes')
 
     context = {
         'periodos_facturados': periodos_facturados
@@ -172,15 +168,15 @@ def facturacion_detalle_mes_view(request, ano, mes):
     Muestra el detalle (todas las boletas) de un periodo de
     facturación específico (ej: 11/2025).
     """
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+    if not organizacion_actual:
         return redirect('post_login')
 
-    # Seguridad: Solo boletas de esta empresa
     boletas_del_mes = Boleta.objects.filter(
-        empresa=request.user.usuario,
+        empresa=organizacion_actual, 
         ano=ano,
         mes=mes
-    ).select_related('cliente__usuario') # Optimización: trae los datos del cliente
+    ).select_related('cliente__usuario') 
 
     context = {
         'boletas_del_mes': boletas_del_mes,
@@ -193,21 +189,40 @@ def facturacion_detalle_mes_view(request, ano, mes):
 def ver_boleta_view(request, boleta_id):
     """
     Fase 3 (SISS): Muestra el detalle de una única boleta.
+    (Permite acceso a Cliente y Empleado de Empresa)
     """
-    if request.user.usuario.rol != Usuario.Rol.EMPRESA:
-        return redirect('post_login')
-
     boleta = get_object_or_404(Boleta, id=boleta_id)
+    usuario_actual = request.user.usuario
+    es_propietario = (boleta.cliente == usuario_actual)
+    organizacion_actual = get_organizacion_actual(usuario_actual)
+    es_administrador = (boleta.empresa == organizacion_actual)
 
-    if boleta.empresa != request.user.usuario:
+    if not (es_propietario or es_administrador):
         messages.error(request, "No tiene permiso para ver esta boleta.")
-        return redirect('empresa_facturacion')
-        
-    iva_decimal = getattr(boleta.tarifa_aplicada, 'iva', 0)
-    iva_porcentaje = int(iva_decimal * 100) 
+        if organizacion_actual: # Si es empleado, lo mandamos a su panel
+            return redirect('empresa_facturacion')
+        else: # Si es cliente, lo mandamos al suyo
+            return redirect('post_login')
     
     context = {
-        'boleta': boleta,
-        'iva_porcentaje': iva_porcentaje 
+        'boleta': boleta
     }
     return render(request, 'reportes/boleta_detalle.html', context)
+
+@login_required
+def cliente_lista_boletas_view(request):
+    """
+    Muestra al Cliente (doméstico o de empresa)
+    su historial de boletas emitidas.
+    """
+    if Membresia.objects.filter(usuario=request.user.usuario).exists():
+        return redirect('empresa_inicio')
+
+    boletas = Boleta.objects.filter(
+        cliente=request.user.usuario
+    ).order_by('-ano', '-mes')
+
+    context = {
+        'boletas_recibidas': boletas
+    }
+    return render(request, 'reportes/cliente_lista_boletas.html', context)

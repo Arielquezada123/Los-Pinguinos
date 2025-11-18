@@ -1,39 +1,22 @@
 from django.contrib import admin
-from .models import Usuario 
+from .models import Usuario, Organizacion, Membresia
 
+@admin.register(Organizacion)
+class OrganizacionAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'rut_empresa', 'direccion_empresa', 'tarifa')
+    search_fields = ('nombre', 'rut_empresa')
+    raw_id_fields = ('tarifa',) 
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    
-    # Campos a mostrar en la lista principal
-    list_display = ('usuario', 'rol', 'empresa_asociada', 'rut_cliente', 'rut_empresa')
-    search_fields = ('usuario__username', 'direccion', 'rut_cliente', 'rut_empresa')
-    list_filter = ('rol',)
-    raw_id_fields = ('empresa_asociada',)
-
-    def get_fieldsets(self, request, obj=None):
-        if obj and obj.rol == Usuario.Rol.EMPRESA:
-            return (
-                (None, {'fields': ('usuario', 'rol')}),
-                ('Datos de Facturación (Empresa)', {
-                    'classes': ('wide',),
-                    'fields': ('rut_empresa', 'direccion_empresa')
-                }),
-            )
-
-        return (
-            (None, {'fields': ('usuario', 'rol')}),
-            ('Datos de Facturación (Cliente)', {
-                'classes': ('wide',),
-                'fields': ('direccion', 'rut_cliente')
-            }),
-            ('Jerarquía (Administración)', {
-                'classes': ('wide',),
-                'fields': ('empresa_asociada',)
-            }),
-        )
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ('usuario',)
-        return ()
+    list_display = ('usuario', 'organizacion_admin', 'rut_cliente', 'direccion') 
+    search_fields = ('usuario__username', 'rut_cliente')
+    list_filter = ('organizacion_admin',)
+    fields = ('usuario', 'organizacion_admin', 'rut_cliente', 'direccion')
+    readonly_fields = ('usuario',)
+    raw_id_fields = ('organizacion_admin',) 
+@admin.register(Membresia)
+class MembresiaAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'organizacion', 'rol_interno')
+    list_filter = ('organizacion', 'rol_interno')
+    raw_id_fields = ('usuario', 'organizacion')

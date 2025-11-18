@@ -6,7 +6,7 @@ from .models import Usuario
 from .forms import SignUpForm
 from .forms import LimiteMensualForm
 from django.contrib import messages
-from .models import Usuario
+from .models import Usuario, Membresia
 
 
 def signUp(request):
@@ -25,17 +25,20 @@ def signUp(request):
 def postlogin(request):
     """
     Actúa como un enrutador después del login.
-    Dirige al usuario a su panel correspondiente según su rol.
+    Revisa si el usuario es un 'Empleado' (Membresia) o un 'Cliente'.
     """
     try:
-        rol = request.user.usuario.rol
+        perfil_usuario = request.user.usuario
+        es_empleado = Membresia.objects.filter(usuario=perfil_usuario).exists()
+
     except Usuario.DoesNotExist:
-        rol = Usuario.objects.create(usuario=request.user).rol
+        perfil_usuario = Usuario.objects.create(usuario=request.user)
+        es_empleado = False
     except Exception as e:
         print(f"Error al obtener el rol del usuario: {e}")
         return redirect('index') 
-    if rol == Usuario.Rol.EMPRESA:
-        
+
+    if es_empleado:
         return redirect('empresa_inicio')
     else:
         return render(request, 'dashboard_inicio.html')

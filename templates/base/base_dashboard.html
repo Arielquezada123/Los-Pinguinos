@@ -62,7 +62,7 @@
     <div class="sidebar-logo">
         <nav class="sidebar-nav">
           <ul>
-            {% if request.user.usuario.rol == 'EMPRESA' %}
+            {% if request.user.usuario.membresias.all.count > 0 %}
               <li class="nav-item"> 
                   <a href="{% url 'empresa_inicio' %}"> 
                       <span class="icon"><i class="lni lni-apartment"></i></span>
