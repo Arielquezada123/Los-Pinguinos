@@ -15,7 +15,7 @@ from gestorUser.models import Usuario, Membresia, Organizacion
 from django.db.models import Count, Max,  Sum, F
 from django.utils import timezone
 from datetime import timedelta, datetime
-
+from django.conf import settings
 
 @login_required
 def historial_consumo(request):
@@ -488,7 +488,8 @@ def empresa_mapa_view(request):
     locations_json = mark_safe(json.dumps(locations_list))
 
     return render(request, 'empresa/mapa_general.html', {
-        'locations_json': locations_json
+        'locations_json': locations_json,
+        'OWM_API_KEY': settings.OWM_API_KEY
     })
 
 

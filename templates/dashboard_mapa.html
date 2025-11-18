@@ -3,7 +3,6 @@
 
 {% block title %}Mapa{% endblock %}
 
-{# --- Bloque 1: ESTILOS --- #}
 {% block page_styles %}
   <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
   <style>
@@ -50,7 +49,6 @@
 {% endblock %}
 
 
-{# --- (Lógica de Fetch y WebSocket) --- #}
 {% block page_scripts %}
   <script src="{% static 'dist/leaflet.js' %}"></script>
   <script>
@@ -61,7 +59,6 @@
 
       const markers = {}; 
       var map = L.map('mapa-container').setView([-35.6751, -71.5430], 6);
-      // --- Definición de Capas Base ---
       const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       });
@@ -89,7 +86,6 @@
           }
       );
 
-      // --- Agrupar las capas ---
       const baseLayers = {
           "OpenStreetMap": osmLayer,
           "Satélite": satelliteLayer
@@ -100,21 +96,15 @@
           "Temperatura": weatherTemp
       };
 
-      // --- Añadir control de capas al mapa ---
       L.control.layers(baseLayers, overlayLayers).addTo(map);
 
-      // --- Añadir la capa base por defecto ---
       osmLayer.addTo(map);
 
-      // -----------------------------------------------------
-      // 2. LÓGICA DE MARCADORES Y SENSORES
-      // -----------------------------------------------------
       var locations = JSON.parse('{{ locations_json|escapejs }}'); 
       var marcadores_coords = [];
 
       locations.forEach(function(loc) {
         
-        // --- 1. DATOS INICIALES (De la carga de página) ---
         const initialValue = parseFloat(loc.last_value).toFixed(2);
         let displayValue, valueClass, statusText;
         
@@ -124,11 +114,10 @@
             statusText = 'Sin datos históricos';
         } else {
             displayValue = `${initialValue} L/min`;
-            valueClass = 'valor-flujo'; // Asumimos 'vivo' al principio
+            valueClass = 'valor-flujo'; 
             statusText = 'Última lectura DB';
         }
         
-        // 2. CONTENIDO INICIAL (Estático)
         const initialPopupContent = `
           <div class="sensor-popup-content" id="popup_${loc.id_mqtt}">
             <h4>${loc.nombre}</h4>
@@ -140,7 +129,7 @@
           </div>
         `;
 
-        // 3. CREAR MARCADOR Y BIND POPUP
+        // CREAR MARCADOR Y BIND POPUP
         var marker = L.marker([loc.lat, loc.lon]).addTo(map)
           .bindPopup(initialPopupContent, {
             autoPan: true, 
@@ -152,38 +141,30 @@
             var popup = e.popup;
             const dataUrl = "{% url 'api_popup_data' id_mqtt='HTMX_ID_REPLACE' %}".replace('HTMX_ID_REPLACE', loc.id_mqtt);
 
-            // 5. Refrescar el contenido con el dato más reciente de la API
             fetch(dataUrl)
                 .then(response => {
                     if (!response.ok) { throw new Error('Error de red'); }
                     return response.text();
                 })
                 .then(html => {
-                    // Reemplaza el contenido del popup con el HTML fresco de la API
+
                     popup.setContent(html);
                 })
                 .catch(err => {
-                    // Si falla el fetch, no hacemos nada.
-                    // El usuario seguirá viendo el valor inicial (stale),
-                    // pero NO verá un "Cargando..." atascado.
                     console.error("Error al refrescar popup:", err);
                 });
         });
         
-        // 6. Almacenar marcador para WebSocket
+        // Almacenar marcador para WebSocket
         markers[loc.id_mqtt] = { marker: marker };
         marcadores_coords.push([loc.lat, loc.lon]);
       });
 
-      // ... (Ajuste de zoom) ...
       if (marcadores_coords.length > 0) {
         var bounds = L.latLngBounds(marcadores_coords);
         map.fitBounds(bounds);
       }
-      
-      // -----------------------------------------------------
-      // 3. Conexión WebSocket
-      // -----------------------------------------------------
+
       const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
 
       ws.onmessage = (event) => {
