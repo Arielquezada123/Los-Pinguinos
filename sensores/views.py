@@ -189,20 +189,30 @@ def api_historial_agregado(request):
 def popup_lectura_latest(request, id_mqtt):
     """
     Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX/Fetch.
+    Corregida para usar Membresia y Organizacion.
     """
+    
     dispositivo = get_object_or_404(
         Dispositivo, 
         id_dispositivo_mqtt=id_mqtt
     )
 
     es_dueño_cliente = (dispositivo.usuario.usuario == request.user)
-    es_empresa_admin = (dispositivo.usuario.empresa_asociada == request.user.usuario)
+    es_empresa_admin = False
+    org_del_cliente = dispositivo.usuario.organizacion_admin 
+
+    if org_del_cliente:
+
+        es_empresa_admin = Membresia.objects.filter(
+            usuario=request.user.usuario,
+            organizacion=org_del_cliente
+        ).exists()
+
     if not (es_dueño_cliente or es_empresa_admin):
         return HttpResponse("Acceso denegado.", status=403)
 
     ultima_lectura = LecturaSensor.objects.filter(
         dispositivo=dispositivo
-
     ).order_by('-timestamp').first()
 
     last_flow_value = ultima_lectura.valor_flujo if ultima_lectura else 0.0
@@ -212,46 +222,10 @@ def popup_lectura_latest(request, id_mqtt):
         'id_mqtt': id_mqtt,
         'last_flow_value': last_flow_value,
         'cliente_username': dispositivo.usuario.usuario.get_full_name(),
-        'cliente_direccion': dispositivo.usuario.direccion #
+        'cliente_direccion': dispositivo.usuario.direccion 
     }
 
-
     return render(request, 'sensores/popup_content.html', context)
-
-@login_required
-def api_inicio_data(request):
-    """
-    API que devuelve el estado inicial de TODOS los sensores del usuario,
-    incluyendo su última lectura registrada en la BD.
-    """
-    # 1. Subconsulta para obtener la última lectura
-    ultima_lectura_qs = LecturaSensor.objects.filter(
-        dispositivo=OuterRef('pk')
-    ).order_by('-timestamp')
-
-    # 2. Obtenemos todos los dispositivos del usuario y anotamos la última lectura
-    dispositivos = Dispositivo.objects.filter(
-        usuario__usuario=request.user
-    ).annotate(
-        last_flow_value=Subquery(
-            ultima_lectura_qs.values('valor_flujo')[:1],
-            output_field=FloatField()
-        )
-    )
-
-    data_list = []
-    for d in dispositivos:
-        data_list.append({
-            # Usamos el username del 'User' de Django
-            'cliente_id': d.usuario.usuario.username,
-            'sensor_id': d.id_dispositivo_mqtt,
-            'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
-        })
-
-    return JsonResponse(data_list, safe=False)
-
-
-
 
 
 
@@ -547,10 +521,9 @@ def get_usuario_a_filtrar(request):
 def api_inicio_data(request):
     """
     API que devuelve el estado inicial de los sensores.
-    Modificada para aceptar ?cliente_id=X
+    Modificada para aceptar
     """
-
-    usuario_perfil = get_usuario_a_filtrar(request)
+    usuario_perfil = get_usuario_a_filtrar(request) 
 
     ultima_lectura_qs = LecturaSensor.objects.filter(
         dispositivo=OuterRef('pk')
@@ -564,7 +537,6 @@ def api_inicio_data(request):
             output_field=FloatField()
         )
     )
-
     data_list = []
     for d in dispositivos:
         data_list.append({
@@ -573,5 +545,4 @@ def api_inicio_data(request):
             'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
             'is_initial_data': True
         })
-
     return JsonResponse(data_list, safe=False)

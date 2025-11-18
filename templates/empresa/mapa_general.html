@@ -49,11 +49,8 @@
 {% block page_scripts %}
   <script src="{% static 'dist/leaflet.js' %}"></script>
   <script>
-    // ESTE SCRIPT ES IDÉNTICO AL DE 'dashboard_mapa.html'
-    //La vista 'empresa_mapa_view' le pasa 'locations_json' (con todos los clientes).
-    //'popupopen' llama a 'api_popup_data' (que ahora permite a la empresa ver).
-    //'ws.onmessage' recibe datos de TODOS los clientes (porque modificamos el listener).
-    
+
+
     document.addEventListener("DOMContentLoaded", function() {
       
       const markers = {}; 
