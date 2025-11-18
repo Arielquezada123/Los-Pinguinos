@@ -17,6 +17,8 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 from django.conf import settings
 
+
+
 @login_required
 def historial_consumo(request):
     """
@@ -438,8 +440,22 @@ def empresa_ver_cliente_view(request, cliente_id):
     if cliente.organizacion_admin != organizacion_actual:
         return redirect('empresa_inicio')
 
+    lecturas = LecturaSensor.objects.filter(
+        dispositivo__usuario=cliente # Filtrar por el objeto cliente (Usuario)
+    )
+    datos_agregados = lecturas.annotate(
+        periodo=TruncMonth('timestamp')
+    ).values(
+        'periodo'
+    ).annotate(
+        consumo_total_m3=Sum(F('valor_flujo') / 12.0 / 1000.0, output_field=FloatField()) # Dividir por 1000 para m3
+    ).order_by('periodo')
+    etiquetas_mes = [item['periodo'].strftime("%b %Y") for item in datos_agregados]
+    valores_consumo = [item['consumo_total_m3'] for item in datos_agregados]
     context = {
-        'cliente': cliente
+        'cliente': cliente,
+        'etiquetas_grafico_json': mark_safe(json.dumps(etiquetas_mes)),
+        'valores_grafico_json': mark_safe(json.dumps(valores_consumo)),
     }
     return render(request, 'empresa/ver_cliente.html', context)
 
@@ -539,9 +555,13 @@ def api_inicio_data(request):
     )
     data_list = []
     for d in dispositivos:
+        lecturas_recientes = LecturaSensor.objects.filter(dispositivo=d).order_by('-timestamp')[:30]
+        valores_historial = [l.valor_flujo for l in lecturas_recientes[::-1]]
+        last_value = valores_historial[-1] if valores_historial else 0.0
         data_list.append({
             'cliente_id': d.usuario.usuario.username,
             'sensor_id': d.id_dispositivo_mqtt,
+            'historial_flujo': valores_historial,
             'flujo': d.last_flow_value if d.last_flow_value is not None else 0.0,
             'is_initial_data': True
         })

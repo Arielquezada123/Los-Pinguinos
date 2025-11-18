@@ -106,7 +106,7 @@
               <tr>
                 <td>
                   <a href="{% url 'empresa_ver_cliente' boleta.cliente.id %}">
-                    {{ boleta.cliente.usuario.username }}
+                    {{ boleta.cliente.usuario.get_full_name|default:boleta.cliente.usuario.username }}
                   </a>
                 </td>
                 <td>{{ boleta.cliente.rut_cliente }}</td>
@@ -124,7 +124,7 @@
                 
                 <td>
                   <a href="{% url 'empresa_boleta_detalle' boleta_id=boleta.id %}" class="btn btn-artista-azul btn-sm">
-                    Ver Detalle
+                    Ver Boleta
                   </a>
                 </td>
               </tr>
