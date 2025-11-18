@@ -68,7 +68,23 @@ class Boleta(models.Model):
     estado_sii = models.CharField(max_length=50, default="Pendiente")
     folio_sii = models.CharField(max_length=100, blank=True, null=True)
     pdf_boleta = models.FileField(upload_to='boletas/', blank=True, null=True)
+    
+    class EstadoPago(models.TextChoices):
+        PENDIENTE = 'PENDIENTE', 'Pendiente de Pago'
+        PAGADO = 'PAGADO', 'Pagado'
+        VENCIDO = 'VENCIDO', 'Vencido'
 
+    estado_pago = models.CharField(
+        max_length=20,
+        choices=EstadoPago.choices,
+        default=EstadoPago.PENDIENTE
+    )
+    fecha_pago = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Pago Real")
+    metodo_pago = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Ej: Transferencia, Efectivo, Cheque"
+    )
     class Meta:
         # No puede haber dos boletas para el mismo cliente en el mismo mes/año
         unique_together = ('cliente', 'mes', 'ano')

@@ -9,6 +9,8 @@ from django.contrib import messages
 import datetime
 from .forms import TarifaForm 
 from sensores.views import get_organizacion_actual
+from django.utils import timezone
+
 
 @login_required
 def reportes_pagina(request):
@@ -226,3 +228,30 @@ def cliente_lista_boletas_view(request):
         'boletas_recibidas': boletas
     }
     return render(request, 'reportes/cliente_lista_boletas.html', context)
+
+@login_required
+def registrar_pago_view(request, boleta_id):
+    """
+    Permite a la empresa registrar manualmente el pago de una boleta.
+    (Escenario A)
+    """
+    boleta = get_object_or_404(Boleta, id=boleta_id)
+    #Seguridad: Solo empleados de la empresa emisora pueden cobrar
+    organizacion_actual = get_organizacion_actual(request.user.usuario)
+
+    if not organizacion_actual or boleta.empresa != organizacion_actual:
+        messages.error(request, "No tiene permisos para gestionar pagos de esta boleta.")
+        return redirect('empresa_facturacion')
+
+    if request.method == 'POST':
+        #Procesar el pago
+        metodo = request.POST.get('metodo_pago', 'Efectivo')
+
+        boleta.estado_pago = Boleta.EstadoPago.PAGADO
+        boleta.fecha_pago = timezone.now()
+        boleta.metodo_pago = metodo
+        boleta.save()
+        
+        messages.success(request, f"Pago registrado correctamente para la Boleta #{boleta.id}")
+        
+    return redirect('empresa_boleta_detalle', boleta_id=boleta.id)
