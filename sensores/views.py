@@ -519,30 +519,30 @@ def empresa_mapa_view(request):
     })
 
 
-
-
 def get_usuario_a_filtrar(request):
     """
     Función de ayuda para determinar qué usuario filtrar en las APIs.
     """
-    #Por defecto, filtramos por el usuario que hace la petición
     usuario_filtrado = request.user.usuario
-    
-    # Obtenemos el ID del cliente de la URL (ej: ?cliente_id=16)
     cliente_id = request.GET.get('cliente_id')
+    try:
+        membresia = Membresia.objects.get(usuario=usuario_filtrado)
+        es_empleado = True
+        mi_organizacion = membresia.organizacion
+    except Membresia.DoesNotExist:
+        es_empleado = False
+        mi_organizacion = None
 
-    # Si el que pide es una EMPRESA y especificó un cliente_id...
-    if request.user.usuario.rol == Usuario.Rol.EMPRESA and cliente_id:
+    if es_empleado and cliente_id:
         try:
-            # Buscamos a ese cliente
             cliente = Usuario.objects.get(id=cliente_id)
-            # ¡Seguridad! Verificamos que ese cliente pertenezca a la empresa
-            if cliente.empresa_asociada == request.user.usuario:
+            if cliente.organizacion_admin == mi_organizacion:
                 usuario_filtrado = cliente
         except Usuario.DoesNotExist:
             pass
-    
+
     return usuario_filtrado
+
 @login_required
 def api_inicio_data(request):
     """
