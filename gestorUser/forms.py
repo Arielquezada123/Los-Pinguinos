@@ -12,6 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from django.utils.text import slugify
+from django.utils.crypto import get_random_string
 
 
 class SignUpForm(UserCreationForm):
@@ -106,7 +107,6 @@ class EmpresaCreaClienteForm(forms.Form):
     def save(self, request, organizacion_actual):
         data = self.cleaned_data
         
-
         base_username = slugify(data['first_name'][0] + data['last_name']).replace('-', '')
         username = base_username
         counter = 1
@@ -114,20 +114,24 @@ class EmpresaCreaClienteForm(forms.Form):
             username = f"{base_username}{counter}"
             counter += 1
 
+        # --- CORRECCIÓN: Generar contraseña aleatoria ---
+        nuevo_password = get_random_string(length=12)
+
         nuevo_user_auth = User.objects.create_user(
             username=username, 
             email=data['email'],
-            password=User.objects.make_random_password(),
-            first_name=data['first_name'],
-            last_name=data['last_name']
+            password=nuevo_password,
+            first_name=data['first_name'].upper(), # --- CORRECCIÓN: Convertir a mayúsculas
+            last_name=data['last_name'].upper()    # --- CORRECCIÓN: Convertir a mayúsculas
         )
-        
 
+        # --- RESTAURADO: Configuración del perfil (Faltaba en tu código) ---
         nuevo_user_perfil = nuevo_user_auth.usuario
         nuevo_user_perfil.organizacion_admin = organizacion_actual
         nuevo_user_perfil.direccion = data['direccion']
         nuevo_user_perfil.rut_cliente = data['rut_cliente']
         nuevo_user_perfil.save()
+        # ---------------------------------------------------------------
 
         Dispositivo.objects.create(
             usuario=nuevo_user_perfil,
