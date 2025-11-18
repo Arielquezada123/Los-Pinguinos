@@ -206,9 +206,6 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
         
-        // --- INICIO DEL CÓDIGO NUEVO PARA MAYÚSCULAS ---
-        
-        // Capturamos los inputs usando los IDs generados por Django
         const inputNombre = document.getElementById('{{ form.first_name.id_for_label }}');
         const inputApellido = document.getElementById('{{ form.last_name.id_for_label }}');
 
@@ -217,8 +214,6 @@
                 event.target.value = event.target.value.toUpperCase();
             }
         }
-
-        // Agregamos el evento 'blur' (cuando el usuario sale del campo)
         if (inputNombre) {
             inputNombre.addEventListener('blur', convertirAMayusculas);
         }
@@ -226,13 +221,6 @@
         if (inputApellido) {
             inputApellido.addEventListener('blur', convertirAMayusculas);
         }
-        
-        // --- FIN DEL CÓDIGO NUEVO ---
-
-
-        // ... (Aquí continúa tu código existente del mapa y el RUT) ...
-        const latInput = document.getElementById('{{ form.latitud.id_for_label }}');
-        // ... etc
     });
     document.addEventListener("DOMContentLoaded", function() {
         

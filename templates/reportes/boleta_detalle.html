@@ -44,7 +44,7 @@
 {% block dashboard_content %}
   <div class="title-wrapper pt-30 mb-20">
     <h2>Detalle de Boleta (SISS)</h2>
-    <a href="{% url 'empresa_facturacion_detalle' ano=boleta.ano mes=boleta.mes %}" class="btn btn-outline-primary btn-sm">
+    <a href="{% url 'empresa_facturacion_detalle' ano=boleta.ano mes=boleta.mes %}" style="margin-top: 19px;" class="btn btn-outline-primary btn-sm">
         &larr; Volver al Periodo {{ boleta.mes }}/{{ boleta.ano }}
     </a>
   </div>

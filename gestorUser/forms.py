@@ -121,8 +121,8 @@ class EmpresaCreaClienteForm(forms.Form):
             username=username, 
             email=data['email'],
             password=nuevo_password,
-            first_name=data['first_name'].upper(), # --- CORRECCIÓN: Convertir a mayúsculas
-            last_name=data['last_name'].upper()    # --- CORRECCIÓN: Convertir a mayúsculas
+            first_name=data['first_name'].upper(), 
+            last_name=data['last_name'].upper()    
         )
 
         # --- RESTAURADO: Configuración del perfil (Faltaba en tu código) ---
@@ -132,7 +132,7 @@ class EmpresaCreaClienteForm(forms.Form):
         nuevo_user_perfil.rut_cliente = data['rut_cliente']
         nuevo_user_perfil.save()
         # ---------------------------------------------------------------
-
+ 
         Dispositivo.objects.create(
             usuario=nuevo_user_perfil,
             id_dispositivo_mqtt=data['id_dispositivo_mqtt'],

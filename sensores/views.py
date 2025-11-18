@@ -17,7 +17,6 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 
 
-
 @login_required
 def historial_consumo(request):
     """
@@ -191,7 +190,7 @@ def popup_lectura_latest(request, id_mqtt):
     Vista que devuelve un fragmento de HTML con la lectura más reciente para HTMX/Fetch.
     Corregida para usar Membresia y Organizacion.
     """
-    
+
     dispositivo = get_object_or_404(
         Dispositivo, 
         id_dispositivo_mqtt=id_mqtt

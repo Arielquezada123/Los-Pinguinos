@@ -118,22 +118,19 @@
               </tr>
             </thead>
             <tbody>
-              {% for periodo in periodos_facturados %}
-              <tr>
-                <td><strong>{{ periodo.mes }}/{{ periodo.ano }}</strong></td>
-                <td>{{ periodo.cantidad_boletas }}</td>
-                <td>${{ periodo.total_facturado }}</td>
-                <td>
-                  <a href="{% url 'empresa_facturacion_detalle' ano=periodo.ano mes=periodo.mes %}" class="btn btn-artista-azul">
-                    Ver Detalle
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="4" class="text-center text-muted">Aún no se han generado periodos de facturación.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
+                {% for periodo in periodos_facturados %}
+                <tr>
+                  <td><strong>{{ periodo.mes }}/{{ periodo.ano }}</strong></td>
+                    <td>{{ periodo.cantidad_boletas }}</td>
+                    <td>${{ periodo.total_facturado }}</td>
+                    <td>
+                    <a href="{% url 'empresa_facturacion_detalle' ano=periodo.ano mes=periodo.mes %}" class="btn btn-artista-azul">
+                      Ver Detalle
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+             </tbody>
           </table>
         </div>
       </div>
