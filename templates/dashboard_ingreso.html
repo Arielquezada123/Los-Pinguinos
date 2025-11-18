@@ -20,9 +20,6 @@
       cursor: crosshair !important;
     }
 
-    /* --- ¡LA PINCELADA MAESTRA! --- 
-       Le damos vida al texto de ayuda con una animación de pulso
-    */
     @keyframes pulse-light {
       0% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
       50% { background: rgba(0, 0, 0, 0.9); box-shadow: 0 0 10px rgba(0,0,0,0.9); }
@@ -86,12 +83,19 @@
 
 {% block dashboard_content %}
   
-
   <div style="margin-top: 15px;" class="card-style">
     <div class="card-body">
       
       <form method="POST">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+        
 
         <div class="row">
 
@@ -101,14 +105,30 @@
             <div class="mb-3">
               <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
               {{ form.nombre }}
+              {% if form.nombre.errors %}
+                <div class="text-danger" style="font-size: 0.9em; margin-top: 5px;">
+                  {% for error in form.nombre.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
 
             <div class="mb-3">
               <label for="{{ form.id_dispositivo_mqtt.id_for_label }}" class="form-label">{{ form.id_dispositivo_mqtt.label }}</label>
               {{ form.id_dispositivo_mqtt }}
+              {# --- INICIO DE LA MODIFICACIÓN (Error Específico) --- #}
+              {% if form.id_dispositivo_mqtt.errors %}
+                <div class="text-danger" style="font-size: 0.9em; margin-top: 5px;">
+                  {% for error in form.id_dispositivo_mqtt.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
             </div>
             
-            </div>
+          </div>
 
           <div class="col-md-7">
             <h5 class="mb-30">Ubicación</h5>
@@ -139,7 +159,6 @@
 {% endblock %}
 
 
-{# --- Bloque 2: SCRIPTS --- #}
 {% block page_scripts %}
   <script src="{% static 'dist/leaflet.js' %}"></script>
   <script>

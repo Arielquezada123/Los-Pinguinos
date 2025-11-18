@@ -1,0 +1,144 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Detalle Boleta N° {{ boleta.id }}{% endblock %}
+
+{% block page_styles %}
+<style>
+  .boleta-header {
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+  .boleta-detalle-tabla {
+    width: 100%;
+    margin-top: 20px;
+  }
+  .boleta-detalle-tabla th {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    color: #adb5bd;
+  }
+  .boleta-detalle-tabla td {
+    text-align: right;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    color: #f1f1f1;
+  }
+  .boleta-total {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #fff;
+  }
+  .siss-footer {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px dashed #444;
+    font-size: 0.9em;
+    color: #adb5bd;
+  }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20">
+    <h2>Detalle de Boleta (SISS)</h2>
+    <a href="{% url 'empresa_facturacion_detalle' ano=boleta.ano mes=boleta.mes %}" class="btn btn-outline-primary btn-sm">
+        &larr; Volver al Periodo {{ boleta.mes }}/{{ boleta.ano }}
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <div class="card-style mb-30">
+        
+        <div class="boleta-header row">
+          <div class="col-md-6">
+            <h5>Emitido por:</h5>
+            <strong class="text-light">{{ boleta.empresa.usuario.username }}</strong>
+            <p class.text-light" style="margin-bottom: 0;">RUT: {{ boleta.empresa.rut_empresa }}</p>
+            <p class.text-light" style="margin-bottom: 0;">{{ boleta.empresa.direccion_empresa }}</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <h5>Cliente:</h5>
+            <strong class="text-light">{{ boleta.cliente.usuario.username }}</strong>
+            <p class="text-light" style="margin-bottom: 0;">RUT: {{ boleta.cliente.rut_cliente }}</p>
+            <p class="text-light" style="margin-bottom: 0;">{{ boleta.cliente.direccion }}</p>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-6">
+                <strong>Periodo de Facturación:</strong>
+                <span class="text-light">{{ boleta.mes }}/{{ boleta.ano }}</span>
+            </div>
+            <div class="col-6 text-end">
+                <strong>N° Boleta:</strong>
+                <span class="text-light">{{ boleta.id }}</span>
+            </div>
+            <div class="col-6">
+                <strong>Folio SII:</strong>
+                <span class="text-light">{{ boleta.folio_sii|default:"Pendiente" }}</span>
+            </div>
+            <div class="col-6 text-end">
+                <strong>Estado:</strong>
+                <span class="text-light">{{ boleta.estado_sii }}</span>
+            </div>
+        </div>
+
+        <h5 class="mb-20">Detalle de Cobros</h5>
+        
+        <table class="boleta-detalle-tabla">
+          <tbody>
+            <tr>
+              <th>Consumo del Mes</th>
+              <td>{{ boleta.consumo_m3|floatformat:2 }} m³</td>
+            </tr>
+            <tr>
+              <th>Cargo Fijo</th>
+              <td>${{ boleta.monto_cargo_fijo }}</td>
+            </tr>
+            <tr>
+              <th>Cargo Variable (Consumo)</th>
+              <td>${{ boleta.monto_consumo_variable }}</td>
+            </tr>
+            
+            <tr>
+              <th>Subsidios</th>
+              <td class="text-success">-${{ boleta.monto_subsidio }}</td>
+            </tr>
+
+            <tr style="border-top: 2px solid #555;">
+              <th><strong>Monto Neto</strong></th>
+              <td><strong>${{ boleta.monto_neto }}</strong></td>
+            </tr>
+
+            <tr>
+              <th>IVA ({{ boleta.tarifa_aplicada.iva_porcentaje }}%)</th>
+              <td>${{ boleta.monto_iva }}</td>
+            </tr>
+            
+            <tr class="boleta-total" style="border-top: 2px solid #0d6efd;">
+              <th>Total a Pagar</th>
+              <td>${{ boleta.monto_total }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="siss-footer">
+            <p>
+                Para consultas o reclamos sobre su boleta, contacte a 
+                <strong>{{ boleta.empresa.usuario.username }}</strong> 
+                al (teléfono) o (email).
+            </p>
+            <p>
+                Este documento cumple con la normativa de la SISS (Superintendencia de Servicios Sanitarios). 
+                Puede verificar sus derechos en www.siss.gob.cl.
+            </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+{% endblock %}

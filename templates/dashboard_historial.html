@@ -81,10 +81,10 @@
         }
 
         try {
-          // Buscar la inspiración (Datos)
+           
           const response = await fetch(`{% url 'api_historial_grafico' %}?agrupar_por=${agruparPor}`);
           if (!response.ok) {
-            throw new Error('No se pudo cargar la musa (datos)');
+            throw new Error('No se pudo cargar datos');
           }
           const data = await response.json();
 
@@ -96,7 +96,6 @@
               label: nombreSensor,
               data: data.sensores[nombreSensor],
               borderColor: color,
-              // Un color de fondo más sólido para las barras
               backgroundColor: color.replace('0.7', '0.5'), 
               borderWidth: 1
             });
@@ -146,12 +145,9 @@
         }
       }
 
-      // --- 3. Los Eventos (El Público) ---
       btnMes.addEventListener('click', () => cargarGrafico('mes'));
       btnSemana.addEventListener('click', () => cargarGrafico('semana'));
 
-      // --- 4. La Inauguración (Carga Inicial) ---
-      // La obra se revela, en su forma correcta, desde el inicio.
       cargarGrafico('mes');
 
     });

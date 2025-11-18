@@ -6,7 +6,7 @@ from .models import Usuario
 from .forms import SignUpForm
 from .forms import LimiteMensualForm
 from django.contrib import messages
-
+from .models import Usuario, Membresia
 
 
 def signUp(request):
@@ -21,14 +21,27 @@ def signUp(request):
 
 
 
-@login_required(login_url='login')  
+@login_required
 def postlogin(request):
-    user = request.user
-    if user.is_staff:
-        return render(request,'dashboard_inicio.html')
-    else:
-        return render (request, 'dashboard_inicio.html')
+    """
+    Actúa como un enrutador después del login.
+    Revisa si el usuario es un 'Empleado' (Membresia) o un 'Cliente'.
+    """
+    try:
+        perfil_usuario = request.user.usuario
+        es_empleado = Membresia.objects.filter(usuario=perfil_usuario).exists()
 
+    except Usuario.DoesNotExist:
+        perfil_usuario = Usuario.objects.create(usuario=request.user)
+        es_empleado = False
+    except Exception as e:
+        print(f"Error al obtener el rol del usuario: {e}")
+        return redirect('index') 
+
+    if es_empleado:
+        return redirect('empresa_inicio')
+    else:
+        return render(request, 'dashboard_inicio.html')
 
 @login_required
 def limite_pagina(request):

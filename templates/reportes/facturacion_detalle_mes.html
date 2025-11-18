@@ -1,0 +1,152 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Detalle Facturación {{ periodo_mes }}/{{ periodo_ano }}{% endblock %}
+
+{% block page_styles %}
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+  <style>
+
+    .card-style h5, .card-style .table thead th { color: #f1f1f1 !important; }
+    .card-style .table { color: #e0e8f0 !important; }
+  
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+        background-color: #343a40; border-color: #444; color: #f1f1f1;
+    }
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_info { color: #adb5bd !important; }
+    .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+    .card-style h5,
+    .card-style h6,
+    .card-style .table thead th {
+        color: #f1f1f1 !important;
+    }
+    
+    .card-style .table {
+        color: #e0e8f0 !important;
+    }
+ 
+    .card-style .table-hover > tbody > tr:hover > * {
+        color: #fff !important; 
+    }
+
+    .form-control-dark {
+        background-color: #343a40;
+        border-color: #444;
+        color: #f1f1f1;
+    }
+    .form-control-dark::placeholder { color: #6c757d; }
+    .form-control-dark:focus {
+        background-color: #343a40;
+        border-color: #0d6efd;
+        color: #f1f1f1;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .dataTables_wrapper .dataTables_filter input {
+        background-color: #2b2b35;
+        color: #f1f1f1;
+        border: 1px solid #444;
+    }
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_info {
+        color: #adb5bd !important;
+    }
+    .dataTables_wrapper .dataTables_length select {
+        background-color: #2b2b35;
+        color: #f1f1f1;
+        border: 1px solid #444;
+    }
+    .dataTables_wrapper .dataTables_paginate .page-link {
+        background-color: #2b2b35;
+        border-color: #444;
+        color: #f1f1f1;
+    }
+    .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #1d4ed8;
+    }
+  </style>
+{% endblock %}
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20">
+    <h2>Detalle de Facturación</h2>
+    <p class="text-light" style="opacity: 0.7; margin-bottom: 5px;">
+      Boletas generadas para el periodo <strong>{{ periodo_mes }}/{{ periodo_ano }}</strong>.
+    </p>
+    <a href="{% url 'empresa_facturacion' %}" class="btn btn-outline-primary btn-sm">
+        &larr; Volver a Periodos
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card-style mb-30">
+        <div class="table-responsive">
+          <table id="boletasDetalleTabla" class="table table-hover">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>RUT</th>
+                <th>Consumo (m³)</th>
+                <th>Cargo Fijo</th>
+                <th>Cargo Variable</th>
+                <th>IVA</th>
+                <th>Total Pagado</th>
+                <th>Estado SII</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for boleta in boletas_del_mes %}
+              <tr>
+                <td>
+                  <a href="{% url 'empresa_ver_cliente' boleta.cliente.id %}">
+                    {{ boleta.cliente.usuario.username }}
+                  </a>
+                </td>
+                <td>{{ boleta.cliente.rut_cliente }}</td>
+                <td>{{ boleta.consumo_m3|floatformat:2 }}</td>
+                <td>${{ boleta.monto_cargo_fijo }}</td>
+                <td>${{ boleta.monto_consumo_variable }}</td>
+                <td>${{ boleta.monto_iva }}</td>
+                <td><strong>${{ boleta.monto_total }}</strong></td>
+                <td>
+                  <span class="badge 
+                    {% if boleta.estado_sii == 'Pendiente' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                    {{ boleta.estado_sii }}
+                  </span>
+                </td>
+                
+                <td>
+                  <a href="{% url 'empresa_boleta_detalle' boleta_id=boleta.id %}" class="btn btn-artista-azul btn-sm">
+                    Ver Detalle
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block page_scripts %}
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      $('#boletasDetalleTabla').DataTable({
+        "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" }
+      });
+    });
+  </script>
+{% endblock %}

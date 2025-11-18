@@ -1,23 +1,39 @@
-# watermilimiter/sensores/consumers.py
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from channels.db import database_sync_to_async
+from gestorUser.models import Membresia, Usuario
+
 
 class SensorConsumer(AsyncWebsocketConsumer):
+
     async def connect(self):
-        # 1. Obtener el usuario de la sesión
         self.user = self.scope["user"]
 
-        # 2. Rechazar conexiones de usuarios no autenticados
+        # 1. Rechazar usuarios no autenticados
         if not self.user.is_authenticated:
             await self.close()
             print("Cliente WebSocket no autenticado. Conexión rechazada.")
             return
+        try:
+            self.perfil_usuario = await database_sync_to_async(
+                lambda: self.user.usuario
+            )()
+        except Usuario.DoesNotExist:
+            self.perfil_usuario = await database_sync_to_async(
+                Usuario.objects.create
+            )(usuario=self.user)
+        self.membresia = await database_sync_to_async(
+            Membresia.objects.filter(usuario=self.perfil_usuario).first
+        )()
 
-        # 3. Crear un nombre de grupo único y privado para este usuario
-        self.group_name = f"sensores_{self.user.id}"
-        print(f"Usuario {self.user.username} conectándose al grupo {self.group_name}")
-
-        # 4. Unir al usuario a su grupo privado
+        if self.membresia:
+            org_id = self.membresia.organizacion_id
+            self.group_name = f"sensores_org_{org_id}"
+            print(f"Empleado {self.user.username} (Org {org_id}) conectándose al grupo {self.group_name}")
+        
+        else:
+            self.group_name = f"sensores_{self.user.id}"
+            print(f"Cliente {self.user.username} conectándose al grupo {self.group_name}")
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
@@ -28,8 +44,6 @@ class SensorConsumer(AsyncWebsocketConsumer):
 
 
     async def disconnect(self, close_code):
-        # 5. Descartar del grupo privado al desconectar
-        # Comprobamos si 'group_name' existe por si la conexión fue rechazada en connect()
         if hasattr(self, 'group_name'):
             await self.channel_layer.group_discard(
                 self.group_name,
@@ -39,5 +53,4 @@ class SensorConsumer(AsyncWebsocketConsumer):
 
 
     async def sensor_update(self, event):
-        # Esto no cambia. Simplemente reenvía los datos que recibe.
         await self.send(text_data=json.dumps(event["data"]))

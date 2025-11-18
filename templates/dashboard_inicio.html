@@ -9,7 +9,7 @@
   <div class="title-wrapper pt-30 mb-20" >
     <div class="row align-items-center">
       <div class="col-md-12">
-        <h2>Flujo en Tiempo Real</h2>
+        <h2>Flujo Actual</h2>
       </div>
     </div>
   </div>
@@ -41,15 +41,10 @@
 {% block page_scripts %}
   
   <script>
-    // --- Lógica del Dashboard Principal ---
-    
     const sensors = {}; 
     const sensorContainer = document.getElementById("sensorContainer");
     const loadingMessage = document.getElementById("loading-message");
 
-    // -----------------------------------------------------------------
-    // FUNCIÓN: Crear Tarjeta de Sensor (SIN CAMBIOS)
-    // -----------------------------------------------------------------
     function createSensorCard(data) {
         const key = data.sensor_id;
         if (sensors[key]) return; 
@@ -106,10 +101,6 @@
         sensors[key] = { chart, valores: [] };
         updateSensorValue(data);
     }
-
-    // -----------------------------------------------------------------
-    // FUNCIÓN: Actualizar Valor de Sensor (SIN CAMBIOS)
-    // -----------------------------------------------------------------
     function updateSensorValue(data) {
         const key = data.sensor_id;
         const sensor = sensors[key];
@@ -135,9 +126,6 @@
         sensor.chart.update('quiet');
     }
 
-    // -----------------------------------------------------------------
-    // 1. CARGA INICIAL DE DATOS (Fetch)
-    // -----------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', function() {
         
         // --- Fetch para los GRÁFICOS en vivo (SIN CAMBIOS) ---
@@ -157,9 +145,6 @@
                 if (loadingMessage) loadingMessage.textContent = "Error al cargar datos.";
             });
 
-        // --- Fetch para el HISTORIAL RECIENTE (MODIFICADO) ---
-        
-        // ### CAMBIO: Usamos la función de formato de fecha original ###
         function formatearFecha(fechaISO) {
             const opciones = { 
                 year: 'numeric', month: '2-digit', day: '2-digit', 
@@ -183,11 +168,9 @@
                     container.innerHTML = '<div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">No hay datos históricos.</div>';
                     return;
                 }
-    
-                // Lógica de renderizado con el "Feed" y la fecha "real"
+
                 data.forEach(lectura => {
                     const valor = parseFloat(lectura.valor).toFixed(2);
-                    // ### CAMBIO: Llamamos a la nueva función ###
                     const tiempo = formatearFecha(lectura.timestamp); 
 
                     const itemHTML = `
@@ -210,9 +193,6 @@
             });
     });
 
-    // -----------------------------------------------------------------
-    // 2. CONEXIÓN WEBSOCKET (Para datos en vivo) (SIN CAMBIOS)
-    // -----------------------------------------------------------------
     const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
 
     ws.onopen = () => {

@@ -1,0 +1,11 @@
+
+Hola {{ user.username }},
+
+¡Has sido registrado en la plataforma MiAgua por la empresa {{ empresa_nombre }}!
+
+Para activar tu cuenta y ver tu consumo en tiempo real, por favor establece tu contraseña haciendo clic en el siguiente enlace:
+
+http://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+
+¡Te esperamos!
+El equipo de Hydronet
