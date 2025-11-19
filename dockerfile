@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y \
 # Copiar e instalar dependencias Python
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
-RUN pip install uwsgi
 
 # Copiar proyecto
 COPY . /pinguinos
@@ -23,6 +22,7 @@ WORKDIR /pinguinos
 # Crear directorios para static y media
 RUN mkdir -p /pinguinos/staticfiles /pinguinos/media
 
+RUN sed -i 's/\r$//g' /pinguinos/entrypoint.sh
 # Hacer ejecutable el entrypoint
 RUN chmod +x entrypoint.sh
 

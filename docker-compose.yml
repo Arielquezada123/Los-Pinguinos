@@ -58,6 +58,7 @@ services:
     command: python manage.py mqttlistener
     environment:
       - DJANGO_SETTINGS_MODULE=watermilimiter.settings
+      - MQTT_BROKER_HOST=mosquitto
     depends_on:
       - web
       - redis

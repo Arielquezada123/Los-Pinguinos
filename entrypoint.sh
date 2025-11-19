@@ -8,12 +8,17 @@ mkdir -p /pinguinos/staticfiles /pinguinos/media
 
 # Collect static files
 echo "Collectando archivos estaticos con el SH.. pip pip pip pip "
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput || true
 
 # Ejecutar migraciones
 echo "Running migrations..."
 python manage.py migrate
 
-# Ejecutar Daphne
-echo "Iniciando Daphne (ASGI server)..."
-exec daphne -b 0.0.0.0 -p 8000 watermilimiter.asgi:application
+if [ "$#" -gt 0 ]; then
+    echo "Ejecutando comando personalizado: $@"
+    exec "$@"
+else
+    echo "Iniciando Daphne (Web Server default)..."
+    exec daphne -b 0.0.0.0 -p 8000 watermilimiter.asgi:application
+fi
+

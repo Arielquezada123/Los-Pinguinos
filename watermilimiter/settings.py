@@ -13,9 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+## DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['98.90.0.173', 'localhost', '127.0.0.1','54.236.87.161']
+ALLOWED_HOSTS = ['98.90.0.173', 'localhost', '127.0.0.1','54.236.87.161','34.227.147.172']
 
 
 # Application definition
@@ -67,19 +68,8 @@ ASGI_APPLICATION = "watermilimiter.asgi.application"
 WSGI_APPLICATION = 'watermilimiter.wsgi.application'
 
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage" #### Cambiar en despliegue por
-##STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" 
-
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("redis", 6379)],  # nombre del servicio redis del docker-compose
-        },
-    },
-}
-
+###STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage" #### Cambiar en despliegue por
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage" 
 
 
 # Database
@@ -88,18 +78,20 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # Si existe la variable DB_PATH úsala, si no, usa la default (para desarrollo local)
+        'NAME': Path(os.getenv('DB_PATH', BASE_DIR / 'db.sqlite3')),
     }
 }
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            # "redis" es el nombre del servicio en tu docker-compose.yml
+            "hosts": [("redis", 6379)], 
         },
     },
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -148,3 +140,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL="/interfaz"
 LOGOUT_REDIRECT_URL="/"
 STATICFILES_DIRS = [BASE_DIR/"static"]
+
+MQTT_SERVER = os.getenv('MQTT_SERVER', 'mosquitto') 
+MQTT_PORT = 1883
+
+WHITENOISE_MANIFEST_STRICT = False
