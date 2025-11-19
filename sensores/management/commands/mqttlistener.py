@@ -70,13 +70,9 @@ def on_message(client, userdata, msg):
 
 
 client = mqtt.Client()
-<<<<<<< Updated upstream
-client.connect("localhost", 1883) # Cambiar a "mosquitto" para Docker
-=======
 MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "mosquitto")  
 print(f"Conectando a broker MQTT en: {MQTT_BROKER_HOST}")
 client.connect(MQTT_BROKER_HOST, 1883)  #Cambiar a "mosquitto" para Docker y para desarrollo y probar el pub.py colocar "localhost"
->>>>>>> Stashed changes
 client.subscribe("sensores/flujo")
 client.on_message = on_message
 client.loop_forever()
