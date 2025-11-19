@@ -1,0 +1,42 @@
+{% extends "base/base_dashboard.html" %}
+    {% load static %}
+
+    {% block title %}Reportes y Alertas{% endblock %}
+
+    {% block dashboard_content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Centro de Reportes y Alertas</h6>
+                        <a href="{% url 'limite_pagina' %}" class="btn btn-primary btn-sm">
+                            <i class="lni lni-cog"></i> Configurar Límites
+                        </a>
+                </div>
+                <div class="card-body">
+                    {% if alertas_list %}
+                        <div class="list-group">
+                            {% for alerta in alertas_list %}
+                            <div class="list-group-item list-group-item-action flex-column align-items-start 
+                                        {% if alerta.tipo == 'FUGA' or alerta.tipo == 'EXCESO' %} list-group-item-danger 
+                                        {% elif alerta.tipo == 'OFFLINE' %} list-group-item-warning
+                                        {% else %} list-group-item-info {% endif %}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ alerta.get_tipo_display }}</h5>
+                                    <small>{{ alerta.timestamp|timesince }} atrás</small>
+                                </div>
+                                <p class="mb-1">{{ alerta.mensaje }}</p>
+                                {% if alerta.dispositivo %}
+                                <small>Sensor: {{ alerta.dispositivo.nombre }}</small>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">¡Todo en orden! No tienes reportes ni alertas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}

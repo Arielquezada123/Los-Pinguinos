@@ -13,11 +13,12 @@
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/dashboard-dark-blue.css' %}" />
+    <link rel="stylesheet" href="{% static 'estilocss/style.css' %}" />
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
-        /* Estilo para las tarjetas generadas dinámicamente */
+
         .sensor-realtime-card {
             background: var(--card-bg);
             padding: 20px;
@@ -44,10 +45,13 @@
           background: #021446;   
           z-index: 999;       
         }
+        .section {
+          padding-top: 20px;
+        }
         #historial-lista .list-group-item {
-          background-color: #212529;
+          background-color: #ffffff;
           color: #f8f9fa;         
-          border-color: rgba(255, 255, 255, 0.1);
+          border-color: rgba(246, 246, 246, 0.1);
         }
     </style>
     
@@ -56,40 +60,91 @@
 <body>
   <aside class="sidebar-nav-wrapper">
     <div class="sidebar-logo">
-      </div>
-      <nav class="sidebar-nav">
-        <ul>
-            <li class="nav-item"> 
-                <a href="{% url 'post_login' %}"> 
-                    <span class="icon"><i class="lni lni-dashboard"></i></span>
-                    <span class="text">Inicio</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'mapa_pagina' %}"> 
-                    <span class="icon"><i class="lni lni-map"></i></span>
-                    <span class="text">Mapa</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'historial_pagina' %}"> 
-                    <span class="icon"><i class="lni lni-stats-up"></i></span>
-                    <span class="text">Historial</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'consumo_pagina' %}"> 
+        <nav class="sidebar-nav">
+          <ul>
+            {% if request.user.usuario.membresias.all.count > 0 %}
+              <li class="nav-item"> 
+                  <a href="{% url 'empresa_inicio' %}"> 
+                      <span class="icon"><i class="lni lni-apartment"></i></span>
+                      <span class="text">Inicio Empresa</span>
+                  </a>
+              </li>
+              
+              <li class="nav-item">
+                  <a href="{% url 'empresa_mapa_general' %}"> 
+                      <span class="icon"><i class="lni lni-map-marker"></i></span>
+                      <span class="text">Mapa General</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'empresa_lista_clientes' %}"> 
+                      <span class="icon"><i class="lni lni-users"></i></span>
+                      <span class="text">Lista de Clientes</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'empresa_crear_cliente' %}"> 
+                      <span class="icon"><i class="lni lni-plus"></i></span>
+                      <span class="text">Registrar Cliente</span>
+                  </a>
+              </li>
+              <li class="nav-item">
+                <a href="{% url 'empresa_facturacion' %}"> 
                     <span class="icon"><i class="lni lni-revenue"></i></span>
-                    <span class="text">Consumo</span>
+                    <span class="text">Facturación</span>
                 </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'ingreso_pagina' %}"> 
-                    <span class="icon"><i class="lni lni-drop"></i></span>
-                    <span class="text">Ingresar</span>
-                </a>
-            </li>
-        </ul>
+              </li>
+              <li class="nav-item">
+                  <a href="{% url 'empresa_configuracion_tarifas' %}">
+                      <span class="icon"><i class="lni lni-cog"></i></span>
+                      <span class="text">Configurar Tarifas</span>
+                  </a>
+              </li>
+          {% else %}
+          <li class="nav-item"> 
+              <a href="{% url 'post_login' %}"> 
+                  <span class="icon"><i class="lni lni-dashboard"></i></span>
+                  <span class="text">Inicio</span>
+              </a>
+          </li>
+          <li class="nav-item">
+              <a href="{% url 'mapa_pagina' %}"> 
+                  <span class="icon"><i class="lni lni-map"></i></span>
+                  <span class="text">Mapa</span>
+              </a>
+          </li>
+          <li class="nav-item">
+              <a href="{% url 'historial_pagina' %}"> 
+                  <span class="icon"><i class="lni lni-stats-up"></i></span>
+                  <span class="text">Historial</span>
+              </a>
+          </li>
+          <li class="nav-item">
+              <a href="{% url 'consumo_pagina' %}"> 
+                  <span class="icon"><i class="lni lni-revenue"></i></span>
+                  <span class="text">Consumo</span>
+              </a>
+          </li>
+          <li class="nav-item">
+              <a href="{% url 'ingreso_pagina' %}"> 
+                  <span class="icon"><i class="lni lni-drop"></i></span>
+                  <span class="text">Ingresar</span>
+              </a>
+          </li>
+          <li class="nav-item">
+              <a href="{% url 'reportes_pagina' %}"> 
+                  <span class="icon"><i class="lni lni-warning"></i></span>
+                  <span class="text">Reportes</span>
+              </a>
+          </li>
+          <li class="nav-item"> 
+            <a href="{% url 'lista_sensores' %}"> <span class="icon"><i class="lni lni-cloud-network"></i></span>
+                <span class="text">Sensores</span>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
     </nav>
   </aside>
   <div class="overlay"></div>
@@ -151,8 +206,24 @@
 
     <section class="section">
       <div class="container-fluid">
-        {% block dashboard_content %}
-          {% endblock %}
+        <div class="main-content">
+          <div class="container-fluid">
+            {% if messages %}
+            <div class="row pt-20">
+              <div class="col-12">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            {% block dashboard_content %}
+            {% endblock %}
+          </div>
+        </div>
       </div>
     </section>
     
@@ -161,9 +232,7 @@
         <div class="row">
           <div class="col-md-6 order-last order-md-first">
             <div class="copyright text-center text-md-start">
-              <p class="text-sm">
-                Sistema de Medidor de Agua
-              </p>
+ 
             </div>
           </div>
         </div>
@@ -175,6 +244,10 @@
   <script src="{% static 'assets/js/main.js' %}"></script>
   <script src="{% static 'assets/js/dashboard.js' %}"></script>
 
+  <script src="https://unpkg.com/htmx.org@1.9.10" 
+          integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" 
+          crossorigin="anonymous">
+  </script>
   {% block page_scripts %}{% endblock %}
 
 </body>

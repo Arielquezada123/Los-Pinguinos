@@ -10,7 +10,7 @@ body {
   font-family: "Plus Jakarta Sans", sans-serif !important;
   font-weight: normal;
   font-style: normal;
-  color: #5d657b;
+  color: #ffffff;
   overflow-x: hidden;
   background: #f1f5f9;
 }
@@ -287,7 +287,7 @@ h6,
 .h4,
 .h5,
 .h6 {
-  color: #1A2142;
+  color: #ededed;
   margin: 0;
 }
 
@@ -2076,7 +2076,7 @@ h6,
 .input-style-1 label {
   font-size: 14px;
   font-weight: 500;
-  color: #1A2142;
+  color: #f8f8f8;
   display: block;
   margin-bottom: 10px;
 }
@@ -2539,7 +2539,7 @@ h6,
   font-weight: 500;
 }
 .buy-sell-form .buy-sell-btn .main-btn:hover {
-  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 5px 20px rgba(223, 216, 216, 0.1);
 }
 .buy-sell-form .buy-sell-btn .main-btn.success-btn {
   background: #08c18d;
@@ -6003,3 +6003,63 @@ h6,
   font-weight: 600;
 }
 /* --- Fin Estilos Sidebar --- */
+
+/* --- Activity Feed Styling (Dark) --- */
+
+.activity-feed {
+  list-style-type: none;
+  padding: 0;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px; /* Un poco más de aire */
+  /* El borde coincide con el de tu card-header */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+}
+
+/* No queremos borde en el último ítem */
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item .icon {
+  font-size: 24px;
+  /* Un color de ícono sutil */
+  color: #95a5a6; 
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.activity-item .text-content {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.activity-item .text-content .sensor-name {
+  font-weight: 600;
+  /* El texto principal, claro */
+  color: #f1f1f1; 
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-item .text-content .timestamp {
+  font-size: 0.85em;
+  /* El timestamp, más apagado */
+  color: #adb5bd; 
+}
+
+/* El "Héroe": el valor */
+.activity-item .value-hero {
+  font-size: 1.3em;
+  font-weight: 700;
+  /* Un color primario que resalte */
+  color: #4A90E2; 
+  flex-shrink: 0;
+  padding-left: 15px;
+}

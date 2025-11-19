@@ -1,0 +1,165 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Configuración de Tarifas{% endblock %}
+
+{% block page_styles %}
+<style>
+  
+  .form-label {
+      color: #f1f1f1 !important;
+  }
+  .form-control {
+    display: block;
+    width: 100%;
+    padding: 10px 15px; 
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #f1f1f1;
+    background-color: #1a222a; 
+    background-clip: padding-box;
+    border: 1px solid #444;
+    appearance: none; 
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .form-control:focus {
+    color: #f1f1f1 !important;
+    background-color: #1a222a; 
+    border-color: #0825df; 
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(8, 37, 223, 0.3); 
+  } 
+
+  .btn-artista-rojo:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 7px 12px rgba(0, 0, 0, 0.3);
+    filter: brightness(1.1); 
+  }
+  .table {
+      color: #e0e8f0;
+  }
+  
+  .table-hover > tbody > tr:hover > * {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #fff !important;
+  }
+
+  .dataTables_wrapper .dataTables_filter input {
+      background-color: #2b2b35;
+      color: #f1f1f1;
+      border: 1px solid #444;
+      border-radius: 5px;
+  }
+  .dataTables_wrapper .dataTables_length label,
+  .dataTables_wrapper .dataTables_info {
+      color: #adb5bd !important;
+  }
+  .dataTables_wrapper .dataTables_length select {
+      background-color: #2b2b35;
+      color: #f1f1f1;
+      border: 1px solid #444;
+  }
+  .dataTables_wrapper .dataTables_paginate .page-link {
+      background-color: #2b2b35;
+      border-color: #444;
+      color: #f1f1f1;
+  }
+  .dataTables_wrapper .dataTables_paginate .page-link:hover {
+      background-color: #333;
+      border-color: #555;
+  }
+  .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-color: #1d4ed8;
+      color: #fff;
+  }
+  .dataTables_wrapper .dataTables_paginate .page-item.disabled .page-link {
+      background-color: #16202e;
+      border-color: #2a3441;
+      color: #718096;
+  }
+  .form-label {
+      color: #f1f1f1;
+  }
+  
+  /* Agregamos una clase específica al texto de ayuda para asegurar visibilidad */
+  .form-control-help {
+      color: #adb5bd !important; /* Gris claro/plata */
+      font-size: 0.85em;
+      display: block; /* Aseguramos que ocupe su propia línea si es necesario */
+      margin-top: 5px;
+  }
+
+</style>
+{% endblock %}
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20">
+    </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card-style mb-30">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <h6 class="mb-25">Cargos Fijos y Variables</h6>
+            
+            <div class="mb-3">
+                <label class="form-label">{{ form.cargo_fijo.label }}</label>
+                {{ form.cargo_fijo }}
+                
+                {% if form.cargo_fijo.help_text %}
+                    <small class="form-control-help">{{ form.cargo_fijo.help_text }}</small>
+                {% endif %}
+            </div>
+            
+            <hr class="my-4" style="background-color: #555;">
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.limite_tramo_1.label }}</label>
+                        {{ form.limite_tramo_1 }}
+                        {% if form.limite_tramo_1.help_text %}
+                            <small class="form-control-help">{{ form.limite_tramo_1.help_text }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.valor_tramo_1.label }}</label>
+                        {{ form.valor_tramo_1 }}
+                        {% if form.valor_tramo_1.help_text %}
+                            <small class="form-control-help">{{ form.valor_tramo_1.help_text }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.valor_tramo_2.label }}</label>
+                        {{ form.valor_tramo_2 }}
+                        {% if form.valor_tramo_2.help_text %}
+                            <small class="form-control-help">{{ form.valor_tramo_2.help_text }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4" style="background-color: #555;">
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.iva.label }}</label>
+                {{ form.iva }}
+                {% if form.iva.help_text %}
+                    <small class="form-control-help">{{ form.iva.help_text }}</small>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Guardar Configuración</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

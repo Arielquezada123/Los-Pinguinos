@@ -1,0 +1,321 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Consumo de {{ cliente.usuario.username }}{% endblock %}
+
+{% block dashboard_content %}
+
+  <div class="title-wrapper pt-30 mb-20">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <h2>Flujo en Tiempo Real de: {{ cliente.usuario.get_full_name }}</h2>
+        <p class="text-light" style="opacity: 0.7;">
+          RUT: {{ cliente.rut_cliente|default:"N/A" }} | Dirección: {{ cliente.direccion|default:"N/A" }}
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    
+    <div class="col-lg-6 col-md-12 mb-30">
+        <h4 class="mb-15 text-gray">Monitoreo en Vivo</h4>
+        <div class="row" id="sensorContainer">
+            <div class="col-12">
+                <p class="text-center text-gray pt-5 mb-20" id="loading-message">
+                    Cargando datos iniciales del cliente...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12 mb-30">
+        <h4 class="mb-15 text-gray">Consumo Histórico</h4> <div class="card-style mb-30"> <div class="title d-flex justify-content-between align-items-center mb-20">
+                <h4 class="text-medium">Consumo Mensual Acumulado</h4>
+            </div>
+            <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                <canvas id="consumoChart"></canvas>
+            </div>
+            <p class="text-center text-sm text-muted mt-3" id="mensaje-grafico">
+                </p>
+        </div>
+    </div>
+
+  </div>
+
+  <div class="card bg-dark mb-4" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+    <div class="card-header py-3 bg-dark" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+        <h6 class="m-0 font-weight-bold text-light">Historial de Lecturas Recientes</h6>
+    </div>
+    
+    <div class="card-body" style="padding: 0;">
+        <div class="activity-feed" style="max-height: 400px; overflow-y: auto;" id="historial-lista">
+            <div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">
+                Cargando historial...
+            </div>
+        </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+{% block page_scripts %}
+  <script src="{% static 'assets/js/Chart.min.js' %}"></script>
+
+  <script>
+    // --- Lógica del Dashboard ---
+    
+    const sensors = {}; 
+    const sensorContainer = document.getElementById("sensorContainer");
+    const loadingMessage = document.getElementById("loading-message");
+
+    // Función para crear la tarjeta del sensor en tiempo real
+    function createSensorCard(data) {
+        const key = data.sensor_id;
+        if (sensors[key]) return; 
+        if (loadingMessage) loadingMessage.remove();
+
+        const cardCol = document.createElement("div");
+        cardCol.classList.add("col-12"); 
+        cardCol.id = `col_${key}`;
+        
+        // CAMBIO: Agregamos style="height: 250px;" al contenedor del gráfico para forzar la igualdad
+        cardCol.innerHTML = `
+            <div class="card-style mb-30 sensor-realtime-card">
+                <div class="title d-flex justify-content-between align-items-center">
+                    <h6 class="text-medium mb-10">${data.sensor_id}</h6>
+                    <span class="text-sm ${data.is_initial_data ? 'text-muted' : 'text-success'}" id="${key}_status">
+                      ${data.is_initial_data ? 'Última lectura DB' : 'En vivo'}
+                    </span>
+                </div>
+                <div class="d-flex align-items-end mb-20">
+                    <h3 class="valor" id="${key}_valor">--</h3>
+                    <p class="ms-2">L/min</p>
+                </div>
+                <div class="chart-container-realtime" style="position: relative; height: 250px;">
+                    <canvas id="${key}_chart"></canvas>
+                </div>
+            </div>
+        `;
+        sensorContainer.prepend(cardCol);
+
+        // Inicializar Gráfico con Historial
+        const historial = data.historial_flujo || []; 
+        const ctx = document.getElementById(`${key}_chart`).getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(historial.length).fill(""), 
+                datasets: [{
+                    label: 'Flujo (L/s)',
+                    data: historial,
+                    borderColor: 'rgba(0,123,255,1)',
+                    backgroundColor: 'rgba(0,123,255,0.2)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Importante para respetar los 250px
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { beginAtZero: true } 
+                }
+            }
+        });
+        
+        sensors[key] = { chart, valores: historial }; 
+        updateSensorValue(data);
+    }
+
+ 
+    function updateSensorValue(data) {
+        const key = data.sensor_id;
+        const sensor = sensors[key];
+        if (!sensor) return; 
+
+        const flowValue = parseFloat(data.flujo).toFixed(2);
+        
+        document.getElementById(`${key}_valor`).textContent = flowValue;
+
+        if (!data.is_initial_data) {
+            const statusEl = document.getElementById(`${key}_status`);
+            statusEl.textContent = 'En vivo';
+            statusEl.classList.remove('text-muted');
+            statusEl.classList.add('text-success');
+        }
+
+        if (!data.is_initial_data) {
+            sensor.valores.push(data.flujo);
+            const maxDataPoints = 30;
+            if (sensor.valores.length > maxDataPoints) sensor.valores.shift(); 
+            
+            sensor.chart.data.labels = Array(sensor.valores.length).fill(""); 
+            sensor.chart.data.datasets[0].data = sensor.valores;
+            sensor.chart.update('quiet');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+ 
+        const clienteId = "{{ cliente.id }}";
+        const urlParams = `?cliente_id=${clienteId}`;
+ 
+        // ---------------------------------------------------------
+        // 1. GRÁFICO DE BARRAS (HISTÓRICO)
+        // ---------------------------------------------------------
+        try {
+            const etiquetas = JSON.parse('{{ etiquetas_grafico_json|safe }}');
+            const valores = JSON.parse('{{ valores_grafico_json|safe }}');
+            const mensajeGrafico = document.getElementById('mensaje-grafico');
+            
+            if (!valores || valores.length === 0) {
+                mensajeGrafico.textContent = "No hay datos de consumo suficientes.";
+            } else {
+                mensajeGrafico.textContent = ""; 
+
+                const ctxBar = document.getElementById('consumoChart').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: etiquetas, 
+                        datasets: [{
+                            label: 'Consumo (m³)',
+                            data: valores,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)', 
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Importante para respetar los 250px
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
+                                ticks: { color: '#adb5bd' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#adb5bd' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y + ' m³';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error al inicializar el gráfico de barras:", e);
+            if(document.getElementById('mensaje-grafico')) {
+                document.getElementById('mensaje-grafico').textContent = "Error al visualizar el gráfico.";
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 2. CARGA DE SENSORES EN VIVO
+        // ---------------------------------------------------------
+        fetch(`{% url 'api_inicio_data' %}${urlParams}`) 
+            .then(response => response.json())
+            .then(initialData => {
+                if (initialData.length > 0) {
+                    initialData.forEach(sensorData => {
+                        createSensorCard(sensorData);
+                    });
+                } else {
+                    if (loadingMessage) loadingMessage.textContent = "Este cliente no tiene sensores registrados.";
+                }
+            })
+            .catch(err => {
+                console.error("Error cargando datos iniciales:", err);
+                if (loadingMessage) loadingMessage.textContent = "Error al cargar datos del cliente.";
+            });
+
+        function formatearFecha(fechaISO) {
+            const opciones = { 
+                year: 'numeric', month: '2-digit', day: '2-digit', 
+                hour: '2-digit', minute: '2-digit', second: '2-digit' 
+            };
+            return new Date(fechaISO).toLocaleString('es-CL', opciones);
+        }
+
+        // ---------------------------------------------------------
+        // 3. CARGA DE HISTORIAL (TABLA INFERIOR)
+        // ---------------------------------------------------------
+        fetch(`{% url 'api_historial' %}${urlParams}`) 
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar el historial');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const container = document.getElementById('historial-lista');
+                container.innerHTML = ''; 
+    
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">No hay datos históricos recientes.</div>';
+                    return;
+                }
+    
+                data.forEach(lectura => {
+                    const valor = parseFloat(lectura.valor).toFixed(2);
+                    const tiempo = formatearFecha(lectura.timestamp); 
+
+                    const itemHTML = `
+                        <div class="activity-item">
+                            <i class="icon lni lni-bolt-alt"></i> 
+                            <div class="text-content">
+                                <span class="sensor-name">${lectura.sensor_nombre}</span>
+                                <span class="timestamp">${tiempo}</span>
+                            </div>
+                            <div class="value-hero">${valor} L/min</div>
+                        </div>
+                    `;
+                    container.innerHTML += itemHTML;
+                });
+            })
+            .catch(error => {
+                console.error('Error en fetch historial:', error);
+                const container = document.getElementById('historial-lista');
+                container.innerHTML = '<div class="activity-item text-danger" style="padding: 1.25rem;">No se pudo cargar el historial.</div>';
+            });
+
+        // ---------------------------------------------------------
+        // 4. WEBSOCKET
+        // ---------------------------------------------------------
+        const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
+
+        ws.onopen = () => {
+            console.log("WebSocket de Empresa conectado.");
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const key = data.sensor_id;
+            
+            if (sensors[key]) {
+                updateSensorValue(data);
+            }
+        };
+        
+        ws.onclose = () => { console.log("WebSocket de Empresa desconectado."); };
+        ws.onerror = (err) => { console.error("Error en WebSocket:", err); };
+
+    });
+  </script>
+{% endblock %}

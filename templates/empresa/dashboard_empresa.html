@@ -1,0 +1,260 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Panel de Empresa{% endblock %}
+
+{% block page_styles %}
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+  <style>
+    /* Arregla el texto oscuro (h5, h6, th) */
+    .card-style h5,
+    .card-style h6,
+    .card-style .table thead th {
+        color: #f1f1f1 !important;
+    }
+    
+    /* Arregla el cuerpo de la tabla y los enlaces */
+    .card-style .table {
+        color: #e0e8f0 !important;
+    }
+    .card-style .table tbody tr td a {
+        color: #79a6ff;
+        font-weight: 500;
+    }
+    .card-style .table-hover > tbody > tr:hover > * {
+        color: #fff !important; 
+    }
+
+    /* Estilos para el input de búsqueda */
+    .form-control-dark {
+        background-color: #343a40;
+        border-color: #444;
+        color: #f1f1f1;
+    }
+    .form-control-dark::placeholder { color: #6c757d; }
+    .form-control-dark:focus {
+        background-color: #343a40;
+        border-color: #0d6efd;
+        color: #f1f1f1;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Estilos para DataTables */
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+        background-color: #2b2b35;
+        color: #f1f1f1;
+        border: 1px solid #444;
+    }
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_info {
+        color: #adb5bd !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .page-link {
+        background-color: #2b2b35;
+        border-color: #444;
+        color: #f1f1f1;
+    }
+    .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #1d4ed8;
+    }
+  </style>
+{% endblock %}
+
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20 d-flex justify-content-between align-items-center">
+    <div>
+      <h2>Panel de Administración de Empresa</h2>
+      <p class="text-light" style="opacity: 0.7;">Bienvenido, {{ request.user.get_full_name|default:request.user.username }}.</p>
+    </div>
+    <a href="{% url 'empresa_crear_cliente' %}" class="btn btn-primary">
+      <i class="lni lni-plus"></i> Registrar Nuevo Cliente
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card-style mb-30" style="border-left: 5px solid #0d6efd;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-2">Total Clientes</h6>
+                    <h2 class="fw-bold text-light mb-0">{{ total_clientes }}</h2>
+                </div>
+                <div class="icon fs-1 text-primary"><i class="lni lni-users"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-style mb-30" style="border-left: 5px solid #198754;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-2">Total Sensores</h6>
+                    <h2 class="fw-bold text-light mb-0">{{ total_sensores }}</h2>
+                </div>
+                <div class="icon fs-1 text-success"><i class="lni lni-cloud-network"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-style mb-30" style="border-left: 5px solid #fd7e14;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-2">Clientes c/ Problemas</h6>
+                    <h2 class="fw-bold text-light mb-0">{{ total_clientes_offline }}</h2>
+                </div>
+                <div class="icon fs-1" style="color: #fd7e14;"><i class="lni lni-warning"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-style mb-30" style="border-left: 5px solid #dc3545;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-2">Sensores Offline</h6>
+                    <h2 class="fw-bold text-light mb-0">{{ total_sensores_offline }}</h2>
+                </div>
+                <div class="icon fs-1 text-danger"><i class="lni lni-power-switch"></i></div>
+            </div>
+        </div>
+    </div>
+  </div> <div class="row">
+    
+     
+
+    <div class="col-lg-7">
+      <div class="card-style mb-30">
+        <h5 class="mb-25">Sensores Offline (Sin reportar en 1h)</h5>
+        {% if sensores_offline_list %}
+          <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+            <table id="sensoresOfflineTabla" class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Sensor</th>
+                  <th>Cliente</th>
+                  <th>Última Lectura</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sensor in sensores_offline_list %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'empresa_ver_cliente' sensor.usuario.id %}">
+                        {{ sensor.nombre|default:sensor.id_dispositivo_mqtt }}
+                      </a>
+                    </td>
+                    <td>{{ sensor.usuario.usuario.get_full_name|default:sensor.usuario.usuario.username }}</td>
+                    <td class="text-danger">
+                      {{ sensor.ultima_lectura|date:"d M Y, H:i"|default:"Nunca" }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-success"><i class="lni lni-checkmark-circle"></i> Todos los sensores están reportando correctamente.</p>
+        {% endif %}
+      </div>
+    </div>
+    
+  </div> <div class="row">
+    <div class="col-12">
+      <div class="card-style mb-30">
+        <h5 class="mb-25">Clientes con Sensores Offline</h5>
+        {% if clientes_offline_list %}
+          <div class="table-responsive">
+            <table id="clientesOfflineTabla" class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>RUT</th>
+                  <th>Dirección</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cliente in clientes_offline_list %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'empresa_ver_cliente' cliente.id %}">
+                        {{ cliente.usuario.get_full_name|default:cliente.usuario.username }}
+                      </a>
+                    </td>
+                    <td>{{ cliente.rut_cliente|default:"N/A" }}</td>
+                    <td>{{ cliente.direccion|default:"N/A" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-success"><i class="lni lni-checkmark-circle"></i> Ningún cliente presenta sensores offline.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div> {% endblock %} {% block page_scripts %}
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      
+      // --- 1. Inicializar DataTables para las tablas ---
+      const dataTableConfig = {
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+        },
+        "paging": true,
+        "lengthChange": false, // Oculta el "Mostrar X entradas"
+        "searching": true,
+        "info": true,
+        "pageLength": 5 // Muestra 5 por página por defecto
+      };
+      
+      // Aplicar a ambas tablas de alertas
+      $('#sensoresOfflineTabla').DataTable(dataTableConfig);
+      $('#clientesOfflineTabla').DataTable(dataTableConfig);
+
+      // --- 2. Filtro de JavaScript para la lista rápida "Clientes Administrados" ---
+      const searchInput = document.getElementById('cliente-search-input');
+      const listContainer = document.getElementById('cliente-list-container');
+      const noClientesMsg = document.getElementById('no-clientes-msg');
+      
+      if (searchInput) {
+        searchInput.addEventListener('keyup', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          // CORREGIDO: Buscar 'a.cliente-item' dentro del contenedor
+          const items = listContainer.querySelectorAll('a.cliente-item');
+          let itemsShown = 0;
+
+          for (let item of items) {
+            // CORREGIDO: Usar 'get_full_name' en el data-username
+            const username = item.getAttribute('data-username'); 
+            const rut = item.getAttribute('data-rut');
+            
+            if (username.includes(searchTerm) || rut.includes(searchTerm)) {
+              item.style.display = 'flex';
+              itemsShown++;
+            } else {
+              item.style.display = 'none';
+            }
+          }
+          
+          if (noClientesMsg) {
+             noClientesMsg.style.display = (items.length === 0 || itemsShown === 0) ? 'block' : 'none';
+             if (items.length > 0 && itemsShown === 0) {
+                 noClientesMsg.textContent = "No se encontraron clientes.";
+             } else if (items.length === 0) {
+                 noClientesMsg.textContent = "No tienes clientes registrados.";
+             }
+          }
+
+        });
+      }
+
+    });
+  </script>
+{% endblock %}

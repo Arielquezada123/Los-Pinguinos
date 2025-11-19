@@ -63,7 +63,7 @@
       transform: scale(1.2);
       color: #00d9ff;
     }
-    /* Estilo básico del botón */
+    /* Estilo básico del botón login*/
     .btn-ola-ripple {
       position: relative;
       display: inline-block;
@@ -144,13 +144,13 @@
             {% if user.is_authenticated %}
                 <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn-ola-ripple">Logout</button>
+                <button type="submit" class="btn-ola-ripple">Salir</button>
                 </form>
 
             {% else %}
                 <a href="{% url 'login' %}" class="btn-ola-ripple">
                   <span class="liquid"></span>
-                  <span class="btn-txt">Sign in</span>
+                  <span class="btn-txt">Iniciar sesión</span>
                 </a>
 
 

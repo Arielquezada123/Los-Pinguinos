@@ -1,0 +1,191 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+{% block title %}Mapa General de Clientes{% endblock %}
+{% block page_styles %}
+  <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
+  <style>
+    #mapa-container {
+      height: 600px;
+      width: 100%;
+      border-radius: 10px;
+      z-index: 1; 
+    }
+    .sensor-popup-content h4 {
+        margin-top: 0;
+        font-size: 1.1em;
+        color: #007bff;
+    }
+    .sensor-popup-content .valor-flujo {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #28a745; /* Verde (En vivo) */
+    }
+    .sensor-popup-content .text-muted-db {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #adb5bd; /* Gris (Histórico) */
+    }
+  </style>
+{% endblock %}
+
+{% block dashboard_content %}
+  <div class="title-wrapper pt-30 mb-20" >
+    <div class="row align-items-center">
+      <div class="col-md-12">
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card-style">
+        <div id="mapa-container"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block page_scripts %}
+<script src="{% static 'dist/leaflet.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        const markers = {}; 
+        // 1. Inicializar Mapa
+        var map = L.map('mapa-container').setView([-35.6751, -71.5430], 6);
+
+        // 2. Definición de Capas Base Alternables
+        
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+        
+        // Capa base: Modo Satelital
+        const sateliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+
+        const OWM_KEY = "{{ OWM_API_KEY }}"; 
+        let precipitacion = null;
+        let temperatura = null;
+        let overlayMaps = {};
+
+        if (OWM_KEY && OWM_KEY !== "None" && OWM_KEY !== "") {
+            precipitacion = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`, {
+                attribution: '© OpenWeatherMap',
+                opacity: 0.6
+            });
+            
+            temperatura = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`, {
+                attribution: '© OpenWeatherMap',
+                opacity: 0.6
+            });
+
+            overlayMaps = {
+                "Precipitación": precipitacion,
+                "Temperatura": temperatura
+            };
+        }
+
+        // 4. Configurar y Agregar Control de Capas
+        const baseMaps = {
+            "Mapa Regular (OSM)": osmLayer,
+            "Modo Satelital": sateliteLayer
+        };
+
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+        // 5. Agregar Capa Inicial al Mapa
+        osmLayer.addTo(map);
+
+        // 6. Carga de Marcadores
+        var locations = JSON.parse('{{ locations_json|escapejs }}'); 
+        var marcadores_coords = [];
+
+        locations.forEach(function(loc) {
+
+            const initialValue = parseFloat(loc.last_value).toFixed(2);
+            let displayValue, valueClass, statusText;
+            
+            if (initialValue === '0.00' || initialValue === '0.0') {
+                displayValue = '-- L/min';
+                valueClass = 'text-muted-db';
+                statusText = 'Sin datos históricos';
+            } else {
+                displayValue = `${initialValue} L/min`;
+                valueClass = 'valor-flujo'; 
+                statusText = 'Última lectura DB';
+            }
+            
+            // CONTENIDO INICIAL (Estático)
+            const initialPopupContent = `
+                <div class="sensor-popup-content" id="popup_${loc.id_mqtt}">
+                    <h4>${loc.nombre}</h4>
+                    <p>ID: ${loc.id_mqtt}</p>
+                    <hr style="margin: 5px 0;">
+                    <p style="margin-bottom: 0;">Flujo:</p>
+                    <div class="${valueClass}" data-sensor-id="${loc.id_mqtt}">${displayValue}</div>
+                    <small class="text-muted" data-status-id="${loc.id_mqtt}">${statusText}</small>
+                </div>
+            `;
+
+            var marker = L.marker([loc.lat, loc.lon]).addTo(map)
+                .bindPopup(initialPopupContent, {
+                    autoPan: true, 
+                    closeButton: false,
+                });
+
+            //Evento "popupopen" (Refresca el dato al abrir)
+            marker.on('popupopen', function (e) {
+                var popup = e.popup;
+                const dataUrl = "{% url 'api_popup_data' id_mqtt='HTMX_ID_REPLACE' %}".replace('HTMX_ID_REPLACE', loc.id_mqtt);
+
+                fetch(dataUrl)
+                    .then(response => response.text())
+                    .then(html => { popup.setContent(html); })
+                    .catch(err => { console.error("Error al refrescar popup:", err); });
+            });
+            
+            //Almacenar marcador para WebSocket
+            markers[loc.id_mqtt] = { marker: marker };
+            marcadores_coords.push([loc.lat, loc.lon]);
+        });
+
+        // 7. Ajustar zoom para mostrar todos los marcadores
+        if (marcadores_coords.length > 0) {
+            var bounds = L.latLngBounds(marcadores_coords);
+            map.fitBounds(bounds);
+        }
+        
+        // 8. Conexión WebSocket (Actualiza el popup MIENTRAS está abierto)
+        const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data); 
+            const sensorId = data.sensor_id;
+            const flowRate = parseFloat(data.flujo).toFixed(2);
+            
+            const popupContentElement = document.getElementById(`popup_${sensorId}`);
+
+            if (popupContentElement) {
+                const valueElement = popupContentElement.querySelector(`[data-sensor-id="${sensorId}"]`);
+                const statusElement = popupContentElement.querySelector(`[data-status-id="${sensorId}"]`);
+                
+                if (valueElement) {
+                    valueElement.classList.remove('text-muted-db');
+                    valueElement.classList.add('valor-flujo');
+                    valueElement.textContent = `${flowRate} L/min`;
+                }
+                if(statusElement) {
+                    statusElement.textContent = `En vivo: ${new Date().toLocaleTimeString('es-CL')}`;
+                }
+            }
+        };
+
+        ws.onerror = (err) => { console.error("Error en WebSocket del mapa:", err); };
+        ws.onopen = () => { console.log("WebSocket conectado al mapa."); };
+        ws.onclose = () => { console.log("WebSocket desconectado del mapa."); };
+    });
+</script>
+{% endblock %}

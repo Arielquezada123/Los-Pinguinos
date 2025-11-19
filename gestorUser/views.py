@@ -4,7 +4,9 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from .models import Usuario
 from .forms import SignUpForm
-
+from .forms import LimiteMensualForm
+from django.contrib import messages
+from .models import Usuario, Membresia
 
 
 def signUp(request):
@@ -19,13 +21,45 @@ def signUp(request):
 
 
 
-@login_required(login_url='login')  
+@login_required
 def postlogin(request):
-    user = request.user
-    if user.is_staff:
-        return render(request,'dashboard_inicio.html')
+    """
+    Actúa como un enrutador después del login.
+    Revisa si el usuario es un 'Empleado' (Membresia) o un 'Cliente'.
+    """
+    try:
+        perfil_usuario = request.user.usuario
+        es_empleado = Membresia.objects.filter(usuario=perfil_usuario).exists()
+
+    except Usuario.DoesNotExist:
+        perfil_usuario = Usuario.objects.create(usuario=request.user)
+        es_empleado = False
+    except Exception as e:
+        print(f"Error al obtener el rol del usuario: {e}")
+        return redirect('index') 
+
+    if es_empleado:
+        return redirect('empresa_inicio')
     else:
-        return render (request, 'dashboard_inicio.html')
+        return render(request, 'dashboard_inicio.html')
 
+@login_required
+def limite_pagina(request):
+    # Usamos request.user.usuario para obtener tu modelo de perfil
+    usuario_perfil = request.user.usuario 
 
+    if request.method == 'POST':
+        form = LimiteMensualForm(request.POST, instance=usuario_perfil)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '¡Límite mensual actualizado correctamente!')
+            return redirect('limite_pagina') # Redirige a la misma página
+    else:
+        # Muestra el formulario con el valor actual de la base de datos
+        form = LimiteMensualForm(instance=usuario_perfil)
+
+    context = {
+        'form': form
+    }
+    return render(request, 'dashboard_limite.html', context)
     

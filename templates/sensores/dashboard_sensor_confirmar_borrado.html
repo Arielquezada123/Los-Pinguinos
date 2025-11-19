@@ -1,0 +1,50 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+
+{% block dashboard_content %}
+
+  <div class="title-wrapper pt-30 mb-20">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <h2>Eliminar Dispositivo</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-style-danger">
+    <div class="card-body">
+      
+      <h3 class="text-danger mb-20">
+        <i class="lni lni-warning me-2"></i>
+        ¿Está seguro?
+      </h3>
+       
+      <p>
+        Está a punto de eliminar permanentemente el dispositivo:
+        <strong style="font-size: 1.2em;" class="text-white">
+          "{{ dispositivo.nombre|default:dispositivo.id_dispositivo_mqtt }}"
+        </strong>.
+      </p>
+      
+      <p class="text-white-50">
+        Toda su información histórica de lecturas y consumo será borrada. 
+        <strong>Esta acción no se puede deshacer.</strong>
+      </p>
+
+      <form method="POST">
+        {% csrf_token %}
+        <div class="mt-30">
+          
+          <button type="submit" class="btn btn-danger">Sí, entiendo, ELIMINAR</button>
+          
+          <a href="{% url 'lista_sensores' %}" class="btn btn-outline-light ms-2">Cancelar</a>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+
+{% endblock %}

@@ -9,7 +9,7 @@
   <div class="title-wrapper pt-30 mb-20" >
     <div class="row align-items-center">
       <div class="col-md-12">
-        <h2>Panel de Control - Flujo en Tiempo Real</h2>
+        <h2>Flujo Actual</h2>
       </div>
     </div>
   </div>
@@ -27,124 +27,124 @@
         <h6 class="m-0 font-weight-bold text-light">Historial de Consumo Reciente</h6>
     </div>
     
-    <div class="card-body">
-        <ul class="list-group overflow-auto" style="max-height: 400px;" id="historial-lista">
-            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+    <div class="card-body" style="padding: 0;">
+        <div class="activity-feed" style="max-height: 400px; overflow-y: auto;" id="historial-feed-container">
+            <div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">
                 Cargando historial...
-            </li>
-        </ul>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-lg-12">
-        <div class="card-style mb-30">
-            <div class="title d-flex justify-content-between align-items-center">
-                <h6 class="text-medium mb-30 margin-left-20">Controles Generales del Sistema</h6>
-            </div>
-            <div class="d-flex flex-wrap gap-3">
-                <button style="border-radius: 10px;" class="btn btn-primary btn-sm rounded-10" aria-label="Leer medidor">Leer Medidor Global</button>
             </div>
         </div>
     </div>
   </div>
-
-{% endblock %}
+  {% endblock %}
 
 
 {% block page_scripts %}
   
   <script>
-      const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
-      const sensors = {}; // guardará datos de cada sensor y su objeto Chart
-      const sensorContainer = document.getElementById("sensorContainer");
-      const loadingMessage = document.getElementById("loading-message");
+    const sensors = {}; 
+    const sensorContainer = document.getElementById("sensorContainer");
+    const loadingMessage = document.getElementById("loading-message");
 
-      ws.onopen = () => {
-          console.log("WebSocket conectado.");
-          if (loadingMessage) loadingMessage.textContent = "Esperando datos de sensores...";
-      };
-      ws.onclose = () => {
-          console.log("WebSocket desconectado.");
-          if (loadingMessage) loadingMessage.textContent = "Conexión WebSocket cerrada. Intentando reconectar...";
-      };
-      ws.onerror = (err) => {
-          console.error("Error en WebSocket:", err);
-          if (loadingMessage) loadingMessage.textContent = "Error de conexión WebSocket.";
-      };
+    function createSensorCard(data) {
+        const key = data.sensor_id;
+        if (sensors[key]) return; 
+        if (loadingMessage) loadingMessage.remove();
 
-      ws.onmessage = (event) => {
-          const data = JSON.parse(event.data); // {cliente_id, sensor_id, flujo}
-          const key = data.sensor_id;
-          
-          if (loadingMessage) loadingMessage.remove();
+        const cardCol = document.createElement("div");
+        cardCol.classList.add("col-lg-6", "col-md-6"); 
+        cardCol.id = `col_${key}`;
+        cardCol.innerHTML = `
+            <div class="card-style mb-30 sensor-realtime-card">
+                <div class="title d-flex justify-content-between align-items-center">
+                    <h6 class="text-medium mb-10">${data.sensor_id} (Cliente: ${data.cliente_id})</h6>
+                    <span class="text-sm ${data.is_initial_data ? 'text-muted' : 'text-success'}" id="${key}_status">
+                      ${data.is_initial_data ? 'Última lectura DB' : 'En vivo'}
+                    </span>
+                </div>
+                <div class="d-flex align-items-end mb-20">
+                    <h3 class="valor" id="${key}_valor">--</h3>
+                    <p class="ms-2">L/min</p>
+                </div>
+                <div class="chart-container-realtime">
+                    <canvas id="${key}_chart"></canvas>
+                </div>
+            </div>
+        `;
+        sensorContainer.prepend(cardCol);
 
-          if (!sensors[key]) {
-              const cardCol = document.createElement("div");
-              cardCol.classList.add("col-lg-6", "col-md-6"); 
-              cardCol.id = `col_${key}`;
-              cardCol.innerHTML = `
-                  <div class="card-style mb-30 sensor-realtime-card">
-                      <div class="title d-flex justify-content-between align-items-center">
-                          <h6 class="text-medium mb-10">${data.sensor_id} Cliente: ${data.cliente_id})</h6>
-                          <span class="text-sm text-success">Flujo en Vivo</span>
-                      </div>
-                      <div class="d-flex align-items-end mb-20">
-                          <h3 class="valor" id="${key}_valor">--</h3>
-                          <p class="ms-2">L/s</p>
-                      </div>
-                      <div class="chart-container-realtime">
-                          <canvas id="${key}_chart"></canvas>
-                      </div>
-                  </div>
-              `;
-              sensorContainer.prepend(cardCol); // Añadir al inicio
+        const ctx = document.getElementById(`${key}_chart`).getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Flujo (L/s)',
+                    data: [],
+                    borderColor: 'rgba(0,123,255,1)',
+                    backgroundColor: 'rgba(0,123,255,0.2)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { beginAtZero: true } 
+                }
+            }
+        });
+        
+        sensors[key] = { chart, valores: [] };
+        updateSensorValue(data);
+    }
+    function updateSensorValue(data) {
+        const key = data.sensor_id;
+        const sensor = sensors[key];
+        if (!sensor) return; 
 
-              const ctx = document.getElementById(`${key}_chart`).getContext('2d');
-              const chart = new Chart(ctx, {
-                  type: 'line',
-                  data: {
-                      labels: [],
-                      datasets: [{
-                          label: 'Flujo (L/s)',
-                          data: [],
-                          borderColor: 'rgba(0,123,255,1)',
-                          backgroundColor: 'rgba(0,123,255,0.2)',
-                          tension: 0.3,
-                          fill: true,
-                          pointRadius: 0
-                      }]
-                  },
-                  options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: { legend: { display: false } },
-                      scales: { 
-                          x: { display: false }, 
-                          y: { beginAtZero: true } 
-                      }
-                  }
-              });
+        const flowValue = parseFloat(data.flujo).toFixed(2);
+        
+        document.getElementById(`${key}_valor`).textContent = flowValue;
 
-              sensors[key] = { chart, valores: [] };
-          }
+        if (!data.is_initial_data) {
+            const statusEl = document.getElementById(`${key}_status`);
+            statusEl.textContent = 'En vivo';
+            statusEl.classList.remove('text-muted');
+            statusEl.classList.add('text-success');
+        }
 
-          document.getElementById(`${key}_valor`).textContent = parseFloat(data.flujo).toFixed(2);
-          const sensor = sensors[key];
-          sensor.valores.push(data.flujo);
+        sensor.valores.push(data.flujo);
+        const maxDataPoints = 30;
+        if (sensor.valores.length > maxDataPoints) sensor.valores.shift(); 
+        
+        sensor.chart.data.labels = Array(sensor.valores.length).fill(""); 
+        sensor.chart.data.datasets[0].data = sensor.valores;
+        sensor.chart.update('quiet');
+    }
 
-          const maxDataPoints = 30;
-          if (sensor.valores.length > maxDataPoints) sensor.valores.shift(); 
-          
-          sensor.chart.data.labels = Array(sensor.valores.length).fill(""); 
-          sensor.chart.data.datasets[0].data = sensor.valores;
-          sensor.chart.update('quiet');
-      };
-  </script>
-
-  <script>
     document.addEventListener('DOMContentLoaded', function() {
         
+        // --- Fetch para los GRÁFICOS en vivo (SIN CAMBIOS) ---
+        fetch("{% url 'api_inicio_data' %}")
+            .then(response => response.json())
+            .then(initialData => {
+                if (initialData.length > 0) {
+                    initialData.forEach(sensorData => {
+                        createSensorCard(sensorData);
+                    });
+                } else {
+                    if (loadingMessage) loadingMessage.textContent = "No tienes sensores registrados.";
+                }
+            })
+            .catch(err => {
+                console.error("Error cargando datos iniciales:", err);
+                if (loadingMessage) loadingMessage.textContent = "Error al cargar datos.";
+            });
+
         function formatearFecha(fechaISO) {
             const opciones = { 
                 year: 'numeric', month: '2-digit', day: '2-digit', 
@@ -152,8 +152,8 @@
             };
             return new Date(fechaISO).toLocaleString('es-CL', opciones);
         }
-    
-        fetch('/api/historial/')
+
+        fetch("{% url 'api_historial' %}")
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error al cargar el historial');
@@ -161,35 +161,60 @@
                 return response.json();
             })
             .then(data => {
-                const lista = document.getElementById('historial-lista');
-                lista.innerHTML = '';
+                const container = document.getElementById('historial-feed-container');
+                container.innerHTML = ''; // Limpiar "Cargando..."
     
                 if (data.length === 0) {
-                    lista.innerHTML = '<li class="list-group-item">No hay datos históricos.</li>';
+                    container.innerHTML = '<div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">No hay datos históricos.</div>';
                     return;
                 }
-    
+
                 data.forEach(lectura => {
-                    const item = document.createElement('li');
-                    item.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    
-                    item.innerHTML = `
-                        <span>
-                            <strong>${lectura.sensor_nombre}:</strong> 
-                            ${lectura.valor} L/min
-                        </span>
-                        <small class="text-light">${formatearFecha(lectura.timestamp)}</small>
+                    const valor = parseFloat(lectura.valor).toFixed(2);
+                    const tiempo = formatearFecha(lectura.timestamp); 
+
+                    const itemHTML = `
+                        <div class="activity-item">
+                            <i class="icon lni lni-bolt-alt"></i> 
+                            <div class="text-content">
+                                <span class="sensor-name">${lectura.sensor_nombre}</span>
+                                <span class="timestamp">${tiempo}</span>
+                            </div>
+                            <div class="value-hero">${valor} L/min</div>
+                        </div>
                     `;
-                    
-                    lista.appendChild(item);
+                    container.innerHTML += itemHTML;
                 });
             })
             .catch(error => {
                 console.error('Error en fetch historial:', error);
-                const lista = document.getElementById('historial-lista');
-                lista.innerHTML = '<li class="list-group-item text-danger">No se pudo cargar el historial.</li>';
+                const container = document.getElementById('historial-feed-container');
+                container.innerHTML = '<div class="activity-item text-danger" style="padding: 1.25rem;">No se pudo cargar el historial.</div>';
             });
-    
     });
+
+    const ws = new WebSocket("ws://" + window.location.host + "/ws/sensores/");
+
+    ws.onopen = () => {
+        console.log("WebSocket conectado.");
+        if (loadingMessage && loadingMessage.textContent.includes("Conectando")) {
+             loadingMessage.textContent = "Esperando datos de sensores...";
+        }
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const key = data.sensor_id;
+        
+        if (!sensors[key]) {
+            createSensorCard(data);
+        } else {
+            updateSensorValue(data);
+        }
+    };
+    
+    ws.onclose = () => { console.log("WebSocket desconectado."); };
+    ws.onerror = (err) => { console.error("Error en WebSocket:", err); };
+
   </script>
 {% endblock %}
