@@ -16,9 +16,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-in-prod
 OWM_API_KEY = os.getenv('OWM_API_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 ## DEBUG = True
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['98.90.0.173', 'localhost', '127.0.0.1','54.236.87.161','34.227.147.172']
+ALLOWED_HOSTS = ['35.153.17.139', 'localhost', '127.0.0.1','34.227.147.172']
 
 
 # Application definition
