@@ -248,6 +248,31 @@
           integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" 
           crossorigin="anonymous">
   </script>
+  <script>
+  window.LEAFLET_CONFIG = {
+    iconRetina: "{% static 'dist/images/marker-icon-2x.png' %}",
+    icon: "{% static 'dist/images/marker-icon.png' %}",
+    shadow: "{% static 'dist/images/marker-shadow.png' %}"
+  };
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+  
+    if (typeof L !== 'undefined' && window.LEAFLET_CONFIG) {
+      
+      delete L.Icon.Default.prototype._getIconUrl;
+      
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: window.LEAFLET_CONFIG.iconRetina,
+        iconUrl: window.LEAFLET_CONFIG.icon,
+        shadowUrl: window.LEAFLET_CONFIG.shadow,
+      });
+      
+      console.log("Leaflet paths patched successfully.");
+    }
+  });
+</script>
   {% block page_scripts %}{% endblock %}
 
 </body>

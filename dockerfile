@@ -18,7 +18,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copiar proyecto
 COPY . /pinguinos
 WORKDIR /pinguinos
-
+RUN SECRET_KEY=dummy_value python manage.py collectstatic --noinput --clear
 # Crear directorios para static y media
 RUN mkdir -p /pinguinos/staticfiles /pinguinos/media
 

@@ -23,7 +23,6 @@
 
   <style>
     
-
     /* Título dentro del navbar */
     .navbar h3 {
       font-weight: bold;
@@ -220,7 +219,26 @@
       }
     });
   </script>
+<script>
 
+    window.LEAFLET_CONFIG = {
+      iconRetina: "{% static 'dist/images/marker-icon-2x.png' %}",
+      icon: "{% static 'dist/images/marker-icon.png' %}",
+      shadow: "{% static 'dist/images/marker-shadow.png' %}"
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof L !== 'undefined' && window.LEAFLET_CONFIG) {
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: window.LEAFLET_CONFIG.iconRetina,
+          iconUrl: window.LEAFLET_CONFIG.icon,
+          shadowUrl: window.LEAFLET_CONFIG.shadow,
+        });
+        console.log("Leaflet paths patched successfully in Dashboard.");
+      }
+    });
+  </script>
   <!-- Bootstrap icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>

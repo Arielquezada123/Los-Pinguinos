@@ -8,7 +8,6 @@ mkdir -p /pinguinos/staticfiles /pinguinos/media
 
 # Collect static files
 echo "Collectando archivos estaticos con el SH.. pip pip pip pip "
-python manage.py collectstatic --noinput || true
 
 # Ejecutar migraciones
 echo "Running migrations..."

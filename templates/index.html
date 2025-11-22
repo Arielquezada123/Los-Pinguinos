@@ -100,7 +100,7 @@
 </style>
 
 <!-- Sección About -->
-<section id="acerca" style="padding: 80px 0; margin-bottom: 50px;" class="about section about-bg">
+<section id="acerca" style="padding: 80px 0;" class="about section about-bg">
 <div class="container description-section">
   <div class="row align-items-xl-center gy-5">
 
@@ -327,8 +327,26 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  (function() {
+    // 1. Definimos rutas estáticas de Django
+    var iconRetinaUrl = "{% static 'dist/images/marker-icon-2x.png' %}";
+    var iconUrl = "{% static 'dist/images/marker-icon.png' %}";
+    var shadowUrl = "{% static 'dist/images/marker-shadow.png' %}";
 
-<!-- ====== SCRIPT DEL MAPA ====== -->
+    // 2. Si Leaflet está cargado, aplicamos el parche INMEDIATAMENTE
+    if (typeof L !== 'undefined') {
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: iconRetinaUrl,
+        iconUrl: iconUrl,
+        shadowUrl: shadowUrl,
+      });
+      console.log("Leaflet parcheado inmediatamente en Index.");
+    }
+  })();
+</script>
+
 <script>
   // --- Inicialización del mapa ---
   const map = L.map('mapa-sensores').setView([-35.5987, -71.7139], 15);
@@ -343,9 +361,10 @@
     { id: 'S-002', nombre: 'Riego Zona Sur', lat: -35.6003, lng: -71.7135 },
   ];
 
-  // --- Funciones auxiliares ---
+  // ... (Resto de tu código del mapa: funciones generarLectura, historicos, etc.) ...
+  
   function generarLectura() {
-    return (Math.random() * 1.2 + 0.2).toFixed(2); // entre 0.20 y 1.40
+    return (Math.random() * 1.2 + 0.2).toFixed(2); 
   }
 
   const historicos = {
