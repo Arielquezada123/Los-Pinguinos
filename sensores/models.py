@@ -1,4 +1,3 @@
-# watermilimiter/sensores/models.py
 from django.db import models
 from django.contrib.auth.models import User
 from gestorUser.models import Usuario
@@ -13,7 +12,7 @@ class Dispositivo(models.Model):
     limite_flujo_excesivo = models.FloatField(null=True, blank=True)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
-    
+    es_propiedad_empresa = models.BooleanField(default=False, help_text="Si es True, el cliente no puede eliminar este sensor.")
 
     def __str__(self):
         return f"{self.nombre} ({self.id_dispositivo_mqtt})"
