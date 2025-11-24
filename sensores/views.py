@@ -16,8 +16,7 @@ from django.db.models import Count, Max,  Sum, F
 from django.utils import timezone
 from datetime import timedelta, datetime
 from django.conf import settings
-
-
+ 
 
 @login_required
 def historial_consumo(request):
@@ -168,7 +167,6 @@ def api_historial_agregado(request):
         labels = sorted(list(labels_set), key=lambda d: datetime.strptime(d.replace("Semana ", "") if agrupar_por == 'semana' else d, "%W, %Y" if agrupar_por == 'semana' else "%b %Y"))
 
         # 3. Construimos el JSON final
-        # { "labels": ["Nov 2025", ...], "sensores": { "Sensor 1": [120, 0], ... } }
         sensores_data_final = {}
         for nombre_sensor, data_dict in sensores_data_dict.items():
             data_list = []
@@ -229,16 +227,17 @@ def popup_lectura_latest(request, id_mqtt):
     return render(request, 'sensores/popup_content.html', context)
 
 
-
 @login_required
 def lista_sensores_view(request):
     """
-    (READ) Muestra la galería de todos los sensores registrados 
-    por el usuario.
+    (READ) Muestra la galería de todos los sensores.
     """
     sensores = Dispositivo.objects.filter(usuario__usuario=request.user)
+    es_empleado = Membresia.objects.filter(usuario=request.user.usuario).exists()
+
     context = {
-        'sensores': sensores
+        'sensores': sensores,
+        'es_empleado': es_empleado
     }
     return render(request, 'sensores/dashboard_sensores.html', context)
 
@@ -277,14 +276,24 @@ def eliminar_sensor_view(request, id_mqtt):
     """
     (DELETE) Muestra la confirmación antes de borrar un sensor.
     """
-    dispositivo = get_object_or_404(
-        Dispositivo, 
-        id_dispositivo_mqtt=id_mqtt, 
-        usuario__usuario=request.user
-    )
-    
+    # 1. Verificar si es Empleado
+    es_empleado = Membresia.objects.filter(usuario=request.user.usuario).exists()
+
+    if es_empleado:
+        dispositivo = get_object_or_404(Dispositivo, id_dispositivo_mqtt=id_mqtt)
+    else:
+        dispositivo = get_object_or_404(Dispositivo, id_dispositivo_mqtt=id_mqtt, usuario=request.user.usuario)
+
+    #LÓGICA DE PERMISOS
+    #Si NO es empleado Y el dispositivo es propiedad de la empresa 
+    if not es_empleado and dispositivo.es_propiedad_empresa:
+        messages.error(request, "No puedes eliminar un sensor gestionado por la empresa.")
+        return redirect('lista_sensores')
+
+    #Procesar borrado
     if request.method == 'POST':
         dispositivo.delete()
+        messages.success(request, "Sensor eliminado correctamente.")
         return redirect('lista_sensores')
 
     context = {
@@ -566,3 +575,48 @@ def api_inicio_data(request):
             'is_initial_data': True
         })
     return JsonResponse(data_list, safe=False)
+
+
+
+
+@login_required
+def consumo_pagina_view(request):
+    """
+    Muestra el consumo histórico del Cliente logueado.
+    """
+    usuario_perfil = request.user.usuario
+    lecturas = LecturaSensor.objects.filter(
+        dispositivo__usuario=usuario_perfil
+    )
+    # misma lógica que en api_historial_agregado
+    consumo_mensual = lecturas.annotate(
+        mes=TruncMonth('timestamp')
+    ).values('mes').annotate(
+        total_m3=Sum(F('valor_flujo') / 12.0 / 1000.0, output_field=FloatField())
+    ).order_by('mes')
+
+    labels = []
+    data_values = []
+    
+    for item in consumo_mensual:
+        fecha_str = item['mes'].strftime("%b %Y")
+        labels.append(fecha_str)
+        data_values.append(round(item['total_m3'], 2))
+    total_historico = sum(data_values)
+    
+    import datetime
+    hoy = datetime.date.today()
+    consumo_mes_actual = 0
+    for item in consumo_mensual:
+        if item['mes'].month == hoy.month and item['mes'].year == hoy.year:
+            consumo_mes_actual = round(item['total_m3'], 2)
+            break
+
+    context = {
+        'labels_grafico': mark_safe(json.dumps(labels)),
+        'data_grafico': mark_safe(json.dumps(data_values)),
+        'consumo_mes_actual': consumo_mes_actual,
+        'total_historico': round(total_historico, 2),
+    }
+    
+    return render(request, 'dashboard_consumo.html', context)

@@ -125,20 +125,20 @@ class EmpresaCreaClienteForm(forms.Form):
             last_name=data['last_name'].upper()    
         )
 
-        # --- RESTAURADO: Configuración del perfil (Faltaba en tu código) ---
         nuevo_user_perfil = nuevo_user_auth.usuario
         nuevo_user_perfil.organizacion_admin = organizacion_actual
         nuevo_user_perfil.direccion = data['direccion']
         nuevo_user_perfil.rut_cliente = data['rut_cliente']
         nuevo_user_perfil.save()
-        # ---------------------------------------------------------------
- 
+
+
         Dispositivo.objects.create(
             usuario=nuevo_user_perfil,
             id_dispositivo_mqtt=data['id_dispositivo_mqtt'],
             nombre=data['nombre_sensor'],
             latitud=data['latitud'],
-            longitud=data['longitud']
+            longitud=data['longitud'],
+            es_propiedad_empresa=True
         )
 
         self.enviar_email_bienvenida(request, nuevo_user_auth)

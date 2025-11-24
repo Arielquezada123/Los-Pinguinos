@@ -99,9 +99,12 @@
                   <i class="lni lni-pencil"></i>
                 </a>
                 
+                {% if es_empleado or not sensor.es_propiedad_empresa %}
                 <a href="{% url 'eliminar_sensor' id_mqtt=sensor.id_dispositivo_mqtt %}" class="btn btn-artista-rojo" title="Eliminar">
                   <i class="lni lni-trash-can"></i>
                 </a>
+                {% endif %}
+
               </td>
             </tr>
             {% endfor %}

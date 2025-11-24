@@ -26,12 +26,18 @@ def reportes_pagina(request):
 def configuracion_tarifas_view(request):
     """
     Permite a la empresa crear o actualizar sus tarifas de cobro.
-    (Versión corregida con lógica de Membresia)
+    CORREGIDO: Maneja correctamente la relación OneToOne desde Organizacion.
     """
     organizacion_actual = get_organizacion_actual(request.user.usuario)
     if not organizacion_actual:
         return redirect('post_login') 
-    tarifa_obj, created = Tarifa.objects.get_or_create(organizacion=organizacion_actual)
+
+    if organizacion_actual.tarifa:
+        tarifa_obj = organizacion_actual.tarifa
+    else:
+        tarifa_obj = Tarifa.objects.create()
+        organizacion_actual.tarifa = tarifa_obj
+        organizacion_actual.save()
 
     if request.method == 'POST':
         form = TarifaForm(request.POST, instance=tarifa_obj)
