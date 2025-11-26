@@ -16,11 +16,27 @@ from django.utils import timezone
 def reportes_pagina(request):
     """
     Página de reportes para el CLIENTE.
+    Muestra el historial de alertas y notificaciones.
     """
+    # 1. Si es empresa, redirigir (lógica existente)
     if Membresia.objects.filter(usuario=request.user.usuario).exists():
         return redirect('empresa_inicio')
 
-    return render(request, 'dashboard_reportes.html')
+    # 2. Obtenemos el perfil del usuario actual
+    usuario_actual = request.user.usuario
+
+    # 3. Buscamos TODAS las alertas de este usuario (leídas y no leídas)
+    # Las ordenamos por fecha descendente (la más nueva arriba)
+    alertas = Alerta.objects.filter(usuario=usuario_actual).order_by('-timestamp')
+    
+    # (Opcional) Marcar todas como leídas al entrar a esta página
+    # alertas.filter(leida=False).update(leida=True)
+
+    # 4. Enviamos la lista al template
+    context = {
+        'alertas_list': alertas
+    }
+    return render(request, 'dashboard_reportes.html', context)
 
 @login_required
 def configuracion_tarifas_view(request):

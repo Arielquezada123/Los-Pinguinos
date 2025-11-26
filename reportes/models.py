@@ -20,10 +20,11 @@ class Alerta(models.Model):
     leida = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Alerta de {self.get_tipo_display()} para {self.usuario.username}"
+        # CORRECCIÓN: Accedemos al User interno (.usuario.usuario.username)
+        return f"Alerta de {self.get_tipo_display()} para {self.usuario.usuario.username}"
 
     class Meta:
-        ordering = ['-timestamp'] # Mostrar los reportes mas recientes
+        ordering = ['-timestamp']
 
 
 class Tarifa(models.Model):
