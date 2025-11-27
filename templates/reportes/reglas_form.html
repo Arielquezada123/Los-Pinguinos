@@ -1,0 +1,80 @@
+{% extends "base/base_dashboard.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="title-wrapper pt-30 mb-20">
+    <h2>{{ titulo }}</h2>
+</div>
+
+<div class="card-style mb-30">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre de la Regla</label>
+                {{ form.nombre }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Sensor Afectado</label>
+                {{ form.dispositivo }}
+                <div class="form-text">Déjalo vacío para aplicar a todos tus sensores.</div>
+            </div>
+
+            <div class="col-12"><hr></div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Si el flujo supera (L/min)</label>
+                {{ form.flujo_maximo }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Durante más de (minutos)</label>
+                {{ form.duracion_minima }}
+                <div class="form-text">Evita falsas alarmas por usos cortos (ej. lavarse las manos).</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hora Inicio</label>
+                {{ form.hora_inicio }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hora Fin</label>
+                {{ form.hora_fin }}
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label d-block">Días de la Semana</label>
+                <div class="d-flex flex-wrap gap-3 p-3 border rounded" style="background: rgba(255,255,255,0.05);">
+                    {% for checkbox in form.dias_seleccion %}
+                        <div class="form-check">
+                            {{ checkbox.tag }}
+                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                {{ checkbox.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="form-check form-switch">
+                    {{ form.enviar_email }}
+                    <label class="form-check-label">Enviarme un correo de alerta</label>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="form-check form-switch">
+                    {{ form.activa }}
+                    <label class="form-check-label">Regla Activa</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-end">
+            <a href="{% url 'reglas_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

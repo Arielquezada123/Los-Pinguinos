@@ -149,6 +149,13 @@
                 <span class="text">Mis Boletas</span>
              </a>
           </li>
+          <li class="nav-item {% if request.resolver_match.url_name == 'reglas_lista' %}active{% endif %}">
+            <a href="{% url 'reglas_lista' %}">
+                <span class="icon">
+                  <i class="lni lni-warning"></i> </span>
+                <span class="text">Reglas</span>
+             </a>
+          </li>
         {% endif %}
       </ul>
     </nav>

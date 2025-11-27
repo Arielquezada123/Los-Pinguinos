@@ -1,16 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Alerta, Tarifa, Boleta
 from gestorUser.models import Usuario, Membresia, Organizacion
 from sensores.models import Dispositivo, LecturaSensor
 from django.db.models import Sum, F, FloatField, Count
 from django.db import transaction
 from django.contrib import messages
 import datetime
-from .forms import TarifaForm 
 from sensores.views import get_organizacion_actual
 from django.utils import timezone
-
+from .forms import TarifaForm, ReglaAlertaForm 
+from .models import Alerta, Tarifa, Boleta, ReglaAlerta
 
 @login_required
 def reportes_pagina(request):
@@ -18,21 +17,13 @@ def reportes_pagina(request):
     Página de reportes para el CLIENTE.
     Muestra el historial de alertas y notificaciones.
     """
-    # 1. Si es empresa, redirigir (lógica existente)
     if Membresia.objects.filter(usuario=request.user.usuario).exists():
         return redirect('empresa_inicio')
 
-    # 2. Obtenemos el perfil del usuario actual
     usuario_actual = request.user.usuario
 
-    # 3. Buscamos TODAS las alertas de este usuario (leídas y no leídas)
-    # Las ordenamos por fecha descendente (la más nueva arriba)
     alertas = Alerta.objects.filter(usuario=usuario_actual).order_by('-timestamp')
     
-    # (Opcional) Marcar todas como leídas al entrar a esta página
-    # alertas.filter(leida=False).update(leida=True)
-
-    # 4. Enviamos la lista al template
     context = {
         'alertas_list': alertas
     }
@@ -267,3 +258,59 @@ def registrar_pago_view(request, boleta_id):
         messages.success(request, f"Pago registrado correctamente para la Boleta #{boleta.id}")
         
     return redirect('empresa_boleta_detalle', boleta_id=boleta.id)
+
+    
+@login_required
+def reglas_lista_view(request):
+    """(R) Listar todas las reglas del usuario"""
+    reglas = ReglaAlerta.objects.filter(usuario=request.user.usuario)
+    return render(request, 'reportes/reglas_lista.html', {'reglas': reglas})
+
+@login_required
+def reglas_crear_view(request):
+    """(C) Crear nueva regla"""
+    usuario = request.user.usuario
+    if request.method == 'POST':
+        # Pasamos 'usuario' al form para filtrar sensores
+        form = ReglaAlertaForm(usuario, request.POST)
+        if form.is_valid():
+            regla = form.save(commit=False)
+            regla.usuario = usuario # Asignar dueño
+            regla.save()
+            messages.success(request, 'Regla de seguridad creada correctamente.')
+            return redirect('reglas_lista')
+    else:
+        form = ReglaAlertaForm(usuario)
+    
+    return render(request, 'reportes/reglas_form.html', {'form': form, 'titulo': 'Nueva Regla'})
+
+@login_required
+def reglas_editar_view(request, regla_id):
+    """(U) Editar regla existente"""
+    usuario = request.user.usuario
+    # Aseguramos que la regla pertenezca al usuario (Seguridad)
+    regla = get_object_or_404(ReglaAlerta, id=regla_id, usuario=usuario)
+    
+    if request.method == 'POST':
+        form = ReglaAlertaForm(usuario, request.POST, instance=regla)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Regla actualizada.')
+            return redirect('reglas_lista')
+    else:
+        form = ReglaAlertaForm(usuario, instance=regla)
+    
+    return render(request, 'reportes/reglas_form.html', {'form': form, 'titulo': 'Editar Regla'})
+
+@login_required
+def reglas_eliminar_view(request, regla_id):
+    """(D) Borrar regla"""
+    usuario = request.user.usuario
+    regla = get_object_or_404(ReglaAlerta, id=regla_id, usuario=usuario)
+    
+    if request.method == 'POST':
+        regla.delete()
+        messages.success(request, 'Regla eliminada.')
+        return redirect('reglas_lista')
+    
+    return render(request, 'reportes/reglas_confirm_delete.html', {'regla': regla})

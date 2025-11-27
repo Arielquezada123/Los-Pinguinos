@@ -1,0 +1,63 @@
+{% extends "base/base_dashboard.html" %}
+
+{% block title %}Configuración de Alertas{% endblock %}
+
+{% block dashboard_content %}
+<div class="title-wrapper pt-30 mb-20 d-flex justify-content-between align-items-center">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <h2>Mis Reglas de Seguridad</h2>
+        <p class="text-sm text-gray">Define cuándo quieres que te avisemos sobre consumos inusuales.</p>
+      </div>
+    </div>
+    <a href="{% url 'reglas_crear' %}" class="btn btn-primary">
+      <i class="lni lni-plus"></i> Nueva Regla
+    </a>
+</div>
+
+<div class="row">
+    {% for regla in reglas %}
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+        <div class="card-style mb-30 position-relative">
+            <span class="position-absolute top-0 end-0 m-3 badge {% if regla.activa %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if regla.activa %}ACTIVA{% else %}PAUSADA{% endif %}
+            </span>
+
+            <h5 class="mb-10">{{ regla.nombre }}</h5>
+            <p class="text-sm mb-20 text-gray">
+                {% if regla.dispositivo %}
+                    <i class="lni lni-sensor"></i> {{ regla.dispositivo.nombre }}
+                {% else %}
+                    <i class="lni lni-world"></i> Todos los sensores
+                {% endif %}
+            </p>
+            
+            <div class="alert-config-detail p-3 bg-light rounded mb-20" style="background: rgba(255,255,255,0.05) !important;">
+                <ul class="list-unstyled mb-0 text-sm">
+                    <li class="mb-1"><strong>⏰ Horario:</strong> {{ regla.hora_inicio|time:"H:i" }} a {{ regla.hora_fin|time:"H:i" }}</li>
+                    <li class="mb-1"><strong>💧 Límite:</strong> > {{ regla.flujo_maximo }} L/min</li>
+                    <li class="mb-1"><strong>⏳ Duración:</strong> x {{ regla.duracion_minima }} min</li>
+                    <li><strong>Email:</strong> {% if regla.enviar_email %}Sí{% else %}No{% endif %}</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons d-flex justify-content-between">
+                <a href="{% url 'reglas_editar' regla.id %}" class="btn btn-outline-primary btn-sm w-50 me-2">Editar</a>
+                <a href="{% url 'reglas_eliminar' regla.id %}" class="btn btn-outline-danger btn-sm w-50">Eliminar</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card-style text-center py-5">
+            <div class="icon mb-4 text-gray" style="font-size: 3rem;">
+                <i class="lni lni-shield"></i>
+            </div>
+            <h4>No tienes reglas configuradas</h4>
+            <p class="text-gray mb-4">El sistema solo te avisará del límite mensual global.</p>
+            <a href="{% url 'reglas_crear' %}" class="btn btn-primary">Crear mi primera regla</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
