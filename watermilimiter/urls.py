@@ -46,6 +46,8 @@ urlpatterns = [
     path('api/inicio_data/', sensores_views.api_inicio_data, name='api_inicio_data'),
     path('api/historial/', sensores_views.historial_consumo, name='api_historial'),
     path('dashboard/limite/', limite_pagina, name='limite_pagina'),
+    path('mis-boletas/', reportes_views.cliente_lista_boletas_view, name='cliente_mis_boletas'),
+
     
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
 
