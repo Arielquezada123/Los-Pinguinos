@@ -239,7 +239,7 @@
             aria-label="Close"
           ></button>
         </div>
-        <form action="{% url 'registrar_pago' boleta.id %}" method="POST">
+        <form action="{% url 'empresa_registrar_pago' boleta.id %}" method="POST">
           {% csrf_token %}
           <div class="modal-body">
             <p>
