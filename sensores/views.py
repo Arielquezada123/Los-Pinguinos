@@ -15,8 +15,7 @@ from gestorUser.models import Usuario, Membresia, Organizacion
 from django.db.models import Count, Max,  Sum, F
 from django.utils import timezone
 from datetime import timedelta, datetime
-from django.conf import settings
- 
+from reportes.models import ReglaAlerta
 
 @login_required
 def historial_consumo(request):
