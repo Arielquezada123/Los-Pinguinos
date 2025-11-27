@@ -5,215 +5,142 @@
     <meta charset="UTF-8">
     <title>Boleta Electrónica</title>
     <style>
-        @page {
-            size: letter;
-            margin: 1.5cm; /* Margen un poco más amplio */
-        }
-        body {
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 11px; /* Fuente ligeramente más pequeña para mejor ajuste */
-            color: #000;
-            line-height: 1.4;
-        }
-        .header {
-            width: 100%;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #021446;
-            padding-bottom: 15px;
-        }
-        .header table {
-            width: 100%;
-        }
-        .empresa-info h1 {
-            color: #021446;
-            margin: 0 0 5px 0;
-            font-size: 18px;
-            text-transform: uppercase;
-        }
-        .empresa-info p {
-            margin: 2px 0;
-        }
+        @page { size: letter; margin: 1.5cm; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #000; line-height: 1.3; }
         
-        /* Caja del Cliente con fondo gris suave */
-        .cliente-box {
-            border: 1px solid #ddd;
-            background-color: #f5f5f5;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 5px;
-        }
-        .cliente-row {
-            margin-bottom: 5px;
-        }
-        .label {
-            font-weight: bold;
-            display: inline-block;
-            width: 80px;
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 4px; vertical-align: top; }
+
+        /* Estilos de SVG incrustados (MUY IMPORTANTE) */
+        svg {
+            width: 100%;
+            height: auto;
         }
 
-        /* Tabla de Detalles */
-        .tabla-detalle {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-        .tabla-detalle th {
-            background-color: #021446;
-            color: white;
-            padding: 10px;
-            text-align: left;
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-        .tabla-detalle td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .tabla-detalle tr:last-child td {
-            border-bottom: 2px solid #021446;
-        }
+        /* Encabezado */
+        .header-table { border-bottom: 2px solid #021446; margin-bottom: 15px; padding-bottom: 10px; }
+        .empresa-title { color: #021446; font-size: 18px; font-weight: bold; text-transform: uppercase; margin: 0; }
+        .cuadro-rut { border: 2px solid #CC0000; color: #CC0000; font-weight: bold; text-align: center; font-size: 12px; padding: 5px; width: 180px; margin-left: auto; }
 
-        /* Sección de Totales */
-        .totales-container {
-            width: 100%;
-            margin-bottom: 40px;
-        }
-        .totales-table {
-            width: 40%;
-            float: right; /* Alineado a la derecha */
-            border-collapse: collapse;
-        }
-        .totales-table td {
-            padding: 5px 0;
-            text-align: right;
-        }
-        .total-final {
-            font-size: 14px;
-            font-weight: bold;
-            color: #021446;
-            border-top: 1px solid #021446;
-            padding-top: 10px !important;
-        }
+        /* Cliente */
+        .cliente-box { background-color: #f9f9f9; border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .label { font-weight: bold; width: 90px; display: inline-block; }
 
-        /* --- CORRECCIÓN DEL TIMBRE SII --- */
-        .timbre-sii {
-            border: 2px solid #CC0000; /* Borde rojo más grueso */
-            color: #CC0000;
-            padding: 10px;
-            width: 350px; /* Ancho fijo suficiente */
-            margin-top: 50px; /* Separación de los totales */
-            clear: both; /* Asegura que baje después de los totales flotantes */
-        }
-        .tabla-timbre {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .tabla-timbre td {
-            vertical-align: middle;
-            padding: 0;
-        }
-        .timbre-texto {
-            font-size: 9px;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-            line-height: 1.2;
-            padding-left: 10px;
-        }
+        /* Detalle */
+        .tabla-detalle th { background-color: #021446; color: white; text-align: left; padding: 6px; font-size: 10px; }
+        .tabla-detalle td { border-bottom: 1px solid #eee; padding: 6px; }
+        .monto { text-align: right; }
+
+        /* Totales */
+        .tabla-totales { width: 40%; margin-left: auto; margin-top: 5px; }
+        .total-final { font-size: 14px; font-weight: bold; color: #021446; border-top: 2px solid #021446; padding-top: 5px; }
+
+        /* --- ZONA INFERIOR --- */
+        .footer-table { margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 20px; }
+        
+        /* Timbre SII (Izquierda) */
+        .timbre-box { border: 1px solid #CC0000; color: #CC0000; padding: 5px; width: 300px; }
+        .timbre-texto { font-size: 8px; font-weight: bold; text-align: center; text-transform: uppercase; vertical-align: middle; }
+
+        /* Contenedores de SVG */
+        .svg-grafico { width: 100%; max-width: 300px; display: block; margin-left: auto; }
+        .svg-qr { width: 85px; height: 85px; display: block; }
+        .svg-barcode { width: 200px; display: block; margin: 0 auto; } /* Ancho controlado */
+
+        /* Código de Barras */
+        .barcode-container { text-align: center; margin-top: 20px; padding-top: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <table>
-            <tr>
-                <td width="70%" class="empresa-info">
-                    <h1>{{ boleta.empresa.nombre }}</h1>
-                    <p><strong>RUT:</strong> {{ boleta.empresa.rut_empresa }}</p>
-                    <p>{{ boleta.empresa.direccion_empresa }}</p>
-                    <p>Giro: Servicios de Agua Potable y Alcantarillado</p>
-                </td>
-                <td width="30%" style="text-align: right; vertical-align: top;">
-                    <div style="border: 3px solid #CC0000; color: #CC0000; padding: 10px; font-weight: bold; text-align: center;">
-                        R.U.T.: {{ boleta.empresa.rut_empresa }}<br>
-                        BOLETA ELECTRÓNICA<br>
-                        Nº {{ boleta.id }}
-                    </div>
-                    <div style="text-align: center; color: #CC0000; margin-top: 5px; font-size: 10px;">
-                        S.I.I. - MAULE
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td width="65%">
+                <h1 class="empresa-title">{{ boleta.empresa.nombre }}</h1>
+                <p><strong>RUT:</strong> {{ boleta.empresa.rut_empresa }}</p>
+                <p>{{ boleta.empresa.direccion_empresa }}</p>
+            </td>
+            <td width="35%">
+                <div class="cuadro-rut">
+                    R.U.T.: {{ boleta.empresa.rut_empresa }}<br>
+                    BOLETA ELECTRÓNICA<br>
+                    Nº {{ boleta.id }}
+                </div>
+                <div style="color: #CC0000; text-align: center; font-size: 9px; margin-top: 2px; width: 180px; margin-left: auto;">
+                    S.I.I. - MAULE
+                </div>
+            </td>
+        </tr>
+    </table>
 
     <div class="cliente-box">
-        <div class="cliente-row"><span class="label">Señor(a):</span> {{ boleta.cliente.usuario.username }}</div>
-        <div class="cliente-row"><span class="label">RUT:</span> {{ boleta.cliente.rut_cliente }}</div>
-        <div class="cliente-row"><span class="label">Dirección:</span> {{ boleta.cliente.direccion }}</div>
-        <div class="cliente-row"><span class="label">Periodo:</span> {{ boleta.mes }}/{{ boleta.ano }}</div>
-        <div class="cliente-row"><span class="label">Fecha Emisión:</span> {{ boleta.fecha_emision|date:"d/m/Y" }}</div>
+        <div><span class="label">Señor(a):</span> {{ boleta.cliente.usuario.username }}</div>
+        <div><span class="label">RUT:</span> {{ boleta.cliente.rut_cliente }}</div>
+        <div><span class="label">Dirección:</span> {{ boleta.cliente.direccion }}</div>
+        <div><span class="label">Periodo:</span> {{ boleta.mes }}/{{ boleta.ano }}</div>
     </div>
 
     <table class="tabla-detalle">
         <thead>
-            <tr>
-                <th>Concepto</th>
-                <th style="text-align: right;">Monto (CLP)</th>
-            </tr>
+            <tr><th>Concepto</th><th class="monto">Monto</th></tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Cargo Fijo Mensual</td>
-                <td style="text-align: right;">$ {{ boleta.monto_cargo_fijo }}</td>
-            </tr>
-            <tr>
-                <td>Consumo Variable ({{ boleta.consumo_m3 }} m³)</td>
-                <td style="text-align: right;">$ {{ boleta.monto_consumo_variable }}</td>
-            </tr>
+            <tr><td>Cargo Fijo</td><td class="monto">$ {{ boleta.monto_cargo_fijo }}</td></tr>
+            <tr><td>Consumo Variable</td><td class="monto">$ {{ boleta.monto_consumo_variable }}</td></tr>
             {% if boleta.monto_subsidio > 0 %}
-            <tr>
-                <td>Subsidio Estatal</td>
-                <td style="text-align: right;">- $ {{ boleta.monto_subsidio }}</td>
-            </tr>
+            <tr><td>Subsidio</td><td class="monto">- $ {{ boleta.monto_subsidio }}</td></tr>
             {% endif %}
         </tbody>
     </table>
 
-    <div class="totales-container">
-        <table class="totales-table">
-            <tr>
-                <td><strong>Monto Neto:</strong></td>
-                <td>$ {{ boleta.monto_neto }}</td>
-            </tr>
-            <tr>
-                <td><strong>IVA (19%):</strong></td>
-                <td>$ {{ boleta.monto_iva }}</td>
-            </tr>
-            <tr>
-                <td class="total-final">TOTAL A PAGAR:</td>
-                <td class="total-final">$ {{ boleta.monto_total }}</td>
-            </tr>
-        </table>
-    </div>
+    <table class="tabla-totales">
+        <tr><td><strong>Neto:</strong></td><td class="monto">$ {{ boleta.monto_neto }}</td></tr>
+        <tr><td><strong>IVA (19%):</strong></td><td class="monto">$ {{ boleta.monto_iva }}</td></tr>
+        <tr><td class="total-final">TOTAL:</td><td class="total-final monto">$ {{ boleta.monto_total }}</td></tr>
+    </table>
 
-    <div class="timbre-sii">
-        <table class="tabla-timbre">
-            <tr>
-                <td width="90">
-                    <img src="data:image/png;base64,{{ qr_b64 }}" width="90" height="90">
-                </td>
-                <td>
-                    <div class="timbre-texto">
-                        Timbre Electrónico SII<br>
-                        Res. 99 de 2014<br>
-                        Verifique documento en<br>
-                        www.sii.cl
+    <table class="footer-table">
+        <tr>
+            <td width="45%">
+                <div class="timbre-box">
+                    <table>
+                        <tr>
+                            <td width="90" style="padding:0;">
+                                <div class="svg-qr">
+                                    {{ qr_svg|safe }}
+                                </div>
+                            </td>
+                            <td class="timbre-texto">
+                                Timbre Electrónico SII<br>
+                                Res. 99 de 2014<br>
+                                Verifique documento en<br>www.sii.cl
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+
+            <td width="55%">
+                {% if grafico_svg %}
+                    <div class="svg-grafico">
+                        {{ grafico_svg|safe }}
                     </div>
-                </td>
-            </tr>
-        </table>
+                {% else %}
+                    <p style="text-align: right; color:#999;">Sin historial.</p>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    {% if barcode_svg %}
+    <div class="barcode-container">
+        <p style="margin:0; font-size:9px; font-weight:bold;">CUPÓN DE PAGO PRESENCIAL</p>
+        <div class="svg-barcode">
+            {{ barcode_svg|safe }}
+        </div>
+        <div style="font-size: 9px; color: #666; margin-top: 2px;">Cód: {{ boleta.id|stringformat:"06d" }}{{ boleta.monto_total }}</div>
     </div>
+    {% endif %}
 
 </body>
 </html>
