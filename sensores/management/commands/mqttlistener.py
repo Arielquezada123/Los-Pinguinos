@@ -21,26 +21,20 @@ channel_layer = get_channel_layer()
 BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "mosquitto")
 BROKER_PORT = 1883
 
-print(f"--- INICIANDO LISTENENER MQTT ---")
+print(f"--- INICIANDO LISTENER MQTT ---")
 print(f"Objetivo: {BROKER_HOST}:{BROKER_PORT}")
 
-
+# --- DIAGNÓSTICO DE RED ---
 try:
     print(f"1. Intentando ping TCP a {BROKER_HOST}...")
     sock = socket.create_connection((BROKER_HOST, BROKER_PORT), timeout=5) 
     sock.close()
     print(f"   [ÉXITO] El puerto {BROKER_PORT} está abierto y respondiendo.")
-except socket.timeout:
-    print(f"   [ERROR] Tiempo de espera agotado. El servidor no responde.")
-    print("   -> Posible causa: Firewall bloqueando o nombre de host incorrecto en Docker.")
-
-except ConnectionRefusedError:
-    print(f"   [ERROR] Conexión rechazada. No hay nada corriendo en el puerto {BROKER_PORT}.")
-
 except Exception as e:
     print(f"   [ERROR] Falló la conexión de red inicial: {e}")
+    # Continuamos igual para que paho intente su reconexión automática
 
-
+# --- FUNCIÓN AUXILIAR: Cálculo de Consumo ---
 def calcular_consumo_mes_actual(usuario):
     ahora = timezone.now()
     lecturas = LecturaSensor.objects.filter(
@@ -63,9 +57,9 @@ def calcular_consumo_mes_actual(usuario):
     
     return total_litros
 
+# --- CALLBACKS MQTT ---
 
 def on_connect(client, userdata, flags, rc):
-    """Se ejecuta cuando el Broker responde al intento de conexión"""
     if rc == 0:
         print("2. [CONECTADO] Conexión exitosa con el Broker MQTT.")
         client.subscribe("sensores/flujo")
@@ -78,7 +72,6 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, msg):
     try:
-
         data = json.loads(msg.payload.decode())
         
         device_id_mqtt = data.get("sensor_id")
@@ -90,17 +83,28 @@ def on_message(client, userdata, msg):
         try:
             dispositivo = Dispositivo.objects.get(id_dispositivo_mqtt=device_id_mqtt)
             
-
+            # 1. Guardar en Base de Datos
             LecturaSensor.objects.create(dispositivo=dispositivo, valor_flujo=flow_value)
             
-
             usuario = dispositivo.usuario
-            grupo = f"sensores_{usuario.usuario.id}"
-            async_to_sync(channel_layer.group_send)(grupo, {"type": "sensor_update", "data": data})
+            
+            # -------------------------------------------------------
+            # 2. NOTIFICACIÓN WEBSOCKET (TIEMPO REAL) - CORREGIDO
+            # -------------------------------------------------------
+            
+            # A. Notificar al Cliente (Dueño)
+            grupo_cliente = f"sensores_{usuario.usuario.id}"
+            async_to_sync(channel_layer.group_send)(grupo_cliente, {"type": "sensor_update", "data": data})
 
+            # B. Notificar a la Empresa (Si el cliente tiene una admin)
+            if usuario.organizacion_admin:
+                grupo_empresa = f"sensores_org_{usuario.organizacion_admin.id}"
+                async_to_sync(channel_layer.group_send)(grupo_empresa, {"type": "sensor_update", "data": data})
+            
+            # -------------------------------------------------------
+
+            # 3. Lógica de Alertas
             if usuario.limite_consumo_mensual > 0:
-                #Calcular consumo en CADA mensaje es muy pesado para la DB.
-
                 consumo = calcular_consumo_mes_actual(usuario)
                 
                 if consumo > usuario.limite_consumo_mensual:
@@ -125,8 +129,11 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"   Error procesando mensaje: {e}")
 
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1) 
 
+try:
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+except AttributeError:
+    client = mqtt.Client() 
 
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
@@ -134,7 +141,6 @@ client.on_message = on_message
 
 print("3. Iniciando Loop MQTT...")
 try:
-
     client.connect(BROKER_HOST, BROKER_PORT, 60)
     client.loop_forever()
 except Exception as e:
