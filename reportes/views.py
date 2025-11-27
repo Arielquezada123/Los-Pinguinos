@@ -18,6 +18,10 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from weasyprint import HTML
+import matplotlib.pyplot as plt
+
+
+
 
 @login_required
 def reportes_pagina(request):
@@ -402,4 +406,111 @@ def generar_y_enviar_boleta(request, boleta_id):
         print(e)
 
     # Redirigir de vuelta al detalle de la boleta o lista
+    return redirect('empresa_boleta_detalle', boleta_id=boleta.id)
+
+
+
+# Configurar matplotlib para que funcione en servidor web (sin pantalla)
+matplotlib.use('Agg') 
+
+# --- FUNCIÓN AUXILIAR PARA EL GRÁFICO ---
+def generar_grafico_historial(cliente):
+    """
+    Genera un gráfico de barras de los últimos 6 meses de consumo.
+    Retorna la imagen en base64.
+    """
+    # 1. Obtener últimas 6 boletas (orden inverso para cronología)
+    boletas = Boleta.objects.filter(cliente=cliente).order_by('-ano', '-mes')[:6]
+    boletas = sorted(list(boletas), key=lambda x: (x.ano, x.mes)) # Ordenar cronológicamente
+
+    # 2. Preparar datos
+    etiquetas = [f"{b.mes}/{str(b.ano)[2:]}" for b in boletas] # Ej: 11/25
+    valores = [b.consumo_m3 for b in boletas]
+
+    if not valores:
+        return None
+
+    # 3. Crear Gráfico con Matplotlib
+    fig, ax = plt.subplots(figsize=(6, 2.5)) # Tamaño compacto (ancho, alto)
+    
+    # Barras color azul corporativo (#021446)
+    barras = ax.bar(etiquetas, valores, color='#021446', width=0.5)
+
+    # Estilos
+    ax.set_title('Historial de Consumo Últimos Meses (m³)', fontsize=10, color='#333')
+    ax.tick_params(axis='x', labelsize=8)
+    ax.tick_params(axis='y', labelsize=8)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    # Poner el valor exacto encima de cada barra
+    for bar in barras:
+        height = bar.get_height()
+        ax.annotate(f'{height:.1f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom', fontsize=7)
+
+    # 4. Guardar en memoria
+    buffer = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(buffer, format='png', transparent=True)
+    plt.close(fig) # Importante cerrar para liberar memoria
+    
+    return base64.b64encode(buffer.getvalue()).decode()
+
+# --- VISTA PRINCIPAL ACTUALIZADA ---
+@login_required
+def generar_y_enviar_boleta(request, boleta_id):
+    boleta = get_object_or_404(Boleta, id=boleta_id)
+    usuario_actual = request.user.usuario
+    organizacion_actual = get_organizacion_actual(usuario_actual)
+    
+    if not organizacion_actual or boleta.empresa != organizacion_actual:
+        messages.error(request, "No tienes permiso para gestionar esta boleta.")
+        return redirect('empresa_facturacion')
+
+    try:
+        # A. Generar QR (Tu código existente)
+        texto_qr = f"RUT:{boleta.empresa.rut_empresa}|FOLIO:{boleta.id}|TOTAL:{boleta.monto_total}"
+        qr = qrcode.QRCode(version=1, box_size=5, border=1)
+        qr.add_data(texto_qr)
+        qr.make(fit=True)
+        img_qr = qr.make_image(fill='black', back_color='white')
+        buffer_qr = io.BytesIO()
+        img_qr.save(buffer_qr, format="PNG")
+        qr_b64 = base64.b64encode(buffer_qr.getvalue()).decode()
+
+        # B. Generar Gráfico (NUEVO)
+        grafico_b64 = generar_grafico_historial(boleta.cliente)
+
+        # C. Renderizar PDF
+        context = {
+            'boleta': boleta,
+            'qr_b64': qr_b64,
+            'grafico_b64': grafico_b64, # Pasamos el gráfico al template
+        }
+        html_string = render_to_string('reportes/boleta_pdf.html', context)
+        pdf_file = HTML(string=html_string).write_pdf()
+
+        # D. Guardar y Enviar
+        filename = f"boleta_{boleta.id}_{boleta.mes}_{boleta.ano}.pdf"
+        boleta.pdf_boleta.save(filename, ContentFile(pdf_file), save=True)
+
+        # Email...
+        email_cliente = boleta.cliente.usuario.email
+        subject = f"Boleta Disponible - {boleta.mes}/{boleta.ano}"
+        body = f"Estimado cliente, adjuntamos su boleta. Total: ${boleta.monto_total}"
+        
+        email = EmailMessage(subject, body, settings.DEFAULT_FROM_EMAIL, [email_cliente])
+        email.attach(filename, pdf_file, 'application/pdf')
+        # email.send() # Descomentar cuando tengas SMTP configurado
+
+        messages.success(request, f"Boleta #{boleta.id} generada con historial exitosamente.")
+
+    except Exception as e:
+        messages.error(request, f"Error: {e}")
+        print(f"Error detallado: {e}")
+
     return redirect('empresa_boleta_detalle', boleta_id=boleta.id)

@@ -7,30 +7,51 @@
     <style>
         @page {
             size: letter;
-            margin: 2cm;
+            margin: 1.5cm; /* Margen un poco más amplio */
         }
         body {
             font-family: Helvetica, Arial, sans-serif;
-            font-size: 12px;
-            color: #333;
+            font-size: 11px; /* Fuente ligeramente más pequeña para mejor ajuste */
+            color: #000;
+            line-height: 1.4;
         }
         .header {
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             border-bottom: 2px solid #021446;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
+        }
+        .header table {
+            width: 100%;
         }
         .empresa-info h1 {
             color: #021446;
-            margin: 0;
+            margin: 0 0 5px 0;
+            font-size: 18px;
             text-transform: uppercase;
         }
-        .cliente-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 20px;
-            background-color: #f9f9f9;
+        .empresa-info p {
+            margin: 2px 0;
         }
+        
+        /* Caja del Cliente con fondo gris suave */
+        .cliente-box {
+            border: 1px solid #ddd;
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        .cliente-row {
+            margin-bottom: 5px;
+        }
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 80px;
+        }
+
+        /* Tabla de Detalles */
         .tabla-detalle {
             width: 100%;
             border-collapse: collapse;
@@ -39,73 +60,99 @@
         .tabla-detalle th {
             background-color: #021446;
             color: white;
-            padding: 8px;
+            padding: 10px;
             text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
         }
         .tabla-detalle td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
         }
-        .totales {
+        .tabla-detalle tr:last-child td {
+            border-bottom: 2px solid #021446;
+        }
+
+        /* Sección de Totales */
+        .totales-container {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .totales-table {
             width: 40%;
-            float: right;
+            float: right; /* Alineado a la derecha */
+            border-collapse: collapse;
         }
-        .totales-row {
-            display: flex;
-            justify-content: space-between;
+        .totales-table td {
             padding: 5px 0;
-            font-weight: bold;
+            text-align: right;
         }
         .total-final {
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: bold;
             color: #021446;
-            border-top: 2px solid #021446;
-            padding-top: 5px;
+            border-top: 1px solid #021446;
+            padding-top: 10px !important;
         }
-        /* SIMULACIÓN TIMBRE SII */
+
+        /* --- CORRECCIÓN DEL TIMBRE SII --- */
         .timbre-sii {
-            clear: both;
-            margin-top: 100px;
-            width: 280px;
-            height: 120px;
-            border: 1px solid #FF0000;
-            color: #FF0000;
+            border: 2px solid #CC0000; /* Borde rojo más grueso */
+            color: #CC0000;
             padding: 10px;
-            font-size: 9px;
-            text-align: center;
-            display: inline-block;
+            width: 350px; /* Ancho fijo suficiente */
+            margin-top: 50px; /* Separación de los totales */
+            clear: both; /* Asegura que baje después de los totales flotantes */
         }
-        .timbre-qr {
-            width: 80px;
-            height: 80px;
-            float: left;
-            margin-right: 10px;
+        .tabla-timbre {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .tabla-timbre td {
+            vertical-align: middle;
+            padding: 0;
         }
         .timbre-texto {
-            float: left;
-            width: 160px;
-            text-align: center;
-            padding-top: 15px;
+            font-size: 9px;
             font-weight: bold;
+            text-align: center;
             text-transform: uppercase;
+            line-height: 1.2;
+            padding-left: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="empresa-info">
-            <h1>{{ boleta.empresa.nombre }}</h1>
-            <p>RUT: {{ boleta.empresa.rut_empresa }}</p>
-            <p>{{ boleta.empresa.direccion_empresa }}</p>
-            <p>Giro: Servicios de Agua Potable y Alcantarillado</p>
-        </div>
+        <table>
+            <tr>
+                <td width="70%" class="empresa-info">
+                    <h1>{{ boleta.empresa.nombre }}</h1>
+                    <p><strong>RUT:</strong> {{ boleta.empresa.rut_empresa }}</p>
+                    <p>{{ boleta.empresa.direccion_empresa }}</p>
+                    <p>Giro: Servicios de Agua Potable y Alcantarillado</p>
+                </td>
+                <td width="30%" style="text-align: right; vertical-align: top;">
+                    <div style="border: 3px solid #CC0000; color: #CC0000; padding: 10px; font-weight: bold; text-align: center;">
+                        R.U.T.: {{ boleta.empresa.rut_empresa }}<br>
+                        BOLETA ELECTRÓNICA<br>
+                        Nº {{ boleta.id }}
+                    </div>
+                    <div style="text-align: center; color: #CC0000; margin-top: 5px; font-size: 10px;">
+                        S.I.I. - MAULE
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="cliente-box">
-        <strong>Señor(a):</strong> {{ boleta.cliente.usuario.username }}<br> <strong>RUT:</strong> {{ boleta.cliente.rut_cliente }}<br>
-        <strong>Dirección:</strong> {{ boleta.cliente.direccion }}<br>
-        <strong>Periodo:</strong> {{ boleta.mes }}/{{ boleta.ano }}
+        <div class="cliente-row"><span class="label">Señor(a):</span> {{ boleta.cliente.usuario.username }}</div>
+        <div class="cliente-row"><span class="label">RUT:</span> {{ boleta.cliente.rut_cliente }}</div>
+        <div class="cliente-row"><span class="label">Dirección:</span> {{ boleta.cliente.direccion }}</div>
+        <div class="cliente-row"><span class="label">Periodo:</span> {{ boleta.mes }}/{{ boleta.ano }}</div>
+        <div class="cliente-row"><span class="label">Fecha Emisión:</span> {{ boleta.fecha_emision|date:"d/m/Y" }}</div>
     </div>
 
     <table class="tabla-detalle">
@@ -133,31 +180,39 @@
         </tbody>
     </table>
 
-    <div class="totales">
-        <div class="totales-row">
-            <span>Monto Neto:</span>
-            <span>$ {{ boleta.monto_neto }}</span>
-        </div>
-        <div class="totales-row">
-            <span>IVA (19%):</span>
-            <span>$ {{ boleta.monto_iva }}</span>
-        </div>
-        <div class="totales-row total-final">
-            <span>TOTAL A PAGAR:</span>
-            <span>$ {{ boleta.monto_total }}</span>
-        </div>
+    <div class="totales-container">
+        <table class="totales-table">
+            <tr>
+                <td><strong>Monto Neto:</strong></td>
+                <td>$ {{ boleta.monto_neto }}</td>
+            </tr>
+            <tr>
+                <td><strong>IVA (19%):</strong></td>
+                <td>$ {{ boleta.monto_iva }}</td>
+            </tr>
+            <tr>
+                <td class="total-final">TOTAL A PAGAR:</td>
+                <td class="total-final">$ {{ boleta.monto_total }}</td>
+            </tr>
+        </table>
     </div>
 
     <div class="timbre-sii">
-        <div class="timbre-qr">
-            <img src="data:image/png;base64,{{ qr_b64 }}" width="80" height="80">
-        </div>
-        <div class="timbre-texto">
-            Timbre Electrónico SII<br>
-            Res. 99 de 2014<br>
-            Verifique documento en<br>
-            www.sii.cl
-        </div>
+        <table class="tabla-timbre">
+            <tr>
+                <td width="90">
+                    <img src="data:image/png;base64,{{ qr_b64 }}" width="90" height="90">
+                </td>
+                <td>
+                    <div class="timbre-texto">
+                        Timbre Electrónico SII<br>
+                        Res. 99 de 2014<br>
+                        Verifique documento en<br>
+                        www.sii.cl
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
 </body>
