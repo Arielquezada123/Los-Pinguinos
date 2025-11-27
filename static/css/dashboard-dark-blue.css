@@ -213,3 +213,60 @@ h1, h2, h3, h4, h5, h6, .card-title, .card-header h6 {
 .list-group-item-info {
     background-color: #213c4d;
 }
+
+/* Activity Feed */
+.activity-feed {
+    padding: 0;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #2a3441;
+    transition: background-color 0.2s;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.activity-item .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.activity-item .text-content {
+    flex-grow: 1;
+}
+
+.activity-item .sensor-name {
+    display: block;
+    font-weight: 600;
+    color: #e0e8f0;
+    font-size: 0.95rem;
+}
+
+.activity-item .timestamp {
+    display: block;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.activity-item .value-hero {
+    font-weight: 700;
+    color: #10b981;
+    font-size: 1rem;
+}
