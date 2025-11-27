@@ -131,12 +131,6 @@
                   <span class="text">Ingresar</span>
               </a>
           </li>
-          <li class="nav-item {% if request.resolver_match.url_name == 'reportes_pagina' %}active{% endif %}">
-              <a href="{% url 'reportes_pagina' %}"> 
-                  <span class="icon"><i class="lni lni-warning"></i></span>
-                  <span class="text">Reportes</span>
-              </a>
-          </li>
           <li class="nav-item {% if request.resolver_match.url_name == 'lista_sensores' %}active{% endif %}"> 
             <a href="{% url 'lista_sensores' %}"> <span class="icon"><i class="lni lni-cloud-network"></i></span>
                 <span class="text">Sensores</span>
