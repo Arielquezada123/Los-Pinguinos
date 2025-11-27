@@ -3,7 +3,6 @@ import os
 import socket
 import sys
 from django.core.management.base import BaseCommand
-# Importamos ÚNICAMENTE el servicio
 from sensores.services import SensorService
 
 class Command(BaseCommand):
