@@ -44,13 +44,23 @@
 {% block dashboard_content %}
   <div class="title-wrapper pt-30 mb-20">
     <h2>Detalle de Boleta (SISS)</h2>
-    <a
-      href="{% url 'empresa_facturacion_detalle' ano=boleta.ano mes=boleta.mes %}"
-      style="margin-top: 19px;"
-      class="btn btn-outline-primary btn-sm"
-    >
-      &larr; Volver al Periodo {{ boleta.mes }}/{{ boleta.ano }}
-    </a>
+    {% if request.user.usuario.membresias.all.count > 0 %}
+        <a
+          href="{% url 'empresa_facturacion_detalle' ano=boleta.ano mes=boleta.mes %}"
+          style="margin-top: 19px;"
+          class="btn btn-outline-primary btn-sm"
+        >
+          &larr; Volver al Periodo {{ boleta.mes }}/{{ boleta.ano }}
+        </a>
+    {% else %}
+        <a
+          href="{% url 'cliente_lista_boletas' %}"
+          style="margin-top: 19px;"
+          class="btn btn-outline-primary btn-sm"
+        >
+          &larr; Volver a Mis Boletas
+        </a>
+    {% endif %}
   </div>
 
   <div class="row">
@@ -59,7 +69,7 @@
         <div class="boleta-header row">
           <div class="col-md-6">
             <h5>Emitido por:</h5>
-            <strong class="text-light">{{ boleta.empresa.usuario.username }}</strong>
+            <strong class="text-light">{{ boleta.empresa.nombre }}</strong>
             <p class="text-light" style="margin-bottom: 0;">
               RUT: {{ boleta.empresa.rut_empresa }}
             </p>
@@ -93,7 +103,7 @@
             <span class="text-light">{{ boleta.folio_sii|default:"Pendiente" }}</span>
           </div>
           <div class="col-6 text-end">
-            <strong>Estado:</strong>
+            <strong>Estado SII:</strong>
             <span class="text-light">{{ boleta.estado_sii }}</span>
           </div>
         </div>
@@ -115,10 +125,12 @@
               <td>${{ boleta.monto_consumo_variable }}</td>
             </tr>
 
+            {% if boleta.monto_subsidio > 0 %}
             <tr>
               <th>Subsidios</th>
               <td class="text-success">-${{ boleta.monto_subsidio }}</td>
             </tr>
+            {% endif %}
 
             <tr style="border-top: 2px solid #555;">
               <th><strong>Monto Neto</strong></th>
@@ -137,6 +149,34 @@
           </tbody>
         </table>
 
+        <div class="mt-4 mb-4">
+            {% if boleta.pdf_boleta %}
+                <div class="d-flex align-items-center justify-content-between p-3" 
+                     style="background-color: rgba(13, 110, 253, 0.15); border: 1px solid #0d6efd; border-radius: 8px;">
+                    <div>
+                        <i class="lni lni-checkmark-circle text-primary fs-4 me-2" style="vertical-align: middle;"></i> 
+                        <span class="text-light fw-bold">Documento Electrónico Disponible</span>
+                    </div>
+                    <div>
+                        <a href="{{ boleta.pdf_boleta.url }}" target="_blank" class="btn btn-light btn-sm fw-bold text-primary">
+                            <i class="lni lni-download"></i> Descargar PDF
+                        </a>
+                        
+                        {% if request.user.usuario.membresias.all.count > 0 and boleta.empresa == request.user.usuario.membresias.first.organizacion %}
+                            <a href="{% url 'generar_enviar_boleta' boleta.id %}" class="btn btn-outline-light btn-sm ms-2">
+                                <i class="lni lni-envelope"></i> Reenviar Email
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                {% if request.user.usuario.membresias.all.count > 0 and boleta.empresa == request.user.usuario.membresias.first.organizacion %}
+                    <a href="{% url 'generar_enviar_boleta' boleta.id %}" class="btn btn-primary w-100 py-2 fs-5">
+                        <i class="lni lni-printer"></i> Generar Boleta PDF y Enviar al Cliente
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
         <div class="mt-4 p-3" style="background-color: rgba(255,255,255,0.05); border-radius: 8px;">
           <div class="row align-items-center">
             <div class="col-md-6">
@@ -176,8 +216,7 @@
         <div class="siss-footer">
           <p>
             Para consultas o reclamos sobre su boleta, contacte a
-            <strong>{{ boleta.empresa.usuario.username }}</strong>
-            al (teléfono) o (email).
+            <strong>{{ boleta.empresa.nombre }}</strong>
           </p>
           <p>
             Este documento cumple con la normativa de la SISS (Superintendencia de
@@ -200,7 +239,7 @@
             aria-label="Close"
           ></button>
         </div>
-        <form action="{% url 'empresa_registrar_pago' boleta.id %}" method="POST">
+        <form action="{% url 'registrar_pago' boleta.id %}" method="POST">
           {% csrf_token %}
           <div class="modal-body">
             <p>

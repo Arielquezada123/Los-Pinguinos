@@ -6,6 +6,7 @@ from sensores import views as sensores_views
 from reportes.views import reportes_pagina
 from reportes import views as reportes_views
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name="index.html"), name='index'),
@@ -53,6 +54,7 @@ urlpatterns = [
     path('reglas/editar/<int:regla_id>/', reportes_views.reglas_editar_view, name='reglas_editar'),
     path('reglas/eliminar/<int:regla_id>/', reportes_views.reglas_eliminar_view, name='reglas_eliminar'),
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
+    path('boleta/<int:boleta_id>/generar-enviar/', reportes_views.generar_y_enviar_boleta, name='generar_enviar_boleta'),
 
     
     

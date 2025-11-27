@@ -162,3 +162,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL="/interfaz"
 LOGOUT_REDIRECT_URL="/"
 STATICFILES_DIRS = [BASE_DIR/"static"]
+
+
+## codigo de firma
+GTK_FOLDER = r'C:\Program Files\GTK3-Runtime Win64\bin'
+os.environ['PATH'] = GTK_FOLDER + os.pathsep + os.environ.get('PATH', '')

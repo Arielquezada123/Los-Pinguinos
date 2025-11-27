@@ -10,6 +10,14 @@ from sensores.views import get_organizacion_actual
 from django.utils import timezone
 from .forms import TarifaForm, ReglaAlertaForm 
 from .models import Alerta, Tarifa, Boleta, ReglaAlerta
+import io
+import base64
+import qrcode
+from django.core.files.base import ContentFile
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
+from weasyprint import HTML
 
 @login_required
 def reportes_pagina(request):
@@ -314,3 +322,84 @@ def reglas_eliminar_view(request, regla_id):
         return redirect('reglas_lista')
     
     return render(request, 'reportes/reglas_confirm_delete.html', {'regla': regla})
+
+
+
+@login_required
+def generar_y_enviar_boleta(request, boleta_id):
+    """
+    Genera el PDF, lo guarda y lo envía por correo.
+    """
+    # 1. Obtener la boleta y validar permisos (Seguridad básica)
+    boleta = get_object_or_404(Boleta, id=boleta_id)
+    
+    # Validar que quien aprieta el botón sea admin de la empresa emisora
+    usuario_actual = request.user.usuario
+    organizacion_actual = get_organizacion_actual(usuario_actual)
+    
+    if not organizacion_actual or boleta.empresa != organizacion_actual:
+        messages.error(request, "No tienes permiso para gestionar esta boleta.")
+        return redirect('empresa_facturacion')
+
+    try:
+        # 2. Generar el Código QR (Texto Plano Simulado)
+        # Formato: <RUT Emisor> <Tipo Doc> <Folio> <Fecha> <Monto>
+        texto_qr = f"RUT:{boleta.empresa.rut_empresa}|FOLIO:{boleta.id}|FECHA:{boleta.fecha_emision.strftime('%Y-%m-%d')}|TOTAL:{boleta.monto_total}"
+        
+        qr = qrcode.QRCode(version=1, box_size=5, border=1)
+        qr.add_data(texto_qr)
+        qr.make(fit=True)
+        img_qr = qr.make_image(fill='black', back_color='white')
+        
+        # Convertir QR a Base64 para incrustarlo en el HTML sin guardar archivo temporal
+        buffer_qr = io.BytesIO()
+        img_qr.save(buffer_qr, format="PNG")
+        qr_b64 = base64.b64encode(buffer_qr.getvalue()).decode()
+
+        # 3. Renderizar HTML a PDF
+        context = {
+            'boleta': boleta,
+            'qr_b64': qr_b64
+        }
+        html_string = render_to_string('reportes/boleta_pdf.html', context)
+        
+        # Generar bytes del PDF
+        pdf_file = HTML(string=html_string).write_pdf()
+
+        # 4. Guardar PDF en el modelo
+        filename = f"boleta_{boleta.id}_{boleta.mes}_{boleta.ano}.pdf"
+        # ContentFile permite guardar bytes directamente en un FileField
+        boleta.pdf_boleta.save(filename, ContentFile(pdf_file), save=True)
+
+        # 5. Enviar Correo Electrónico
+        email_cliente = boleta.cliente.usuario.email
+        subject = f"Su Boleta de Agua Disponible - {boleta.mes}/{boleta.ano}"
+        body = f"""
+        Estimado Cliente,
+        
+        Adjuntamos su boleta correspondiente al periodo {boleta.mes}/{boleta.ano}.
+        
+        Total a pagar: ${boleta.monto_total}
+        
+        Atentamente,
+        Equipo {boleta.empresa.nombre}
+        """
+        
+        email = EmailMessage(
+            subject,
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            [email_cliente],
+        )
+        # Adjuntar el PDF generado
+        email.attach(filename, pdf_file, 'application/pdf')
+        email.send()
+
+        messages.success(request, f"Boleta #{boleta.id} generada y enviada a {email_cliente} correctamente.")
+
+    except Exception as e:
+        messages.error(request, f"Error al procesar la boleta: {e}")
+        print(e)
+
+    # Redirigir de vuelta al detalle de la boleta o lista
+    return redirect('empresa_boleta_detalle', boleta_id=boleta.id)
