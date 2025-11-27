@@ -115,25 +115,15 @@ def facturacion_view(request):
             for lectura_actual in lecturas:
                 if prev_lectura:
                     duration_sec = (lectura_actual.timestamp - prev_lectura.timestamp).total_seconds()
-                    #Si el tiempo es 0, negativo, o muy grande (ej. sensor se apagó 1 día),
-                    #no podemos calcular el volumen de forma fiable.
-                    #Asumimos un máximo de 5 minutos (300 seg) entre lecturas válidas.
                     if duration_sec <= 0 or duration_sec > 300:
                         prev_lectura = lectura_actual
                         continue
-                    #Convertir la duración a MINUTOS
                     duration_min = duration_sec / 60.0
-                    #Calcular el volumen de este "tramo".
-                    #Usamos el caudal (L/min) de la lectura anterior
-                    #y lo multiplicamos por el tiempo (min) transcurrido.
-                    #(Caudal * Tiempo = Volumen)
                     volumen_tramo = prev_lectura.valor_flujo * duration_min
                     total_litros += volumen_tramo
                 
                 prev_lectura = lectura_actual
-            #Convertir Litros a Metros Cúbicos
             consumo_m3 = total_litros / 1000.0
-            #Aplicar Lógica de Tramos (SISS)
             monto_consumo = 0
             if consumo_m3 <= tarifa_activa.limite_tramo_1:
                 monto_consumo = consumo_m3 * tarifa_activa.valor_tramo_1
@@ -144,7 +134,7 @@ def facturacion_view(request):
                                 (consumo_tramo_2 * tarifa_activa.valor_tramo_2)
 
             monto_consumo = round(monto_consumo)
-            #Calcular Total (SISS + SII)
+
             monto_neto = tarifa_activa.cargo_fijo + monto_consumo
             monto_iva = round(monto_neto * tarifa_activa.iva)
             monto_total = monto_neto + monto_iva
