@@ -18,6 +18,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from weasyprint import HTML
+from gestorUser.forms import LimiteMensualForm
 
 @login_required
 def reportes_pagina(request):
@@ -270,9 +271,27 @@ def registrar_pago_view(request, boleta_id):
     
 @login_required
 def reglas_lista_view(request):
-    """(R) Listar todas las reglas del usuario"""
-    reglas = ReglaAlerta.objects.filter(usuario=request.user.usuario)
-    return render(request, 'reportes/reglas_lista.html', {'reglas': reglas})
+    """
+    (R) Centro de Control de Seguridad:
+    Muestra el Límite Global Mensual (editable) Y la lista de reglas personalizadas.
+    """
+    usuario = request.user.usuario
+    
+    if request.method == 'POST' and 'submit_limite_global' in request.POST:
+        form_limite = LimiteMensualForm(request.POST, instance=usuario)
+        if form_limite.is_valid():
+            form_limite.save()
+            messages.success(request, 'Límite Mensual Global actualizado correctamente.')
+            return redirect('reglas_lista')
+    else:
+        form_limite = LimiteMensualForm(instance=usuario)
+    reglas = ReglaAlerta.objects.filter(usuario=usuario).order_by('-activa', 'hora_inicio')
+
+    context = {
+        'reglas': reglas,
+        'form_limite': form_limite
+    }
+    return render(request, 'reportes/reglas_lista.html', context)
 
 @login_required
 def reglas_crear_view(request):
