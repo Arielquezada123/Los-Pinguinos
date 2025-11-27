@@ -9,6 +9,12 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libssl-dev \
     libpcre2-dev \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libxcb1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar e instalar dependencias Python
