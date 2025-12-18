@@ -1,0 +1,141 @@
+{% extends "base/base_dashboard.html" %}
+
+{% block title %}Centro de Seguridad{% endblock %}
+
+{% block dashboard_content %}
+<div class="title-wrapper pt-30 mb-20 d-flex justify-content-between align-items-center">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <h2>Centro de Seguridad y Alertas</h2>
+        <p class="text-sm text-gray">Configura tus límites globales y reglas específicas de detección.</p>
+      </div>
+    </div>
+    <a href="{% url 'reglas_crear' %}" class="btn btn-primary">
+      <i class="lni lni-plus"></i> Nueva Regla Personalizada
+    </a>
+</div>
+
+<div class="row">
+    
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+        <div class="card-style mb-30 position-relative" style="border-left: 5px solid #4a6cf7;">
+            <span class="position-absolute top-0 end-0 m-3 badge bg-primary">
+                SIEMPRE ACTIVO
+            </span>
+
+            <div class="icon-text d-flex align-items-center mb-10">
+                <div class="icon text-primary fs-2 me-2">
+                    <i class="lni lni-layers"></i>
+                </div>
+                <h5 class="mb-0">Límite Mensual Global</h5>
+            </div>
+            
+            <p class="text-sm mb-20 text-gray">
+                Regla maestra que protege tu presupuesto mensual total.
+            </p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="alert-config-detail p-3 rounded mb-20" style="background: rgba(74, 108, 247, 0.1) !important; border: 1px solid rgba(74, 108, 247, 0.2);">
+                    <label class="text-sm fw-bold text-primary mb-1">Límite Máximo (Litros/Mes)</label>
+                    <div class="input-group input-group-sm">
+                        {{ form_limite.limite_consumo_mensual }}
+                        <button type="submit" name="submit_limite_global" class="btn btn-primary btn-sm" title="Guardar cambios">
+                            <i class="lni lni-checkmark"></i>
+                        </button>
+                    </div>
+                    <small class="text-xs text-gray mt-2 d-block">
+                        Se generará una alerta crítica si tu consumo acumulado supera este valor.
+                    </small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% for regla in reglas %}
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+        <div class="card-style mb-30 position-relative">
+            <span class="position-absolute top-0 end-0 m-3 badge {% if regla.activa %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if regla.activa %}ACTIVA{% else %}PAUSADA{% endif %}
+            </span>
+
+            <div class="icon-text d-flex align-items-center mb-10">
+                <div class="icon {% if regla.activa %}text-success{% else %}text-secondary{% endif %} fs-2 me-2">
+                    <i class="lni lni-shield"></i>
+                </div>
+                <h5 class="mb-0">{{ regla.nombre }}</h5>
+            </div>
+
+            <p class="text-sm mb-20 text-gray">
+                {% if regla.dispositivo %}
+                    <i class="lni lni-sensor"></i> {{ regla.dispositivo.nombre }}
+                {% else %}
+                    <i class="lni lni-world"></i> Todos los sensores
+                {% endif %}
+            </p>
+            
+            <div class="alert-config-detail p-3 rounded mb-20" style="background: rgba(255,255,255,0.05) !important;">
+                <ul class="list-unstyled mb-0 text-sm">
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span><i class="lni lni-timer"></i> Horario:</span>
+                        <strong>{{ regla.hora_inicio|time:"H:i" }} - {{ regla.hora_fin|time:"H:i" }}</strong>
+                    </li>
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span><i class="lni lni-drop"></i> Flujo Máx:</span>
+                        <strong class="text-warning">> {{ regla.flujo_maximo }} L/min</strong>
+                    </li>
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span><i class="lni lni-hourglass"></i> Duración:</span>
+                        <strong>{{ regla.duracion_minima }} min</strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span><i class="lni lni-envelope"></i> Email:</span>
+                        {% if regla.enviar_email %}
+                            <span class="text-success"><i class="lni lni-checkmark-circle"></i> Sí</span>
+                        {% else %}
+                            <span class="text-muted">No</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="action-buttons d-flex justify-content-between gap-2">
+                <a href="{% url 'reglas_editar' regla.id %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                    <i class="lni lni-pencil"></i> Editar
+                </a>
+                <a href="{% url 'reglas_eliminar' regla.id %}" class="btn btn-outline-danger btn-sm flex-grow-1">
+                    <i class="lni lni-trash-can"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+        <a href="{% url 'reglas_crear' %}" class="card-style mb-30 d-flex flex-column align-items-center justify-content-center h-100 text-center text-decoration-none" style="border: 2px dashed #444; background: transparent; min-height: 280px; transition: all 0.3s;">
+            <div class="icon text-primary mb-3" style="font-size: 3rem; opacity: 0.5;">
+                <i class="lni lni-circle-plus"></i>
+            </div>
+            <h5 class="text-gray mb-1">Agregar Nueva Regla</h5>
+            <p class="text-sm text-muted">Detectar fugas, horarios prohibidos, etc.</p>
+        </a>
+    </div>
+
+</div>
+
+<style>
+    a.card-style:hover {
+        border-color: #4a6cf7 !important;
+        background: rgba(74, 108, 247, 0.05) !important;
+        transform: translateY(-5px);
+    }
+    .input-group-sm .form-control {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .input-group-sm .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+</style>
+{% endblock %}

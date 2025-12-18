@@ -22,14 +22,14 @@
     </div>
   </div>
 
-  <div class="card bg-dark mb-4" style="border: 1px solid rgba(255, 255, 255, 0.1);">
-    <div class="card-header py-3 bg-dark" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-        <h6 class="m-0 font-weight-bold text-light">Historial de Consumo Reciente</h6>
+  <div class="card mb-30">
+    <div class="card-header py-3 border-bottom border-secondary">
+        <h6 class="m-0 font-weight-bold text-white">Historial de Consumo Reciente</h6>
     </div>
     
-    <div class="card-body" style="padding: 0;">
+    <div class="card-body p-0">
         <div class="activity-feed" style="max-height: 400px; overflow-y: auto;" id="historial-feed-container">
-            <div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">
+            <div class="activity-item p-4 text-medium justify-content-center">
                 Cargando historial...
             </div>
         </div>
@@ -128,7 +128,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         
-        // --- Fetch para los GRÁFICOS en vivo (SIN CAMBIOS) ---
+        // --- Fetch para los GRÁFICOS en vivo ---
         fetch("{% url 'api_inicio_data' %}")
             .then(response => response.json())
             .then(initialData => {
@@ -165,7 +165,7 @@
                 container.innerHTML = ''; // Limpiar "Cargando..."
     
                 if (data.length === 0) {
-                    container.innerHTML = '<div class="activity-item" style="padding: 1.25rem; color: #adb5bd;">No hay datos históricos.</div>';
+                    container.innerHTML = '<div class="activity-item text-medium justify-content-center">No hay datos históricos.</div>';
                     return;
                 }
 
@@ -175,7 +175,9 @@
 
                     const itemHTML = `
                         <div class="activity-item">
-                            <i class="icon lni lni-bolt-alt"></i> 
+                            <div class="icon">
+                                <i class="lni lni-bolt-alt"></i>
+                            </div>
                             <div class="text-content">
                                 <span class="sensor-name">${lectura.sensor_nombre}</span>
                                 <span class="timestamp">${tiempo}</span>
@@ -189,7 +191,7 @@
             .catch(error => {
                 console.error('Error en fetch historial:', error);
                 const container = document.getElementById('historial-feed-container');
-                container.innerHTML = '<div class="activity-item text-danger" style="padding: 1.25rem;">No se pudo cargar el historial.</div>';
+                container.innerHTML = '<div class="activity-item text-danger justify-content-center">No se pudo cargar el historial.</div>';
             });
     });
 

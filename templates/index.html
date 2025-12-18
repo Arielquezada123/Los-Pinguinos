@@ -6,7 +6,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inicio</title>
+  <title>Document</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,26 +25,21 @@
 
 {% block contenido %}
 
-<!-- Portada Premium -->
+<!-- Portada -->
 <div style="position: relative; width: 100%; height: 100vh; overflow: hidden;">
-  <!-- Imagen de fondo con overlay gradiente -->
-  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(33, 150, 243, 0.3) 0%, rgba(140, 16, 242, 0.3) 100%); z-index: 1;"></div>
+  <!-- Imagen de fondo -->
   <img src="{% static 'portada2.jpg' %}" 
-       style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.85);">
-
-  <!-- Partículas flotantes decorativas -->
-  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;">
-    <div style="position: absolute; top: 20%; left: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(33, 150, 243, 0.15) 0%, transparent 70%); border-radius: 50%; animation: float 8s ease-in-out infinite;"></div>
-    <div style="position: absolute; top: 60%; right: 15%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(140, 16, 242, 0.15) 0%, transparent 70%); border-radius: 50%; animation: float 10s ease-in-out infinite reverse;"></div>
-  </div>
+       style="width: 100%; height: 100%; object-fit: cover;">
 
   <!-- Olas animadas -->
   <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none" 
-       style="position:absolute; bottom:0; width:100%; height:200px; z-index: 3;">
+       style="position:absolute; bottom:0; width:100%; height:200px;">
     <defs>
+      <!-- Path seamless para la ola -->
       <path id="wave-path" d="M0,160 C360,200 1080,120 1440,160 L1440,320 L0,320 Z"></path>
     </defs>
 
+    <!-- Olas superpuestas -->
     <g class="wave wave1">
       <use xlink:href="#wave-path" x="0" y="0" fill="rgba(255,255,255,0.7)"></use>
       <use xlink:href="#wave-path" x="1440" y="0" fill="rgba(255,255,255,0.7)"></use>
@@ -52,92 +47,62 @@
     </g>
 
     <g class="wave wave2">
-      <use xlink:href="#wave-path" x="0" y="20" fill="rgba(255,255,255,0.5)"></use>
-      <use xlink:href="#wave-path" x="1440" y="20" fill="rgba(255,255,255,0.5)"></use>
+      <use xlink:href="#wave-path" href="#wave-path" x="0" y="20" fill="rgba(255,255,255,0.5)"></use>
+      <use xlink:href="#wave-path" href="#wave-path" x="1440" y="20" fill="rgba(255,255,255,0.5)"></use>
     </g>
 
     <g class="wave wave3">
       <use xlink:href="#wave-path" x="0" y="40" fill="#ffffff"></use>
       <use xlink:href="#wave-path" x="1440" y="40" fill="#ffffff"></use>
     </g>
+
   </svg>
 
-  <!-- Contenido centrado con glassmorphism -->
-  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 4; max-width: 90%; width: 800px;">
+  <!-- Icono -->
+  <svg id="action-help" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <path id="qMark" d="M10 19h3v3h-3v-3m2-17c5.35.22 7.68 5.62 4.5 9.67-.83 1-2.17 1.66-2.83 2.5C13 15 13 16 13 17h-3c0-1.67 0-3.08.67-4.08.66-1 2-1.59 2.83-2.25C15.92 8.43 15.32 5.26 12 5a3 3 0 0 0-3 3H6a6 6 0 0 1 6-6z"></path>
+    </defs>
+    <use xlink:href="#qMark"/>
+  </svg>
+
+
+
+  <!-- Contenido centrado -->
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
     <h1 class="animated-title" data-text="Bienvenido a la era TI">
       Bienvenido a la era TI
     </h1>
-    <p style="font-size: clamp(1.2rem, 3vw, 1.8rem); font-family: 'Inter', sans-serif; font-weight: 300; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); margin-top: 20px; line-height: 1.6; letter-spacing: 0.5px;">
-      Monitoreo inteligente de agua en tiempo real<br>
-      <span style="display: inline-block; margin-top: 10px; padding: 8px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.3); font-size: 0.9em;">✨ Tecnología IoT Avanzada</span>
+    <p style="font-size: 1.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
+      Monitoreo de agua inteligente
     </p>
-    
-    <!-- Scroll indicator -->
-    <div style="position: absolute; bottom: -200px; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite;">
-      <svg width="30" height="50" viewBox="0 0 30 50" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.7;">
- 
-      </svg>
-    </div>
   </div>
 </div>
 
-<style>
-  @keyframes float {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -30px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-  }
-  
-  @keyframes bounce {
-    0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, 10px); }
-  }
-  
-  @keyframes scrollDot {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(20px); opacity: 0; }
-  }
-</style>
-
 <!-- Sección About -->
-<section id="acerca" style="padding: 80px 0;" class="about section about-bg">
-<div class="container description-section">
+<section id="acerca" style="margin-bottom: 50px;" class="about section about-bg">
+<div class="container description-section" style="margin-bottom: 50px;">
   <div class="row align-items-xl-center gy-5">
 
-    <!-- Columna izquierda - Descripción principal -->
+    <!-- Columna izquierda -->
     <div class="col-xl-5 left-box">
-      <div class="icon-box rounded p-5 shadow-sm" style="background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%); border: 2px solid rgba(33, 150, 243, 0.15);">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, hsl(203, 89%, 53%) 0%, hsl(286, 89%, 58%) 100%); border-radius: 50px; margin-bottom: 20px;">
-          <span style="color: white; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.9rem; letter-spacing: 1px;">💧 HIDRONET</span>
-        </div>
-        <h2 style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 2.2rem; color: #1a2332; margin-bottom: 20px; line-height: 1.2;">Dispositivo de Monitorización de Agua Inteligente</h2>
-        <p style="text-align: justify; color: hsl(220, 13%, 40%); line-height: 1.8; margin-bottom: 15px;">
+      <div class="icon-box rounded bg-light p-4 shadow-sm">
+        <h2>Dispositivo de Monitorización de Agua Inteligente</h2>
+        <p style="text-align: justify;">
           HidroNet es un dispositivo electrónico diseñado para monitorear el consumo de agua en tiempo real proporcionando datos precisos y detallados.
         </p>
-        <p style="text-align: justify; color: hsl(220, 13%, 40%); line-height: 1.8;">
+        <p style="text-align: justify;">
           Mide el consumo de agua en metros cúbicos y ofrece un historial detallado de los consumos, facilitando la toma de decisiones informadas para un uso más eficiente del recurso.
         </p>
-        
-        <!-- Stats badges -->
-        <div style="display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 120px; padding: 15px; background: rgba(33, 150, 243, 0.08); border-radius: 12px; text-align: center;">
-            <div style="font-size: 1.8rem; font-weight: 700; color: hsl(203, 89%, 53%); font-family: 'Outfit', sans-serif;">24/7</div>
-            <div style="font-size: 0.85rem; color: hsl(220, 13%, 50%); margin-top: 5px;">Monitoreo</div>
-          </div>
-          <div style="flex: 1; min-width: 120px; padding: 15px; background: rgba(140, 16, 242, 0.08); border-radius: 12px; text-align: center;">
-            <div style="font-size: 1.8rem; font-weight: 700; color: hsl(286, 89%, 58%); font-family: 'Outfit', sans-serif;">IoT</div>
-            <div style="font-size: 0.85rem; color: hsl(220, 13%, 50%); margin-top: 5px;">Conectado</div>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Columna derecha - Características -->
+    <!-- Columna derecha -->
     <div class="col-xl-7" style="margin-bottom: 100px;">
       <div class="row gy-4 icon-boxes">
 
         <div class="col-md-6 icon-box-right">
-          <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
             <i class="bi bi-collection-play"></i>
             <h3>Usos del Dispositivo</h3>
             <p style="text-align: justify;">
@@ -147,7 +112,7 @@
         </div>
 
         <div class="col-md-6 icon-box-right">
-          <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
             <i class="bi bi-clipboard-check"></i>
             <h3>Historial de Consumo</h3>
             <p style="text-align: justify;">
@@ -157,7 +122,7 @@
         </div>
 
         <div class="col-md-6 icon-box-right">
-          <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
             <i class="bi bi-cpu-fill"></i>
             <h3>Fácil Integración</h3>
             <p style="text-align: justify;">
@@ -167,7 +132,7 @@
         </div>
 
         <div class="col-md-6 icon-box-right">
-          <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+          <div class="icon-box rounded bg-light p-4 shadow-sm">
             <i class="bi bi-database-check"></i>
             <h3>Visualización de Datos</h3>
             <p style="text-align: justify;">
@@ -181,7 +146,6 @@
 
   </div>
 </div>
-
 
 <div id="contenedor-mapa" style="
   position: relative;
@@ -214,25 +178,16 @@
     <canvas id="sensor-grafico" style="width:100%;height:200px;margin-top:15px;"></canvas>
   </div>
 </div>
-<!-- Divider con gradiente -->
-<div style="height: 2px; background: linear-gradient(90deg, transparent 0%, hsl(203, 89%, 53%) 50%, transparent 100%); margin: 60px auto; width: 80%; max-width: 600px;"></div>
-
-<div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+<div  class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
   <div class="row gy-4">
-    <div class="col-lg-12 d-flex flex-column justify-content-center align-items-center">
-      <div style="display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(140, 16, 242, 0.1) 100%); border-radius: 50px; margin-bottom: 15px; border: 1px solid rgba(33, 150, 243, 0.2);">
-        <span style="color: hsl(203, 89%, 45%); font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.9rem; letter-spacing: 1.5px;">👥 NUESTRO EQUIPO</span>
-      </div>
-      <h3 style="text-align: center; margin-bottom: 20px; margin-top: 10px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: clamp(2rem, 4vw, 3rem); color: #1a2332; position: relative; display: inline-block;">
-        Sobre Nosotros
-        <div style="position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: linear-gradient(135deg, hsl(203, 89%, 53%) 0%, hsl(286, 89%, 58%) 100%); border-radius: 2px;"></div>
-      </h3>
+    <div class="col-lg-12 d-flex flex-column justify-content-center">
+      <h3 style="text-align: center; margin-bottom: 20px; margin-top: 20px;">Sobre Nosotros</h3>
     </div>
   </div>
 </div>
 
 <!-- Imagen + descripción -->
-<div style="margin-bottom: 100px; margin-top: 60px;" class="container description-section">
+<div style="margin-bottom: 70px;" class="container description-section" style="margin-bottom: 50px;">
   <div class="row gy-4 align-items-center features-item">
 
     <!-- Imagen -->
@@ -240,7 +195,7 @@
       <div class="animated-bg">
         <img style="border-radius: 25px;" src="https://www.elteclado.com.ar/fotos/2023/03/22_porque-celebra-dia-mundial-agua.jpg" 
              class="img-fluid section-img" alt="Imagen Acerca de Nosotros">
-        <div class="gradient-overlay"></div>
+        <div class="gradient-overlay "></div>
       </div>
     </div>
 
@@ -273,24 +228,13 @@
   </div>
 </div>
 
-<!-- Divider -->
-<div style="height: 2px; background: linear-gradient(90deg, transparent 0%, hsl(286, 89%, 58%) 50%, transparent 100%); margin: 80px auto; width: 80%; max-width: 600px;"></div>
-
 <div class="container" style="margin-bottom: 150px;">
-  <div style="text-align: center; margin-bottom: 60px;">
-    <div style="display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(140, 16, 242, 0.1) 100%); border-radius: 50px; margin-bottom: 15px; border: 1px solid rgba(140, 16, 242, 0.2);">
-      <span style="color: hsl(286, 89%, 58%); font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.9rem; letter-spacing: 1.5px;">⚡ BENEFICIOS</span>
-    </div>
-    <h3 style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: clamp(2rem, 4vw, 2.8rem); color: #1a2332; position: relative; display: inline-block;">
-      ¿Por qué elegir HidroNet?
-      <div style="position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 100px; height: 4px; background: linear-gradient(135deg, hsl(203, 89%, 53%) 0%, hsl(286, 89%, 58%) 100%); border-radius: 2px;"></div>
-    </h3>
-  </div>
-  <div style="margin-bottom: 50px;" class="row gy-3">
+  <h3 style="text-align: center;">¿Por qué elegir HidroNet?</h3>
+  <div style="margin-bottom: 50px;"class="row gy-3">
 
     <!-- Columna 1 -->
     <div class="col-md-6 col-lg-4">
-      <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+      <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
         <i class="bi bi-droplet text-primary icon1" style="font-size: 40px;"></i>
         <h3>Medición en Tiempo Real</h3>
         <p style="text-align: justify;">
@@ -301,7 +245,7 @@
 
     <!-- Columna 2 -->
     <div class="col-md-6 col-lg-4">
-      <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+      <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
         <i class="bi bi-bar-chart-line text-primary icon2" style="font-size: 40px;"></i>
         <h3>Historial Detallado</h3>
         <p style="text-align: justify;">
@@ -312,7 +256,7 @@
 
     <!-- Columna 3 -->
     <div class="col-md-6 col-lg-4">
-      <div class="icon-box rounded p-4 shadow-sm text-center h-100">
+      <div class="icon-box rounded bg-light p-4 shadow-sm text-center h-100">
         <i class="bi bi-gear-fill text-primary icon3" style="font-size: 40px;"></i>
         <h3>Ajustes Personalizados</h3>
         <p style="text-align: justify;">
@@ -327,26 +271,8 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-  (function() {
-    // 1. Definimos rutas estáticas de Django
-    var iconRetinaUrl = "{% static 'dist/images/marker-icon-2x.png' %}";
-    var iconUrl = "{% static 'dist/images/marker-icon.png' %}";
-    var shadowUrl = "{% static 'dist/images/marker-shadow.png' %}";
 
-    // 2. Si Leaflet está cargado, aplicamos el parche INMEDIATAMENTE
-    if (typeof L !== 'undefined') {
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: iconRetinaUrl,
-        iconUrl: iconUrl,
-        shadowUrl: shadowUrl,
-      });
-      console.log("Leaflet parcheado inmediatamente en Index.");
-    }
-  })();
-</script>
-
+<!-- ====== SCRIPT DEL MAPA ====== -->
 <script>
   // --- Inicialización del mapa ---
   const map = L.map('mapa-sensores').setView([-35.5987, -71.7139], 15);
@@ -361,10 +287,9 @@
     { id: 'S-002', nombre: 'Riego Zona Sur', lat: -35.6003, lng: -71.7135 },
   ];
 
-  // ... (Resto de tu código del mapa: funciones generarLectura, historicos, etc.) ...
-  
+  // --- Funciones auxiliares ---
   function generarLectura() {
-    return (Math.random() * 1.2 + 0.2).toFixed(2); 
+    return (Math.random() * 1.2 + 0.2).toFixed(2); // entre 0.20 y 1.40
   }
 
   const historicos = {

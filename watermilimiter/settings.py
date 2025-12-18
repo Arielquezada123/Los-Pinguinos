@@ -41,12 +41,14 @@ AUTHENTICATION_BACKENDS = (
 )
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'watermilimiter.urls'
@@ -160,3 +162,7 @@ MQTT_SERVER = os.getenv('MQTT_SERVER', 'mosquitto')
 MQTT_PORT = 1883
 
 WHITENOISE_MANIFEST_STRICT = False
+
+## codigo de firma
+GTK_FOLDER = r'C:\Program Files\GTK3-Runtime Win64\bin'
+os.environ['PATH'] = GTK_FOLDER + os.pathsep + os.environ.get('PATH', '')

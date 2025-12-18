@@ -1,0 +1,26 @@
+{% extends "base/base_dashboard.html" %}
+
+{% block title %}Eliminar Regla{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center mt-50">
+    <div class="col-lg-6">
+        <div class="card-style text-center">
+            <div class="icon text-danger mb-20" style="font-size: 3rem;">
+                <i class="lni lni-warning"></i>
+            </div>
+            <h3 class="mb-15">¿Estás seguro?</h3>
+            <p class="text-gray mb-30">
+                Estás a punto de eliminar la regla de seguridad: <br>
+                <strong>"{{ regla.nombre }}"</strong>
+            </p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <a href="{% url 'reglas_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

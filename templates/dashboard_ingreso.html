@@ -3,17 +3,16 @@
 
 {% block title %}Ingreso de Dispositivo{% endblock %}
 
-{# --- Bloque 1: ESTILOS --- #}
 {% block page_styles %}
   <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
   <style>
     #mapa-ingreso {
       height: 450px; 
       width: 100%;
-      border-radius: 10px;
+      border-radius: 8px; 
       z-index: 1;
-      background-color: #555; 
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra sutil */
+      background-color: #1a233a;
+      border: 1px solid #2a3550;
     }
     
     .leaflet-container {
@@ -21,61 +20,25 @@
     }
 
     @keyframes pulse-light {
-      0% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
-      50% { background: rgba(0, 0, 0, 0.9); box-shadow: 0 0 10px rgba(0,0,0,0.9); }
-      100% { background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 5px rgba(0,0,0,0.7); }
+      0% { background: rgba(37, 99, 235, 0.8); box-shadow: 0 0 5px rgba(37, 99, 235, 0.8); }
+      50% { background: rgba(37, 99, 235, 1); box-shadow: 0 0 15px rgba(37, 99, 235, 1); }
+      100% { background: rgba(37, 99, 235, 0.8); box-shadow: 0 0 5px rgba(37, 99, 235, 0.8); }
     }
     .map-helper-text {
       position: absolute;
-      top: 10px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 0.9em;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e0e8f0;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 0.85em;
+      font-weight: 500;
       z-index: 401; 
       pointer-events: none;
-      /* ¡Aquí está el aliento de vida! */
-      animation: pulse-light 2.5s infinite ease-in-out;
-    }
-
-    
-    .form-label {
-        color: #f1f1f1;
-    }
-    
-    .mb-3 input {
-      display: block;
-      width: 100%;
-      padding: 10px 15px; 
-      font-size: 1rem;
-      font-weight: 400;
-      line-height: 1.5;
-      color: #f1f1f1;
-      background-color: #1a222a; 
-      background-clip: padding-box;
-      border: 1px solid #444;
-      appearance: none; 
-      border-radius: 8px;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-  
-    .mb-3 input:focus {
-      color: #f1f1f1;
-      background-color: #1a222a; 
-      border-color: #0825df; 
-      outline: 0;
-      
-      box-shadow: 0 0 0 0.25rem rgba(8, 37, 223, 0.3); 
-    }
-
-    
-    .mb-3 input::placeholder {
-      color: #6c757d;
-      opacity: 1;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
   </style>
 {% endblock %}
@@ -83,77 +46,85 @@
 
 {% block dashboard_content %}
   
-  <div style="margin-top: 15px;" class="card-style">
-    <div class="card-body">
-      
-      <form method="POST">
-        {% csrf_token %}
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger" role="alert">
-            {% for error in form.non_field_errors %}
-              {{ error }}
-            {% endfor %}
-          </div>
-        {% endif %}
-        
-
-        <div class="row">
-
-          <div class="col-md-5">
-            <h5 class="mb-30">Detalles del Dispositivo</h5>
-
-            <div class="mb-3">
-              <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
-              {{ form.nombre }}
-              {% if form.nombre.errors %}
-                <div class="text-danger" style="font-size: 0.9em; margin-top: 5px;">
-                  {% for error in form.nombre.errors %}
-                    {{ error }}
-                  {% endfor %}
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="mb-3">
-              <label for="{{ form.id_dispositivo_mqtt.id_for_label }}" class="form-label">{{ form.id_dispositivo_mqtt.label }}</label>
-              {{ form.id_dispositivo_mqtt }}
-              {# --- INICIO DE LA MODIFICACIÓN (Error Específico) --- #}
-              {% if form.id_dispositivo_mqtt.errors %}
-                <div class="text-danger" style="font-size: 0.9em; margin-top: 5px;">
-                  {% for error in form.id_dispositivo_mqtt.errors %}
-                    {{ error }}
-                  {% endfor %}
-                </div>
-              {% endif %}
-              
-            </div>
+  <div class="row justify-content-center mt-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg">
+        <div class="card-header bg-transparent border-bottom border-secondary py-3">
+            <h5 class="mb-0 text-white"><i class="lni lni-plus me-2"></i>Nuevo Dispositivo</h5>
+        </div>
+        <div class="card-body p-4">
+          
+          <form method="POST" id="ingresoForm">
+            {% csrf_token %}
             
-          </div>
-
-          <div class="col-md-7">
-            <h5 class="mb-30">Ubicación</h5>
-            <div style="position: relative;">
-              <div id="mapa-ingreso"></div>
-              <div class="map-helper-text">
-                Haga clic en el mapa para fijar la ubicación
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                  <i class="lni lni-warning me-2"></i>{{ error }}
+                {% endfor %}
               </div>
+            {% endif %}
+            
+
+            <div class="row g-4">
+
+              <div class="col-lg-4">
+                <h6 class="text-medium mb-3 text-uppercase ls-1" style="letter-spacing: 1px; font-size: 0.75rem;">Información General</h6>
+                
+                <div class="mb-4">
+                  <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre del Sensor</label>
+                  {{ form.nombre }}
+                  {% if form.nombre.errors %}
+                    <div class="text-danger small mt-1">
+                      {% for error in form.nombre.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  <div class="form-text text-muted small">Asigna un nombre identificable (ej. "Riego Norte").</div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="{{ form.id_dispositivo_mqtt.id_for_label }}" class="form-label">ID MQTT</label>
+                  {{ form.id_dispositivo_mqtt }}
+                  {% if form.id_dispositivo_mqtt.errors %}
+                    <div class="text-danger small mt-1">
+                      {% for error in form.id_dispositivo_mqtt.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  <div class="form-text text-muted small">El identificador único configurado en el hardware.</div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-5">
+                    <button type="submit" class="btn btn-primary py-2">
+                        <i class="lni lni-save me-2"></i>Guardar Sensor
+                    </button>
+                </div>
+
+              </div>
+
+              <div class="col-lg-8">
+                <h6 class="text-medium mb-3 text-uppercase ls-1" style="letter-spacing: 1px; font-size: 0.75rem;">Ubicación Geográfica</h6>
+                <div style="position: relative;">
+                  <div id="mapa-ingreso"></div>
+                  <div class="map-helper-text">
+                    <i class="lni lni-pointer me-1"></i> Haga clic en el mapa para fijar la ubicación
+                  </div>
+                </div>
+              </div>
+
+            </div> 
+
+            <div style="display: none;">
+              {{ form.latitud }}
+              {{ form.longitud }}
             </div>
-          </div>
 
-        </div> 
-
-        <div style="display: none;">
-          {{ form.latitud }}
-          {{ form.longitud }}
+          </form>
         </div>
-
-        <div class="row mt-30">
-          <div class="col-12">
-            <button type="submit" class="btn-artista-azul">Guardar sensor</button>
-          </div>
-        </div>
-
-      </form>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -164,21 +135,22 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
 
-      // --- 1. Obtener los campos OCULTOS ---
+      const formInputs = document.querySelectorAll('#ingresoForm input[type="text"], #ingresoForm input[type="number"]');
+      formInputs.forEach(input => {
+          input.classList.add('form-control');
+      });
+
       const latInput = document.getElementById('{{ form.latitud.id_for_label }}');
       const lonInput = document.getElementById('{{ form.longitud.id_for_label }}');
 
-      // --- 2. Inicializar el Mapa ---
       const map = L.map('mapa-ingreso').setView([-35.6751, -71.5430], 6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
 
-      // --- 3. Inicializar el Marcador (Marker) ---
       let marker = L.marker([0, 0], { draggable: true }).addTo(map);
       marker.setOpacity(0); 
 
-      // --- 4. Clic en el Mapa ---
       map.on('click', function(e) {
         const latlng = e.latlng;
         latInput.value = latlng.lat.toFixed(6);
@@ -187,7 +159,6 @@
         map.panTo(latlng);
       });
 
-      // --- 5. Arrastrar el Marcador ---
       marker.on('dragend', function(e) {
         const latlng = marker.getLatLng();
         latInput.value = latlng.lat.toFixed(6);
@@ -195,7 +166,6 @@
         map.panTo(latlng);
       });
 
-      // --- 6. Actualizar si se escribe (Aunque están ocultos, es buena práctica) ---
       function actualizarMapaDesdeInputs() {
         const lat = parseFloat(latInput.value);
         const lon = parseFloat(lonInput.value);
@@ -208,7 +178,6 @@
       latInput.addEventListener('change', actualizarMapaDesdeInputs);
       lonInput.addEventListener('change', actualizarMapaDesdeInputs);
       
-      // --- 7. Carga inicial (si el form viene con datos por error/edición) ---
       if (latInput.value && lonInput.value) {
         actualizarMapaDesdeInputs();
       }

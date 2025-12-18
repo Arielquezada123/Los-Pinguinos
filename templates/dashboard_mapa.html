@@ -6,12 +6,22 @@
 {% block page_styles %}
   <link rel="stylesheet" href="{% static 'dist/leaflet.css' %}" />
   <style>
+    /* Override container padding for full width map on this page only */
+    .main-content .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Ensure the section doesn't add extra padding if possible, 
+       though .section usually has padding-top. We can keep that. */
+
     #mapa-container {
-      height: 600px;
+      height: 85vh; /* Occupy most of the vertical space */
       width: 100%;
-      border-radius: 10px;
+      border-radius: 0; /* No rounded corners */
       z-index: 1; 
     }
+    
     .sensor-popup-content h4 {
         margin-top: 0;
         font-size: 1.1em;
@@ -39,11 +49,9 @@
 
 
 {% block dashboard_content %}
-  <div class="row" style="margin-top: 10px;">
+  <div class="row g-0">
     <div class="col-12">
-      <div class="card-style">
         <div id="mapa-container"></div>
-      </div>
     </div>
   </div>
 {% endblock %}

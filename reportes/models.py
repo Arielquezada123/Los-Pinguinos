@@ -92,3 +92,26 @@ class Boleta(models.Model):
 
     def __str__(self):
         return f"Boleta {self.folio_sii or self.id} - {self.cliente.usuario.username} ({self.mes}/{self.ano})"
+
+class ReglaAlerta(models.Model):
+    DIAS_SEMANA = [
+        ('0', 'Lunes'), ('1', 'Martes'), ('2', 'Miércoles'),
+        ('3', 'Jueves'), ('4', 'Viernes'), ('5', 'Sábado'), ('6', 'Domingo')
+    ]
+
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="reglas_alerta")
+    dispositivo = models.ForeignKey(Dispositivo, on_delete=models.CASCADE, null=True, blank=True, help_text="Si se deja vacío, aplica a todos")
+    
+    nombre = models.CharField(max_length=100, help_text="Ej: Fuga Nocturna")
+    flujo_maximo = models.FloatField(help_text="Límite de flujo permitido (L/min)")
+    duracion_minima = models.PositiveIntegerField(default=1, help_text="Minutos consecutivos que debe mantenerse el flujo alto para alertar")
+    
+    hora_inicio = models.TimeField(default="00:00")
+    hora_fin = models.TimeField(default="23:59")
+    dias_semana = models.CharField(max_length=50, default="0,1,2,3,4,5,6", help_text="Días activos (0=Lunes)")
+
+    enviar_email = models.BooleanField(default=False, help_text="Enviar correo si se rompe la regla")
+    activa = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.usuario}"
