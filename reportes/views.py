@@ -11,6 +11,7 @@ from .forms import TarifaForm, ReglaAlertaForm
 from .models import Alerta, Tarifa, Boleta, ReglaAlerta
 from gestorUser.forms import LimiteMensualForm
 import io
+import base64
 import qrcode
 import qrcode.image.svg
 import barcode
@@ -22,45 +23,62 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from weasyprint import HTML
+
 matplotlib.use('Agg')
 
 def generar_grafico_historial(cliente):
-    """Retorna el código SVG del gráfico de consumo (sin header XML)."""
-    # 1. Obtener datos
+    """
+    Genera un gráfico de barras del consumo de los últimos 6 meses.
+    Retorna: String Base64 de la imagen SVG.
+    """
+    # 1. Obtener datos (últimos 6 meses)
     boletas = Boleta.objects.filter(cliente=cliente).order_by('-ano', '-mes')[:6]
     boletas = sorted(list(boletas), key=lambda x: (x.ano, x.mes))
 
-    etiquetas = [f"{b.mes}/{str(b.ano)[2:]}" for b in boletas]
+    # Si no hay historia, no devolvemos nada
+    if not boletas:
+        return None
+
+    etiquetas = [f"{b.mes}/{str(b.ano)[2:]}" for b in boletas] # Ej: 11/25
     valores = [b.consumo_m3 for b in boletas]
 
-    if not valores: return None
-
-    # 2. Configurar gráfico
-    fig, ax = plt.subplots(figsize=(5, 2)) 
+    # 2. Configurar el gráfico (Tamaño ideal para la boleta)
+    fig, ax = plt.subplots(figsize=(6, 2.5)) 
+    
+    # Barras en azul corporativo
     barras = ax.bar(etiquetas, valores, color='#021446', width=0.5)
 
-    ax.set_title('Historial de Consumo (m³)', fontsize=9, color='#333')
+    # Estilos limpios (sin bordes innecesarios)
+    ax.set_title('Historial de Consumo Últimos 6 Meses (m³)', fontsize=9, color='#021446', weight='bold')
     ax.tick_params(axis='both', labelsize=7)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_color('#ccc')
+    ax.spines['bottom'].set_color('#ccc')
     
+    # Etiqueta de valor sobre cada barra
     for bar in barras:
         height = bar.get_height()
-        ax.annotate(f'{height:.1f}', xy=(bar.get_x() + bar.get_width()/2, height),
-                    xytext=(0, 2), textcoords="offset points", ha='center', va='bottom', fontsize=6)
+        ax.annotate(f'{height:.1f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3), textcoords="offset points",
+                    ha='center', va='bottom', fontsize=6)
 
-    # 3. Generar SVG
+    # 3. Guardar como SVG en memoria
     buffer = io.BytesIO()
     plt.tight_layout()
     plt.savefig(buffer, format='svg', transparent=True)
     plt.close(fig)
     
-    svg_raw = buffer.getvalue().decode('utf-8')
-    svg_clean = svg_raw[svg_raw.find('<svg'):] 
-    return svg_clean
+    # 4. Convertir a Base64 para incrustar en HTML
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def generar_codigo_barras(boleta):
-    """Retorna el código SVG del código de barras de pago (sin header XML)."""
+    """
+    Genera el código de barras lineal para pago (Code128).
+    Retorna: String Base64 de la imagen SVG.
+    """
+    # Identificador único para pagar
     codigo_valor = f"{boleta.id:06d}{boleta.monto_total}" 
     
     writer = SVGWriter()
@@ -68,11 +86,10 @@ def generar_codigo_barras(boleta):
     code_img = CODE(codigo_valor, writer=writer)
     
     buffer = io.BytesIO()
-    code_img.write(buffer, options={"write_text": True, "font_size": 6, "text_distance": 2})
+    # Generamos solo las barras (sin texto abajo, el texto lo ponemos en HTML)
+    code_img.write(buffer, options={"write_text": False, "quiet_zone": 1.0})
     
-    svg_raw = buffer.getvalue().decode('utf-8')
-    svg_clean = svg_raw[svg_raw.find('<svg'):]
-    return svg_clean
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 # ==============================================================================
 #  VISTAS DEL SISTEMA
@@ -273,10 +290,6 @@ def reglas_eliminar_view(request, regla_id):
         return redirect('reglas_lista')
     return render(request, 'reportes/reglas_confirm_delete.html', {'regla': regla})
 
-# ==============================================================================
-#  VISTA PRINCIPAL GENERACIÓN BOLETA (SVG LIMPIO)
-# ==============================================================================
-
 @login_required
 def generar_y_enviar_boleta(request, boleta_id):
     boleta = get_object_or_404(Boleta, id=boleta_id)
@@ -287,48 +300,44 @@ def generar_y_enviar_boleta(request, boleta_id):
         return redirect('empresa_facturacion')
 
     try:
-        # 1. TIMBRE SII (QR SVG)
+        # 1. QR (Timbre SII) - Formato SVG Base64
         texto_qr = f"<TED><RE>{boleta.empresa.rut_empresa}</RE><F>{boleta.id}</F><MNT>{boleta.monto_total}</MNT></TED>"
-        
-        factory = qrcode.image.svg.SvgPathImage
+        factory = qrcode.image.svg.SvgImage
         img_qr = qrcode.make(texto_qr, image_factory=factory, box_size=5, border=1)
-        
         buffer_qr = io.BytesIO()
         img_qr.save(buffer_qr)
-        # Limpieza
-        qr_svg_raw = buffer_qr.getvalue().decode('utf-8')
-        qr_svg = qr_svg_raw[qr_svg_raw.find('<svg'):]
+        qr_b64 = base64.b64encode(buffer_qr.getvalue()).decode('utf-8')
 
-        # 2. GRÁFICO (SVG)
-        grafico_svg = generar_grafico_historial(boleta.cliente)
+        # 2. GRÁFICO DE BARRAS (Historial) - Formato SVG Base64
+        grafico_b64 = generar_grafico_historial(boleta.cliente)
 
-        # 3. CÓDIGO DE BARRAS PAGO (SVG)
-        barcode_svg = generar_codigo_barras(boleta)
+        # 3. CÓDIGO DE BARRAS (Pago) - Formato SVG Base64
+        barcode_b64 = generar_codigo_barras(boleta)
 
-        # 4. PDF
+        # 4. Generar PDF (Renderizamos Template HTML)
         context = {
             'boleta': boleta,
-            'qr_svg': qr_svg,
-            'grafico_svg': grafico_svg,
-            'barcode_svg': barcode_svg 
+            'qr_b64': qr_b64,
+            'grafico_b64': grafico_b64,
+            'barcode_b64': barcode_b64 
         }
         html_string = render_to_string('reportes/boleta_pdf.html', context)
         pdf_file = HTML(string=html_string).write_pdf()
 
-        # 5. Guardar
+        # 5. Guardar Archivo
         filename = f"boleta_{boleta.id}_{boleta.mes}_{boleta.ano}.pdf"
         boleta.pdf_boleta.save(filename, ContentFile(pdf_file), save=True)
 
-        # 6. Email
+        # 6. Enviar Correo
         email_cliente = boleta.cliente.usuario.email
         subject = f"Boleta Disponible - {boleta.mes}/{boleta.ano}"
-        body = f"Estimado cliente, adjuntamos su boleta. Total: ${boleta.monto_total}"
+        body = f"Estimado cliente, adjuntamos su boleta. Total a pagar: ${boleta.monto_total}"
         
         email = EmailMessage(subject, body, settings.DEFAULT_FROM_EMAIL, [email_cliente])
         email.attach(filename, pdf_file, 'application/pdf')
         email.send()
 
-        messages.success(request, f"Boleta #{boleta.id} enviada correctamente.")
+        messages.success(request, f"Boleta #{boleta.id} enviada correctamente a {email_cliente}.")
 
     except Exception as e:
         messages.error(request, f"Error: {e}")
