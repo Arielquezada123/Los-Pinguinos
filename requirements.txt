@@ -8,3 +8,4 @@ whitenoise==6.6.0
 weasyprint>=60.0
 qrcode[pil]>=7.0
 python-barcode>=0.15.1
+matplotlib>=3.7.1

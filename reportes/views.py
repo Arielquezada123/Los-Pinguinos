@@ -16,15 +16,15 @@ import qrcode
 import qrcode.image.svg
 import barcode
 from barcode.writer import SVGWriter
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from weasyprint import HTML
 
-matplotlib.use('Agg')
 
 def generar_grafico_historial(cliente):
     """
