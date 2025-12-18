@@ -6,3 +6,4 @@ paho-mqtt==1.6.1
 python-dotenv==1.0.0
 weasyprint>=60.0
 qrcode[pil]>=7.0
+python-barcode>=0.15.1

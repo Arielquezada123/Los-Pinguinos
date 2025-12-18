@@ -10,8 +10,6 @@ from django.utils import timezone
 from .forms import TarifaForm, ReglaAlertaForm 
 from .models import Alerta, Tarifa, Boleta, ReglaAlerta
 from gestorUser.forms import LimiteMensualForm
-
-# --- IMPORTS PARA PDF Y GRÁFICOS ---
 import io
 import qrcode
 import qrcode.image.svg
@@ -24,12 +22,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from weasyprint import HTML
-
 matplotlib.use('Agg')
-
-# ==============================================================================
-#  FUNCIONES AUXILIARES: GENERACIÓN DE SVG LIMPIO
-# ==============================================================================
 
 def generar_grafico_historial(cliente):
     """Retorna el código SVG del gráfico de consumo (sin header XML)."""
@@ -62,9 +55,8 @@ def generar_grafico_historial(cliente):
     plt.savefig(buffer, format='svg', transparent=True)
     plt.close(fig)
     
-    # 4. LIMPIEZA CRÍTICA: Quitamos el <?xml ...>
     svg_raw = buffer.getvalue().decode('utf-8')
-    svg_clean = svg_raw[svg_raw.find('<svg'):] # Cortamos todo lo que esté antes de <svg
+    svg_clean = svg_raw[svg_raw.find('<svg'):] 
     return svg_clean
 
 def generar_codigo_barras(boleta):
@@ -78,7 +70,6 @@ def generar_codigo_barras(boleta):
     buffer = io.BytesIO()
     code_img.write(buffer, options={"write_text": True, "font_size": 6, "text_distance": 2})
     
-    # LIMPIEZA CRÍTICA
     svg_raw = buffer.getvalue().decode('utf-8')
     svg_clean = svg_raw[svg_raw.find('<svg'):]
     return svg_clean
