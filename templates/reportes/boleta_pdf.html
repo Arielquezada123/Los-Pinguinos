@@ -29,7 +29,7 @@
         .monto { text-align: right; }
 
         /* TOTALES */
-        .tabla-totales { width: 45%; margin-left: auto; margin-top: 5px; background: #f0f0f0; border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
+        .tabla-totales { width: 100%; box-sizing: border-box; margin-top: 5px; background: #f0f0f0; border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
         .total-final { font-size: 16px; font-weight: bold; color: #021446; border-top: 2px solid #021446; padding-top: 8px; margin-top: 5px; display: block; }
 
         /* FOOTER LAYOUT */
@@ -41,11 +41,10 @@
 
         /* IMÁGENES INCRUSTADAS (CLAVE PARA WEASYPRINT) */
         .grafico-img { 
-            width: 100%; 
-            max-width: 320px; 
+            width: 350px; 
             height: auto; 
             display: block; 
-            margin-left: auto; 
+            margin: 0 auto;
             border: 1px solid #eee; 
         }
         .qr-img { 
@@ -129,7 +128,15 @@
     <!-- 4. TOTALES -->
     <table style="width: 100%; margin-bottom: 20px;">
         <tr>
-            <td width="55%"></td> 
+            <td width="55%" style="vertical-align: top; padding-right: 10px;">
+                <div class="historial-consumo">
+                    {% if grafico_b64 %}
+                        <img src="data:image/svg+xml;base64,{{ grafico_b64 }}" class="grafico-img">
+                    {% else %}
+                        <p style="font-size: 10px; color: #777;">No hay datos suficientes para mostrar el historial.</p>
+                    {% endif %}
+                </div>
+            </td> 
             <td width="45%">
                 <div class="tabla-totales">
                     <table width="100%">
@@ -146,7 +153,7 @@
     <table class="footer-table">
         <tr>
             <!-- IZQUIERDA: TIMBRE SII -->
-            <td width="40%">
+            <td width="100%">
                 <div class="timbre-box">
                     <table>
                         <tr>
@@ -161,24 +168,10 @@
                     </table>
                 </div>
             </td>
-
-            <!-- DERECHA: GRÁFICO HISTÓRICO -->
-            <td width="60%">
-                {% if grafico_b64 %}
-                    <div style="text-align: right;">
-                        <!-- Gráfico SVG en Base64 -->
-                        <img src="data:image/svg+xml;base64,{{ grafico_b64 }}" class="grafico-img">
-                    </div>
-                {% else %}
-                    <p style="text-align: right; color:#999; font-style: italic; margin-top: 20px;">
-                        Historial de consumo no disponible.
-                    </p>
-                {% endif %}
-            </td>
         </tr>
     </table>
 
-    <!-- 6. CÓDIGO DE BARRAS DE PAGO -->
+ 
     {% if barcode_b64 %}
     <div class="barcode-container">
         <p style="margin:0 0 2px 0; font-size:9px; font-weight:bold; color: #333;">CUPÓN DE PAGO PRESENCIAL</p>

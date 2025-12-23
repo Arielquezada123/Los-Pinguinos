@@ -45,14 +45,26 @@ def generar_grafico_historial(cliente):
     valores = [b.consumo_m3 for b in boletas]
 
     # 2. Configurar el gráfico (Tamaño ideal para la boleta)
-    fig, ax = plt.subplots(figsize=(6, 2.5)) 
+    fig, ax = plt.subplots(figsize=(5, 2.2)) 
     
-    # Barras en azul corporativo
-    barras = ax.bar(etiquetas, valores, color='#021446', width=0.5)
+    # Usar indices numéricos para poder fijar el ancho del eje X (siempre 6 espacios)
+    x_pos = range(len(etiquetas))
 
-    # Estilos limpios (sin bordes innecesarios)
-    ax.set_title('Historial de Consumo Últimos 6 Meses (m³)', fontsize=9, color='#021446', weight='bold')
-    ax.tick_params(axis='both', labelsize=7)
+    # Barras en azul corporativo
+    barras = ax.bar(x_pos, valores, color='#021446', width=0.5)
+
+    # Estilos limpios (sin bordes innecesarios, fuentes más grandes)
+    ax.set_title('Historial de Consumo Últimos 6 Meses (m³)', fontsize=10, color='#021446', weight='bold')
+    
+    # Configurar Ejes y Ticks
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(etiquetas)
+    ax.tick_params(axis='both', labelsize=8)
+    
+    # Fijar límites para que siempre parezca que hay espacio para 6 meses
+    # Esto evita que una sola barra ocupe todo el gráfico
+    ax.set_xlim(-0.5, 5.5) 
+
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_color('#ccc')
@@ -64,7 +76,7 @@ def generar_grafico_historial(cliente):
         ax.annotate(f'{height:.1f}',
                     xy=(bar.get_x() + bar.get_width() / 2, height),
                     xytext=(0, 3), textcoords="offset points",
-                    ha='center', va='bottom', fontsize=6)
+                    ha='center', va='bottom', fontsize=8)
 
     # 3. Guardar como SVG en memoria
     buffer = io.BytesIO()
