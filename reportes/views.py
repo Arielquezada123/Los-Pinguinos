@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from gestorUser.models import Usuario, Membresia, Organizacion
 from sensores.models import Dispositivo, LecturaSensor
-from django.db.models import Sum, Count
+from django.http import HttpResponse
+from django.db.models import Count, Sum, Q, F, DecimalField
 from django.db import transaction
 from django.contrib import messages
 from sensores.views import get_organizacion_actual
@@ -23,6 +24,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from weasyprint import HTML
+from django.db.models.functions import Coalesce
 
 matplotlib.use('Agg')
 
@@ -90,10 +92,6 @@ def generar_codigo_barras(boleta):
     code_img.write(buffer, options={"write_text": False, "quiet_zone": 1.0})
     
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
-
-# ==============================================================================
-#  VISTAS DEL SISTEMA
-# ==============================================================================
 
 @login_required
 def reportes_pagina(request):
@@ -197,7 +195,10 @@ def facturacion_view(request):
         return redirect('empresa_facturacion')
 
     periodos = Boleta.objects.filter(empresa=empresa).values('ano', 'mes').annotate(
-        total=Sum('monto_total'), count=Count('id')).order_by('-ano', '-mes')
+        total_facturado=Coalesce(Sum('monto_total'), 0, output_field=DecimalField()),
+        cantidad_boletas=Count('id')
+    ).order_by('-ano', '-mes')
+    
     return render(request, 'reportes/facturacion.html', {'periodos_facturados': periodos})
 
 @login_required
@@ -344,3 +345,55 @@ def generar_y_enviar_boleta(request, boleta_id):
         print(f"Error detallado: {e}")
 
     return redirect('empresa_boleta_detalle', boleta_id=boleta.id)
+
+
+
+@login_required
+def descargar_boleta_pdf_view(request, boleta_id):
+    """
+    Genera el PDF de la boleta en tiempo real y lo descarga en el navegador.
+    """
+    boleta = get_object_or_404(Boleta, id=boleta_id)
+    usuario = request.user.usuario
+    org = get_organizacion_actual(usuario)
+    
+    # Seguridad: Solo el cliente o la empresa dueña pueden descargarla
+    if not (boleta.cliente == usuario or boleta.empresa == org):
+        messages.error(request, "Acceso denegado.")
+        return redirect('post_login')
+
+    try:
+        # 1. Generar QR (Timbre SII)
+        texto_qr = f"<TED><RE>{boleta.empresa.rut_empresa}</RE><F>{boleta.id}</F><MNT>{boleta.monto_total}</MNT></TED>"
+        factory = qrcode.image.svg.SvgImage
+        img_qr = qrcode.make(texto_qr, image_factory=factory, box_size=5, border=1)
+        buffer_qr = io.BytesIO()
+        img_qr.save(buffer_qr)
+        qr_b64 = base64.b64encode(buffer_qr.getvalue()).decode('utf-8')
+
+        # 2. Generar Gráfico de Consumo
+        grafico_b64 = generar_grafico_historial(boleta.cliente)
+
+        # 3. Generar Código de Barras
+        barcode_b64 = generar_codigo_barras(boleta)
+
+        # 4. Renderizar el HTML a PDF
+        context = {
+            'boleta': boleta,
+            'qr_b64': qr_b64,
+            'grafico_b64': grafico_b64,
+            'barcode_b64': barcode_b64 
+        }
+        html_string = render_to_string('reportes/boleta_pdf.html', context)
+        pdf_file = HTML(string=html_string).write_pdf()
+
+        # 5. Crear la respuesta del navegador para descarga
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        filename = f"boleta_{boleta.id}_{boleta.mes}_{boleta.ano}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+
+    except Exception as e:
+        messages.error(request, f"Error al generar el PDF: {e}")
+        return redirect('empresa_boleta_detalle', boleta_id=boleta.id)

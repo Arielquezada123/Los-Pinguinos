@@ -5,6 +5,8 @@ from gestorUser.views import signUp, postlogin, limite_pagina
 from sensores import views as sensores_views
 from reportes.views import reportes_pagina
 from reportes import views as reportes_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -55,9 +57,6 @@ urlpatterns = [
     path('reglas/eliminar/<int:regla_id>/', reportes_views.reglas_eliminar_view, name='reglas_eliminar'),
     path('api/historial/grafico/', sensores_views.api_historial_agregado, name='api_historial_grafico'),
     path('boleta/<int:boleta_id>/generar-enviar/', reportes_views.generar_y_enviar_boleta, name='generar_enviar_boleta'),
+    path('empresa/boleta/<int:boleta_id>/descargar/', reportes_views.descargar_boleta_pdf_view, name='descargar_boleta_pdf'),
 
-    
-    
-
-   
 ]

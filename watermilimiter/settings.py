@@ -151,10 +151,12 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = Path("/pinguinos/staticfiles")   # coincide con volumen Docker
-
 MEDIA_URL = '/media/'
-MEDIA_ROOT = Path("/pinguinos/media")          # coincide con volumen Docker
+MEDIA_ROOT = BASE_DIR / 'media' 
+
+# Asegúrate de que STATIC_ROOT también apunte a una carpeta local si vas a usar collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

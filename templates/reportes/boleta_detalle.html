@@ -158,13 +158,13 @@
                         <span class="text-light fw-bold">Documento Electrónico Disponible</span>
                     </div>
                     <div>
-                        <a href="{{ boleta.pdf_boleta.url }}" target="_blank" class="btn btn-light btn-sm fw-bold text-primary">
-                            <i class="lni lni-download"></i> Descargar PDF
+                        <a href="{% url 'descargar_boleta_pdf' boleta.id %}" class="btn btn-light btn-sm fw-bold text-primary">
+                          <i class="lni lni-download"></i> Descargar PDF
                         </a>
                         
                         {% if request.user.usuario.membresias.all.count > 0 and boleta.empresa == request.user.usuario.membresias.first.organizacion %}
                             <a href="{% url 'generar_enviar_boleta' boleta.id %}" class="btn btn-outline-light btn-sm ms-2">
-                                <i class="lni lni-envelope"></i> Reenviar Email
+                                <i class="lni lni-envelope"></i> Regenerar PDF y Reenviar
                             </a>
                         {% endif %}
                     </div>

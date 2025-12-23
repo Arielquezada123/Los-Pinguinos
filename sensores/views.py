@@ -3,9 +3,9 @@ from django.contrib.auth.decorators import login_required
 from .models import LecturaSensor, Dispositivo 
 from .forms import DispositivoForm, LimiteDispositivoForm   
 import json
-from django.db.models.functions import TruncMonth, TruncWeek
+from django.db.models.functions import TruncMonth, TruncWeek , Coalesce
 from django.utils.html import mark_safe
-from django.db.models import OuterRef, Subquery, FloatField
+from django.db.models import OuterRef, Subquery, FloatField, DecimalField, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.forms import modelformset_factory
@@ -15,7 +15,7 @@ from gestorUser.models import Usuario, Membresia, Organizacion
 from django.db.models import Count, Max,  Sum, F
 from django.utils import timezone
 from datetime import timedelta, datetime
-from reportes.models import ReglaAlerta
+from reportes.models import ReglaAlerta, Boleta
 
 @login_required
 def historial_consumo(request):
