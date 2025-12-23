@@ -9,10 +9,10 @@ class Command(BaseCommand):
     help = 'Listener MQTT ligero que delega a SensorService'
 
     def handle(self, *args, **options):
-        BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "localhost")
+        BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "mosquitto")
         BROKER_PORT = 1883
         
-        self.stdout.write(self.style.SUCCESS(f"--- MQTT LISTENER ---"))
+        self.stdout.write(self.style.SUCCESS(f"MQTT LISTENER"))
         self.stdout.write(f"Objetivo: {BROKER_HOST}:{BROKER_PORT}")
 
         try:
